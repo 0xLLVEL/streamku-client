@@ -22,6 +22,8 @@ export function HeroCarousel({ items }: { items: any[] }) {
 
   return (
     <div className="relative h-screen w-full flex items-center overflow-hidden bg-[#0a0a0a]">
+      {/* Global edge hider */}
+      <div className="absolute inset-x-0 -bottom-4 h-64 bg-gradient-to-t from-[#0a0a0a] from-20% via-[#0a0a0a]/80 to-transparent pointer-events-none z-10" />
       {/* Sliding Track */}
       <div 
         className="flex w-full h-full transition-transform duration-1000 ease-in-out"

@@ -28,7 +28,7 @@ export default async function BrowsePage() {
 
       {/* Content Rows */}
       <div className="w-full px-8 md:px-16 lg:px-24 space-y-12 relative z-20">
-        {rows.map((row: any, idx: number) => {
+        {rows.filter((row: any) => row.title !== 'Featured').map((row: any, idx: number) => {
           if (!row.items || row.items.length === 0) return null;
           return (
             <div key={idx}>

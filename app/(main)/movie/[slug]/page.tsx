@@ -121,7 +121,6 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                 className="w-full rounded-3xl shadow-inner"
               />
             </div>
-
           </div>
         </div>
       </div>
@@ -132,8 +131,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
           <h2 className="text-2xl font-bold text-white mb-8 drop-shadow-md">Top Cast</h2>
           <DraggableList className="pb-4" innerClassName="space-x-6">
             {movie.cast.slice(0, 15).map((actor: any, index: number) => (
-              <div key={index} className="snap-start flex-shrink-0 w-36 group">
-                <div className="aspect-[2/3] rounded-2xl overflow-hidden liquid-glass mb-3">
+              <div key={index} className="snap-start flex-shrink-0 w-28 md:w-36 group">
+                <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
                   {actor.profile_path ? (
                     <img 
                       src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`} 
@@ -141,11 +140,11 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-white/30 text-sm pointer-events-none">No Image</div>
+                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-white/30 text-xs text-center p-2 pointer-events-none">No Image</div>
                   )}
                 </div>
-                <h3 className="text-white font-bold text-sm truncate drop-shadow-sm pointer-events-none">{actor.name}</h3>
-                <p className="text-white/60 text-xs truncate pointer-events-none">{actor.character}</p>
+                <h3 className="text-white font-bold text-sm truncate drop-shadow-sm text-center px-1 pointer-events-none">{actor.name}</h3>
+                <p className="text-white/50 text-xs truncate text-center px-1 pointer-events-none">{actor.character}</p>
               </div>
             ))}
           </DraggableList>
