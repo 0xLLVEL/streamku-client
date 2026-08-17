@@ -21,7 +21,7 @@ export function HeroCarousel({ items }: { items: any[] }) {
   const tmdbBaseUrl = 'https://image.tmdb.org/t/p/original';
 
   return (
-    <div className="relative h-[70vh] w-full flex items-center overflow-hidden bg-[#0a0a0a]">
+    <div className="relative h-screen w-full flex items-center overflow-hidden bg-[#0a0a0a]">
       {/* Sliding Track */}
       <div 
         className="flex w-full h-full transition-transform duration-1000 ease-in-out"

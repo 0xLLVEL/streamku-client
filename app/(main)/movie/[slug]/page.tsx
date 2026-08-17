@@ -152,6 +152,19 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         </div>
       )}
 
+      {/* More Like This */}
+      {(recommendations && recommendations.length > 0) && (
+        <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
+          <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">More Like This</h2>
+          <DraggableList className="pb-4" innerClassName="space-x-3">
+            {recommendations.map((item: any, idx: number) => (
+              <div key={item.id} className="snap-start shrink-0">
+                <PosterCard item={item} />
+              </div>
+            ))}
+          </DraggableList>
+        </div>
+      )}
     </div>
   );
 }
