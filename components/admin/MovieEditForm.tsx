@@ -376,11 +376,11 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {movie?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
-                    <div key={i} className="aspect-video bg-[#2a2a32] rounded-xl border border-white/10 overflow-hidden relative group">
+                    <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
                       <img src={`https://image.tmdb.org/t/p/w780${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
                     </div>
                   )) || (movie?.backdrop_path && (
-                    <div className="aspect-video bg-[#2a2a32] rounded-xl border border-white/10 overflow-hidden relative group">
+                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
                       <img src={`https://image.tmdb.org/t/p/w780${movie.backdrop_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
                     </div>
                   )) || (
@@ -399,11 +399,11 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                   {movie?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
-                    <div key={i} className="aspect-[2/3] bg-[#2a2a32] rounded-xl border border-white/10 overflow-hidden relative group">
+                    <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
                       <img src={`https://image.tmdb.org/t/p/w500${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
                     </div>
                   )) || (movie?.poster_path && (
-                    <div className="aspect-[2/3] bg-[#2a2a32] rounded-xl border border-white/10 overflow-hidden relative group">
+                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
                       <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
                     </div>
                   )) || (
@@ -426,7 +426,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {movie?.videos?.map((video: any) => (
-                  <div key={video.id} className="bg-[#2a2a32] rounded-xl overflow-hidden border border-white/10 flex flex-col">
+                  <div key={video.id} className="bg-[#050505] rounded-xl overflow-hidden border border-white/5 flex flex-col group hover:border-white/10 transition-colors">
                     <div className="aspect-video relative">
                       {video.site === 'YouTube' ? (
                         <iframe src={`https://www.youtube.com/embed/${video.key}`} className="w-full h-full" allowFullScreen></iframe>
@@ -457,24 +457,29 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   Add Cast Member
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-xl border border-white/5 bg-[#050505] overflow-hidden">
                 {movie?.cast?.map((person: any) => (
-                  <div key={person.id} className="bg-[#2a2a32] rounded-xl overflow-hidden border border-white/10 flex flex-col">
-                    <div className="aspect-[2/3] bg-[#1e1e24] relative">
+                  <div key={person.id} className="flex items-center gap-3 py-2.5 px-4 hover:bg-white/[0.02] transition-colors border-b border-white/5 border-r border-white/5 group">
+                    <div className="w-9 h-9 shrink-0 bg-[#1e1e24] rounded-full overflow-hidden">
                       {person.profile_path ? (
-                        <img src={`https://image.tmdb.org/t/p/w300${person.profile_path}`} className="w-full h-full object-cover" alt={person.name} />
+                        <img src={`https://image.tmdb.org/t/p/w185${person.profile_path}`} className="w-full h-full object-cover" alt={person.name} />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20">No Photo</div>
+                        <div className="w-full h-full flex items-center justify-center text-white/20 text-[9px]">N/A</div>
                       )}
                     </div>
-                    <div className="p-3">
-                      <p className="font-bold text-white text-sm truncate" title={person.name}>{person.name}</p>
-                      <p className="text-white/50 text-xs truncate" title={person.character}>{person.character}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[13px] text-white truncate" title={person.name}>{person.name}</p>
+                      <p className="text-white/40 text-[11px] truncate mt-0.5" title={person.character}>{person.character}</p>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                       <button type="button" className="text-white/30 hover:text-red-400 p-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                       </button>
                     </div>
                   </div>
                 ))}
                 {(!movie?.cast || movie.cast.length === 0) && (
-                  <p className="text-white/50 col-span-full">No cast members available.</p>
+                  <div className="col-span-full p-8 text-center text-white/50 text-sm">No cast available.</div>
                 )}
               </div>
             </div>
@@ -492,7 +497,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               </div>
               <div className="flex flex-wrap gap-3">
                 {movie?.genres?.map((genre: any) => (
-                  <div key={genre.id} className="bg-red-600/10 border border-red-500/20 text-red-500 px-4 py-2 rounded-full text-sm font-medium">
+                  <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium">
                     {genre.name}
                   </div>
                 ))}

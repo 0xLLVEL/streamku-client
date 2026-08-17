@@ -118,31 +118,38 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
           {activeTab === 'episodes' && (
             <div className="max-w-6xl animate-in fade-in duration-300">
               <h2 className="text-xl font-bold text-white mb-6">Episodes ({season.episodes?.length || 0})</h2>
-              <div className="space-y-4">
+              <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5">
                 {season.episodes?.map((episode: any) => (
-                  <div key={episode.id} className="bg-[#2a2a32] rounded-xl overflow-hidden border border-white/10 flex hover:border-white/20 transition-colors">
-                    <div className="w-48 shrink-0 bg-[#1e1e24] relative aspect-video">
+                  <div key={episode.id} className="flex items-center gap-4 py-3 px-4 hover:bg-white/[0.02] transition-colors group">
+                    <div className="w-24 shrink-0 bg-[#1e1e24] relative aspect-video rounded overflow-hidden">
                       {episode.still_path ? (
                         <img src={`https://image.tmdb.org/t/p/w300${episode.still_path}`} className="w-full h-full object-cover" alt={episode.name} />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">No Photo</div>
+                        <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px]">No Photo</div>
                       )}
-                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-0.5 rounded text-xs font-bold text-white">
-                        S{season.season_number} E{episode.episode_number}
+                    </div>
+                    <div className="flex-1 min-w-0 flex items-center justify-between gap-6">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-white truncate" title={episode.name}>
+                           <span className="text-white/40 mr-2 font-mono text-xs">S{season.season_number} E{episode.episode_number}</span>
+                           {episode.name}
+                        </p>
+                        <p className="text-white/50 text-xs mt-1 truncate">{episode.overview || 'No overview available.'}</p>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-white/40 shrink-0">
+                        {episode.runtime > 0 && <span>{episode.runtime} min</span>}
+                        {episode.air_date && <span>{episode.air_date.split('T')[0]}</span>}
                       </div>
                     </div>
-                    <div className="p-4 flex flex-col justify-center flex-1">
-                      <p className="font-bold text-white text-base truncate" title={episode.name}>{episode.name}</p>
-                      <p className="text-white/50 text-sm mt-1 line-clamp-2">{episode.overview || 'No overview available.'}</p>
-                      <div className="flex items-center gap-4 mt-3">
-                        {episode.air_date && <p className="text-white/30 text-xs">Aired: {episode.air_date.split('T')[0]}</p>}
-                        {episode.runtime > 0 && <p className="text-white/30 text-xs">{episode.runtime} min</p>}
-                      </div>
+                    <div className="opacity-0 group-hover:opacity-100 pl-4 transition-opacity flex items-center gap-2">
+                       <button type="button" className="text-white/40 hover:text-white transition-colors" title="Edit Episode">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                       </button>
                     </div>
                   </div>
                 ))}
                 {(!season.episodes || season.episodes.length === 0) && (
-                  <p className="text-white/50">No episodes available.</p>
+                  <div className="p-8 text-center text-white/50 text-sm">No episodes available.</div>
                 )}
               </div>
             </div>
