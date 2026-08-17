@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { fetchApi } from "@/lib/api";
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${outfit.variable} h-full antialiased dark`}
+      className={`${inter.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-white">
         <AuthProvider initialUser={user}>

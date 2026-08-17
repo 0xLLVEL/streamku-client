@@ -6,6 +6,7 @@ type User = {
   id: number;
   name: string;
   email: string;
+  is_admin?: boolean;
   preferences?: {
     include_adult?: boolean;
     dark_mode?: boolean;

@@ -49,10 +49,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {/* Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full transition-all duration-500 pointer-events-none" style={{ paddingTop: isScrolled ? '1rem' : '0' }}>
         <nav 
-          className={`pointer-events-auto transition-all duration-500 flex items-center justify-between px-6 mx-4 w-full md:max-w-6xl
+          className={`pointer-events-auto transition-all duration-500 flex items-center justify-between px-6 mx-4 w-full md:max-w-[1400px]
             ${isScrolled 
               ? 'liquid-glass rounded-full shadow-2xl h-14' 
-              : 'bg-transparent border-transparent shadow-none h-20'
+              : 'bg-transparent border border-transparent shadow-none h-20'
             }`}
         >
           <div className="flex items-center space-x-6">
@@ -91,7 +91,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 type="text"
                 name="q"
                 placeholder="Titles, people, genres"
-                className="w-10 focus:w-64 transition-all duration-500 ease-out bg-black/10 focus:bg-black/60 border border-transparent focus:border-white/20 hover:bg-white/10 text-sm text-white pl-10 pr-4 py-2 rounded-full outline-none placeholder-transparent focus:placeholder-white/40 cursor-pointer focus:cursor-text backdrop-blur-md"
+                className="w-10 focus:w-64 transition-all duration-500 ease-out bg-transparent focus:bg-white/10 border border-transparent focus:border-white/20 hover:bg-white/10 text-sm text-white pl-10 pr-4 py-2 rounded-full outline-none placeholder-transparent focus:placeholder-white/40 cursor-pointer focus:cursor-text"
               />
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -106,7 +106,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <div className="relative">
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-sm text-white transition-colors font-semibold"
+                  className="flex items-center space-x-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white transition-colors font-semibold"
                 >
                   <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{user.name}</span>
                   <svg className={`w-4 h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
@@ -116,6 +116,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)}></div>
                     <div className="absolute right-0 mt-3 w-48 liquid-glass rounded-2xl shadow-2xl py-2 z-50 border border-white/20 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                      {user?.is_admin && (
+                        <Link href="/admin" onClick={() => setIsUserMenuOpen(false)} className="block px-5 py-3 text-sm font-bold text-red-400 hover:bg-white/10 transition-colors border-b border-white/10">
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <Link href="/settings" onClick={() => setIsUserMenuOpen(false)} className="block px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                         Settings
                       </Link>

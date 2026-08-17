@@ -1,0 +1,38 @@
+'use client';
+
+import { useState } from 'react';
+import { deleteContentAction } from '@/app/actions/admin-content';
+
+interface DeleteButtonProps {
+  id: number | string;
+  type: 'movies' | 'tv-shows' | 'genres';
+}
+
+export function DeleteButton({ id, type }: DeleteButtonProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to completely delete this item? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    const res = await deleteContentAction(id, type);
+    
+    if (!res.success) {
+      alert(res.error || 'Failed to delete');
+      setIsDeleting(false);
+    }
+    // If success, Next.js revalidatePath will automatically refresh the server component table
+  };
+
+  return (
+    <button 
+      onClick={handleDelete}
+      disabled={isDeleting}
+      className="text-red-500/60 hover:text-red-500 px-3 py-1.5 rounded border border-transparent hover:border-red-500/20 hover:bg-red-500/10 transition-all text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isDeleting ? 'Deleting...' : 'Delete'}
+    </button>
+  );
+}
