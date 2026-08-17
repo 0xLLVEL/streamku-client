@@ -27,7 +27,7 @@ export default async function BrowsePage() {
       <HeroCarousel items={heroItems} />
 
       {/* Content Rows */}
-      <div className="w-full px-8 md:px-16 lg:px-24 space-y-12 -mt-20 relative z-20">
+      <div className="w-full px-8 md:px-16 lg:px-24 space-y-12 relative z-20">
         {rows.map((row: any, idx: number) => {
           if (!row.items || row.items.length === 0) return null;
           return (

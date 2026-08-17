@@ -42,7 +42,8 @@ export function HeroCarousel({ items }: { items: any[] }) {
                   className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${isActive ? 'scale-105' : 'scale-100'}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] from-10% via-[#0a0a0a]/80 to-transparent" />
               </div>
               
               <div className="relative w-full h-full flex items-center px-8 md:px-16 lg:px-24">
