@@ -71,7 +71,7 @@ export function DraggableList({ children, className = '', innerClassName = '' }:
       onMouseUp={stopDragging}
       onMouseMove={onMouseMove}
       onClickCapture={onClickCapture}
-      className={`flex overflow-x-auto custom-scrollbar select-none cursor-grab active:cursor-grabbing ${className}`}
+      className={`flex overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none cursor-grab active:cursor-grabbing ${className}`}
     >
       <div 
         className={`flex w-max ${innerClassName}`}

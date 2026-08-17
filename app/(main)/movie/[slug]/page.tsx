@@ -5,6 +5,8 @@ import { HeroTrailer } from '@/components/ui/HeroTrailer';
 import { DraggableList } from '@/components/ui/DraggableList';
 import Link from 'next/link';
 
+import { PosterCard } from '@/components/ui/PosterCard';
+
 async function getMovie(slug: string) {
   const res = await fetchApi(`/movies/${slug}`, { next: { revalidate: 60 } });
   if (!res.ok) return null;
@@ -12,9 +14,17 @@ async function getMovie(slug: string) {
   return json.data;
 }
 
+async function getRecommendations(slug: string) {
+  const res = await fetchApi(`/movies/${slug}/recommendations`, { next: { revalidate: 60 } });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data?.data || [];
+}
+
 export default async function MovieDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const movie = await getMovie(slug);
+  const recommendations = await getRecommendations(slug);
 
   if (!movie) {
     notFound();

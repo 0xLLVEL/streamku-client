@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { HeroTrailer } from '@/components/ui/HeroTrailer';
 import { DraggableList } from '@/components/ui/DraggableList';
+import { SeasonEpisodeViewer } from '@/components/ui/SeasonEpisodeViewer';
 import Link from 'next/link';
+
+import { PosterCard } from '@/components/ui/PosterCard';
 
 async function getTvShow(slug: string) {
   const res = await fetchApi(`/tv-shows/${slug}`, { next: { revalidate: 60 } });
@@ -12,9 +15,17 @@ async function getTvShow(slug: string) {
   return json.data;
 }
 
+async function getRecommendations(slug: string) {
+  const res = await fetchApi(`/tv-shows/${slug}/recommendations`, { next: { revalidate: 60 } });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data?.data || [];
+}
+
 export default async function TvShowDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const show = await getTvShow(slug);
+  const recommendations = await getRecommendations(slug);
 
   if (!show) {
     notFound();
@@ -145,37 +156,20 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
       )}
 
       {/* Seasons Grid in Liquid Glass */}
-      {(show.seasons && show.seasons.length > 0) && (
+      {/* Seasons or Episodes Section */}
+      <SeasonEpisodeViewer seasons={show.seasons || []} />
+
+      {/* More Like This */}
+      {(recommendations && recommendations.length > 0) && (
         <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
-          <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">Seasons</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {show.seasons.map((season: any) => (
-              <div key={season.id} className="liquid-glass rounded-3xl p-4 flex gap-6 hover:bg-white/10 transition-colors group cursor-pointer">
-                <div className="w-24 shrink-0 rounded-2xl overflow-hidden shadow-lg">
-                  {season.poster_path ? (
-                    <img 
-                      src={`https://image.tmdb.org/t/p/w200${season.poster_path}`} 
-                      alt={season.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full aspect-[2/3] bg-black/40 flex items-center justify-center text-xs text-white/30">No Poster</div>
-                  )}
-                </div>
-                <div className="flex flex-col justify-center">
-                  <h3 className="text-xl font-bold text-white mb-1 group-hover:text-red-500 transition-colors">{season.name}</h3>
-                  <div className="flex items-center gap-3 text-sm text-white/60 mb-2 font-medium">
-                    {season.air_date && <span>{new Date(season.air_date).getFullYear()}</span>}
-                    <span>•</span>
-                    <span>{season.episode_count} Episodes</span>
-                  </div>
-                  {season.overview && (
-                    <p className="text-white/70 text-sm line-clamp-2 leading-relaxed">{season.overview}</p>
-                  )}
-                </div>
+          <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">More Like This</h2>
+          <DraggableList className="pb-4" innerClassName="space-x-3">
+            {recommendations.map((item: any, idx: number) => (
+              <div key={item.id} className="snap-start shrink-0">
+                <PosterCard item={item} />
               </div>
             ))}
-          </div>
+          </DraggableList>
         </div>
       )}
     </div>

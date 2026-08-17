@@ -195,32 +195,31 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Most played series */}
-        <div className={`${cardBase} p-6 min-h-[250px]`}>
-          <h3 className="text-white font-semibold text-sm mb-6">Most played series</h3>
-          <div className="space-y-4">
+        <div className={`${cardBase} p-5 min-h-[250px]`}>
+          <h3 className="text-white font-semibold text-sm mb-4">Most played series</h3>
+          <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5 overflow-hidden">
             {top_episodes && top_episodes.length > 0 ? top_episodes.slice(0, 5).map((row: any, idx: number) => {
               const tvShow = row.watchable?.season?.tvShow;
               const title = tvShow?.name || 'Unknown Show';
               const poster = tvShow?.poster_path;
               return (
-                <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-black border border-white/5 overflow-hidden">
-                       {poster && <img src={`https://image.tmdb.org/t/p/w200${poster}`} alt="poster" className="w-full h-full object-cover" />}
+                <div key={idx} className="flex items-center justify-between py-2.5 px-4 hover:bg-white/[0.02] transition-colors group">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-[#1e1e24] overflow-hidden shrink-0 border border-white/5">
+                       {poster ? <img src={`https://image.tmdb.org/t/p/w200${poster}`} alt="poster" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[9px] text-white/20">N/A</div>}
                     </div>
-                    <div>
-                      <h4 className="text-sm text-white/90 font-medium">{title}</h4>
-                      <p className="text-[11px] text-gray-500">ID: {row.watchable_id}</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[13px] text-white/90 font-medium truncate">{title}</h4>
+                      <p className="text-[11px] text-white/40 truncate mt-0.5">ID: {row.watchable_id}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-red-500">{row.views.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal">views</span></p>
+                  <div className="text-right shrink-0 pl-4">
+                    <p className="text-[13px] font-semibold text-red-500">{row.views.toLocaleString()} <span className="text-[10px] text-white/40 font-normal">views</span></p>
                   </div>
                 </div>
               );
             }) : (
-              <div className="flex items-center gap-2 text-gray-500 text-sm">
-                <span className="w-4 h-4 rounded-full border border-gray-600 flex items-center justify-center text-[10px]">i</span>
+              <div className="p-8 text-center text-white/40 text-sm">
                 No plays in selected timeframe.
               </div>
             )}
@@ -228,29 +227,28 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Most played movies */}
-        <div className={`${cardBase} p-6 min-h-[250px]`}>
-          <h3 className="text-white font-semibold text-sm mb-6">Most played movies</h3>
-          <div className="space-y-4">
+        <div className={`${cardBase} p-5 min-h-[250px]`}>
+          <h3 className="text-white font-semibold text-sm mb-4">Most played movies</h3>
+          <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5 overflow-hidden">
              {top_movies && top_movies.length > 0 ? top_movies.slice(0, 5).map((row: any, idx: number) => {
               return (
-                <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-black border border-white/5 overflow-hidden">
-                       {row.watchable?.poster_path && <img src={`https://image.tmdb.org/t/p/w200${row.watchable.poster_path}`} alt="poster" className="w-full h-full object-cover" />}
+                <div key={idx} className="flex items-center justify-between py-2.5 px-4 hover:bg-white/[0.02] transition-colors group">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-[#1e1e24] overflow-hidden shrink-0 border border-white/5">
+                       {row.watchable?.poster_path ? <img src={`https://image.tmdb.org/t/p/w200${row.watchable.poster_path}`} alt="poster" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[9px] text-white/20">N/A</div>}
                     </div>
-                    <div>
-                      <h4 className="text-sm text-white/90 font-medium">{row.watchable?.title || 'Unknown Movie'}</h4>
-                      <p className="text-[11px] text-gray-500">ID: {row.watchable_id}</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[13px] text-white/90 font-medium truncate">{row.watchable?.title || 'Unknown Movie'}</h4>
+                      <p className="text-[11px] text-white/40 truncate mt-0.5">ID: {row.watchable_id}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-red-500">{row.views.toLocaleString()} <span className="text-[10px] text-gray-500 font-normal">views</span></p>
+                  <div className="text-right shrink-0 pl-4">
+                    <p className="text-[13px] font-semibold text-red-500">{row.views.toLocaleString()} <span className="text-[10px] text-white/40 font-normal">views</span></p>
                   </div>
                 </div>
               );
             }) : (
-              <div className="flex items-center gap-2 text-gray-500 text-sm">
-                <span className="w-4 h-4 rounded-full border border-gray-600 flex items-center justify-center text-[10px]">i</span>
+              <div className="p-8 text-center text-white/40 text-sm">
                 No plays in selected timeframe.
               </div>
             )}
