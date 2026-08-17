@@ -16,13 +16,19 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const defaultCache = process.env.NODE_ENV === 'development' ? 'no-store' : undefined;
+  const hasNextConfig = !!options.next;
+  const defaultCache = (process.env.NODE_ENV === 'development' && !hasNextConfig) ? 'no-store' : undefined;
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    cache: defaultCache,
+  const fetchOptions: RequestInit = {
     ...options,
     headers,
-  });
+  };
+
+  if (defaultCache && !options.cache) {
+    fetchOptions.cache = defaultCache;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
 
   return response;
 }

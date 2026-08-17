@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { HeroTrailer } from '@/components/ui/HeroTrailer';
 import { DraggableList } from '@/components/ui/DraggableList';
+import { PlayAction } from '@/components/ui/PlayAction';
 import Link from 'next/link';
 
 import { PosterCard } from '@/components/ui/PosterCard';
@@ -37,23 +38,23 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
       {/* Cinematic Edge-to-Edge Header */}
       <div className="relative h-[95vh] w-full flex items-center justify-center">
         {/* Backdrop Image */}
-        <HeroTrailer 
-          backdropPath={movie.backdrop_path} 
-          title={movie.title} 
-          videos={movie.videos} 
+        <HeroTrailer
+          backdropPath={movie.backdrop_path}
+          title={movie.title}
+          videos={movie.videos}
         />
 
         {/* Content Container Aligned to Bottom */}
         <div className="relative z-30 w-full h-full flex flex-col justify-end px-8 md:px-16 lg:px-24 pb-20">
           <div className="flex flex-row items-end justify-between w-full">
-            
+
             {/* Left Side: Title, Metadata, Description */}
             <div className="flex-1 max-w-2xl">
               {/* Massive Cinematic Title */}
               <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-gray-400 mb-2 tracking-tighter drop-shadow-2xl">
                 {movie.title}
               </h1>
-              
+
               {/* Genres */}
               {movie.genres && movie.genres.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-300 mb-6 drop-shadow-md">
@@ -70,6 +71,12 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
 
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center gap-3 mb-6">
+                <PlayAction 
+                  mediaEndpoint={`/movies/${movie.slug}/media`}
+                  title={movie.title}
+                  poster={`https://image.tmdb.org/t/p/w1280${movie.poster_path}`}
+                  className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]" 
+                />
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
                   Watchlist
@@ -115,8 +122,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
 
             {/* Right Side: Poster Card */}
             <div className="w-64 shrink-0 hidden lg:block liquid-glass p-2 rounded-[2rem] rotate-[2deg] hover:rotate-0 transition-transform duration-500 shadow-2xl ml-8">
-              <img 
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
+              <img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
                 className="w-full rounded-3xl shadow-inner"
               />
@@ -134,8 +141,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
               <div key={index} className="snap-start flex-shrink-0 w-28 md:w-36 group">
                 <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
                   {actor.profile_path ? (
-                    <img 
-                      src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`} 
+                    <img
+                      src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`}
                       alt={actor.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
                     />

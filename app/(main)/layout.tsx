@@ -19,7 +19,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -48,10 +48,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0a0a0a] to-[#0a0a0a]">
       {/* Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full transition-all duration-500 pointer-events-none" style={{ paddingTop: isScrolled ? '1rem' : '0' }}>
-        <nav 
+        <nav
           className={`pointer-events-auto transition-all duration-500 flex items-center justify-between px-6 mx-4 w-full md:max-w-[1400px]
-            ${isScrolled 
-              ? 'liquid-glass rounded-full shadow-2xl h-14' 
+            ${isScrolled
+              ? 'liquid-glass rounded-full shadow-2xl h-14'
               : 'bg-transparent border border-transparent shadow-none h-20'
             }`}
         >
@@ -59,15 +59,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="text-3xl font-black text-red-600 tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               STREAMKU
             </Link>
-            
+
             {/* Nav Links with new cinematic font style */}
             <div className="hidden md:flex space-x-2 text-[0.95rem] tracking-wide font-sans relative">
               {navLinks.map((link) => {
                 const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path + '/'));
                 return (
-                  <Link 
-                    key={link.name} 
-                    href={link.path} 
+                  <Link
+                    key={link.name}
+                    href={link.path}
                     className={`relative px-5 py-2 font-medium drop-shadow-lg transition-colors duration-300 ${isActive ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'}`}
                   >
                     {isActive && (
@@ -83,7 +83,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               })}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {/* Expandable Search Bar */}
             <form onSubmit={handleSearch} className="relative flex items-center group">
@@ -93,9 +93,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 placeholder="Titles, people, genres"
                 className="w-10 focus:w-64 transition-all duration-500 ease-out bg-transparent focus:bg-white/10 border border-transparent focus:border-white/20 hover:bg-white/10 text-sm text-white pl-10 pr-4 py-2 rounded-full outline-none placeholder-transparent focus:placeholder-white/40 cursor-pointer focus:cursor-text"
               />
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-5 w-5 text-white absolute left-2.5 pointer-events-none drop-shadow-md" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-white absolute left-2.5 pointer-events-none drop-shadow-md"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -104,7 +104,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
             {!loading && user ? (
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white transition-colors font-semibold"
                 >

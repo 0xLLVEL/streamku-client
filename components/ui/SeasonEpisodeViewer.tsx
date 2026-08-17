@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { VideoPlayer } from '@/components/ui/VideoPlayer';
 
 interface SeasonEpisodeViewerProps {
   seasons: any[];
+  showSlug: string;
 }
 
-export function SeasonEpisodeViewer({ seasons }: SeasonEpisodeViewerProps) {
+export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerProps) {
   const [selectedSeasonId, setSelectedSeasonId] = useState<number | null>(null);
 
   if (!seasons || seasons.length === 0) {
@@ -19,7 +22,7 @@ export function SeasonEpisodeViewer({ seasons }: SeasonEpisodeViewerProps) {
     return (
       <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
         <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">Episodes</h2>
-        <EpisodeList episodes={season.episodes} />
+        <EpisodeList episodes={season.episodes} showSlug={showSlug} />
       </div>
     );
   }
@@ -43,7 +46,7 @@ export function SeasonEpisodeViewer({ seasons }: SeasonEpisodeViewerProps) {
             <p className="text-sm text-white/50 mt-1 font-medium">{season.episode_count} Episodes</p>
           </div>
         </div>
-        <EpisodeList episodes={season.episodes} />
+        <EpisodeList episodes={season.episodes} showSlug={showSlug} />
       </div>
     );
   }
@@ -88,7 +91,7 @@ export function SeasonEpisodeViewer({ seasons }: SeasonEpisodeViewerProps) {
   );
 }
 
-function EpisodeList({ episodes }: { episodes: any[] }) {
+function EpisodeList({ episodes, showSlug }: { episodes: any[], showSlug: string }) {
   if (!episodes || episodes.length === 0) {
     return (
       <div className="flex flex-col liquid-glass rounded-2xl overflow-hidden">
@@ -100,49 +103,122 @@ function EpisodeList({ episodes }: { episodes: any[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-8 pt-4">
       {episodes.map((episode: any) => (
-        <div 
-          key={episode.id} 
-          className="liquid-glass rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-xl"
-        >
-          <div className="w-full aspect-video bg-black/50 relative border-b border-white/5">
-            {episode.still_path ? (
-              <img src={`https://image.tmdb.org/t/p/w500${episode.still_path}`} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs text-white/30">No Image</div>
-            )}
-            
-            {/* Top Left Badge */}
-            <div className="absolute top-1.5 left-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
-              {episode.season_number ? `S${String(episode.season_number).padStart(2, '0')}` : ''}E{String(episode.episode_number).padStart(2, '0')}
-            </div>
-
-            {/* Top Right Badge (Date) */}
-            {episode.air_date && (
-              <div className="absolute top-1.5 right-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
-                {new Date(episode.air_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
-              </div>
-            )}
-
-            {/* Bottom Right Badge (Runtime) */}
-            {episode.runtime > 0 && (
-              <div className="absolute bottom-1.5 right-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
-                {episode.runtime}m
-              </div>
-            )}
-          </div>
-          
-          <div className="p-3 md:p-3.5 flex flex-col min-h-[85px] justify-center">
-            <h3 className="text-xs md:text-sm font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-1">
-              Episode {episode.episode_number}: {episode.name}
-            </h3>
-            {episode.overview ? (
-              <p className="text-white/50 text-[10px] md:text-[11px] line-clamp-2 leading-relaxed">{episode.overview}</p>
-            ) : (
-              <p className="text-white/30 text-[10px] md:text-[11px] italic">No description available.</p>
-            )}
-          </div>
-        </div>
+        <EpisodeCard key={episode.id} episode={episode} showSlug={showSlug} />
       ))}
     </div>
+  );
+}
+
+function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handlePlayClick = async () => {
+    if (streamUrl) {
+      setIsOpen(true);
+      return;
+    }
+
+    if (!showSlug) return;
+
+    setLoading(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const res = await fetch(`${baseUrl}/tv-shows/${showSlug}/seasons/${episode.season_number}/episodes/${episode.episode_number}/media`);
+      
+      if (!res.ok) throw new Error('Failed to load media');
+      
+      const json = await res.json();
+      const media = json.data;
+      
+      let videoData = null;
+      if (media && media.video && media.video.length > 0) {
+        videoData = media.video.find((v: any) => v.metadata?.content_type === 'Episode')
+          || media.video.find((v: any) => v.is_primary)
+          || media.video[0];
+      }
+
+      if (videoData) {
+        setStreamUrl(`${baseUrl}/media/${videoData.id}/stream`);
+        setIsOpen(true);
+      } else {
+        alert('Video not available yet. Please upload it first.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to load video.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div 
+        onClick={handlePlayClick}
+        className="liquid-glass rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-xl relative"
+      >
+        {loading && (
+          <div className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center">
+            <svg className="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        )}
+        <div className="w-full aspect-video bg-black/50 relative border-b border-white/5">
+          {episode.still_path ? (
+            <img src={`https://image.tmdb.org/t/p/w500${episode.still_path}`} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs text-white/30">No Image</div>
+          )}
+          
+          <div className="absolute top-1.5 left-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
+            {episode.season_number ? `S${String(episode.season_number).padStart(2, '0')}` : ''}E{String(episode.episode_number).padStart(2, '0')}
+          </div>
+
+          {episode.air_date && (
+            <div className="absolute top-1.5 right-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
+              {new Date(episode.air_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+            </div>
+          )}
+
+          {episode.runtime > 0 && (
+            <div className="absolute bottom-1.5 right-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
+              {episode.runtime}m
+            </div>
+          )}
+        </div>
+        
+        <div className="p-3 md:p-3.5 flex flex-col min-h-[85px] justify-center">
+          <h3 className="text-xs md:text-sm font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-1">
+            Episode {episode.episode_number}: {episode.name}
+          </h3>
+          {episode.overview ? (
+            <p className="text-white/50 text-[10px] md:text-[11px] line-clamp-2 leading-relaxed">{episode.overview}</p>
+          ) : (
+            <p className="text-white/30 text-[10px] md:text-[11px] italic">No description available.</p>
+          )}
+        </div>
+      </div>
+
+      {mounted && isOpen && streamUrl && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-in fade-in duration-300">
+           <VideoPlayer 
+             src={streamUrl} 
+             title={`Episode ${episode.episode_number}: ${episode.name}`}
+             poster={`https://image.tmdb.org/t/p/w1280${episode.still_path}`} 
+             onBack={() => setIsOpen(false)} 
+           />
+        </div>,
+        document.body
+      )}
+    </>
   );
 }

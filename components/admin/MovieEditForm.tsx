@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction, deleteVideoAction } from '@/app/actions/admin-content';
+import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction, deleteVideoAction, previewTmdbMovieAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
 import { ChunkedUploader } from '@/components/ui/ChunkedUploader';
 import { VideoCreateForm } from '@/components/admin/VideoCreateForm';
@@ -15,7 +15,9 @@ export function MovieEditForm({ movie }: { movie?: any }) {
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<any>(null);
 
+  const displayData = previewData || movie;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -68,18 +70,33 @@ export function MovieEditForm({ movie }: { movie?: any }) {
     setIsImporting(true);
     setMessage(null);
 
-    const res = await importMovieFromTmdbAction(input.value);
+    const res = await previewTmdbMovieAction(input.value);
 
-    if (res.success) {
-      setMessage({ text: 'Movie imported successfully from TMDB!', type: 'success' });
-      setTimeout(() => {
-        setMessage(null);
-        if (res.id) {
-          router.push(`/admin/movies/${res.id}`);
-        }
-      }, 1000);
+    if (res.success && res.data) {
+      const data = res.data;
+      const formattedData = {
+        id: null,
+        tmdb_id: data.id,
+        title: data.title,
+        overview: data.overview,
+        tagline: data.tagline,
+        release_date: data.release_date,
+        runtime: data.runtime,
+        popularity: data.popularity,
+        original_language: data.original_language,
+        status: data.status,
+        genres: data.genres,
+        cast: data.credits?.cast || [],
+        videos: data.videos?.results || [],
+        images: data.images,
+        poster_path: data.poster_path,
+        backdrop_path: data.backdrop_path,
+      };
+      setPreviewData(formattedData);
+      setMessage({ text: 'Movie data loaded for preview. Review fields and click Save.', type: 'success' });
+      setIsImporting(false);
     } else {
-      setMessage({ text: res.error || 'Failed to import', type: 'error' });
+      setMessage({ text: res.error || 'Failed to import preview', type: 'error' });
       setIsImporting(false);
     }
   };
@@ -94,23 +111,34 @@ export function MovieEditForm({ movie }: { movie?: any }) {
       formData.set('is_featured', '');
     }
 
-    const res = movie
-      ? await updateMovieAction(movie.id, formData)
+    let targetId = movie?.id;
+
+    if (!targetId && previewData?.tmdb_id) {
+      const importRes = await importMovieFromTmdbAction(previewData.tmdb_id);
+      if (!importRes.success) {
+        setMessage({ text: importRes.error || 'Failed to import TMDB data', type: 'error' });
+        setIsSaving(false);
+        return;
+      }
+      targetId = importRes.id;
+    }
+
+    const res = targetId
+      ? await updateMovieAction(targetId, formData)
       : await createMovieAction(formData);
 
     if (res.success) {
-      setMessage({ text: movie ? 'Movie updated successfully!' : 'Movie created successfully!', type: 'success' });
+      setMessage({ text: 'Movie saved successfully!', type: 'success' });
       setTimeout(() => {
         setMessage(null);
-        if (!movie && (res as any).id) {
-          router.push(`/admin/movies/${(res as any).id}`);
+        if (!movie?.id && (targetId || (res as any).id)) {
+          router.push(`/admin/movies/${targetId || (res as any).id}`);
         }
-      }, 1000);
-      setIsSaving(false);
+      }, 1500);
     } else {
-      setMessage({ text: res.error || 'Failed to update', type: 'error' });
-      setIsSaving(false);
+      setMessage({ text: res.error || 'Failed to save', type: 'error' });
     }
+    setIsSaving(false);
   };
 
   const tabs = [
@@ -124,7 +152,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
   ];
 
   const handleDeleteVideo = async (videoId: number) => {
-    if (!movie?.id || !confirm('Are you sure you want to delete this video?')) return;
+    if (!movie?.id) return;
+    if (!confirm('Are you sure you want to delete this video?')) return;
     try {
       const res = await deleteVideoAction(movie.id, videoId);
       if (res.success) {
@@ -139,7 +168,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
   };
 
   const handleDeleteImage = async (imageId: number) => {
-    if (!movie?.id || !confirm('Are you sure you want to delete this image?')) return;
+    if (!movie?.id) return;
+    if (!confirm('Are you sure you want to delete this image?')) return;
     // Mock deletion for images
     setMessage({ text: 'Image deletion is not implemented in this demo.', type: 'error' });
   };
@@ -193,8 +223,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
           </nav>
         </div>
 
-        {/* Main Form Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-transparent">
+        <div className="flex-1 overflow-y-auto p-8 bg-transparent" key={displayData?.tmdb_id || displayData?.id || 'new'}>
 
           {/* PRIMARY FACTS TAB */}
           {activeTab === 'primary_facts' && (
@@ -289,8 +318,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
                   <div className="aspect-[2/3] bg-[#2a2a32] rounded border border-white/10 flex items-center justify-center relative group overflow-hidden">
-                    {movie?.poster_path && (
-                      <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt="Poster" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                    {displayData?.poster_path && (
+                      <img src={`https://image.tmdb.org/t/p/w500${displayData.poster_path}`} alt="Poster" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                     )}
                     <button type="button" className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       Replace image
@@ -302,8 +331,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-white/50 mb-2">Backdrop</label>
                   <div className="aspect-video bg-[#2a2a32] rounded border border-white/10 flex items-center justify-center relative group overflow-hidden">
-                    {movie?.backdrop_path && (
-                      <img src={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                    {displayData?.backdrop_path && (
+                      <img src={`https://image.tmdb.org/t/p/w1280${displayData.backdrop_path}`} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                     )}
                     <button type="button" className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       Replace image
@@ -316,16 +345,16 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
-                  <input type="text" name="title" defaultValue={movie?.title || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="text" name="title" defaultValue={displayData?.title || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Original title</label>
-                  <input type="text" name="original_title" defaultValue={movie?.title || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="text" name="original_title" defaultValue={displayData?.title || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_featured" defaultChecked={movie?.is_featured || false} className="sr-only peer" />
+                    <input type="checkbox" name="is_featured" defaultChecked={displayData?.is_featured || false} className="sr-only peer" />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff4b4b]"></div>
                     <span className="ml-3 text-sm font-medium text-white/70">Featured Movie</span>
                   </label>
@@ -342,7 +371,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {movie?.genres?.map((genre: any) => (
+                  {displayData?.genres?.map((genre: any) => (
                     <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium flex items-center gap-2">
                       {genre.name}
                       <button type="button" className="hover:text-red-400">
@@ -350,7 +379,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                       </button>
                     </div>
                   ))}
-                  {(!movie?.genres || movie.genres.length === 0) && (
+                  {(!displayData?.genres || displayData.genres.length === 0) && (
                     <p className="text-white/50 text-sm">No genres assigned.</p>
                   )}
                 </div>
@@ -360,29 +389,29 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Release date</label>
                 <div className="relative">
-                  <input type="date" name="release_date" defaultValue={movie?.release_date ? movie.release_date.split('T')[0] : ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors [color-scheme:dark]" />
+                  <input type="date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors [color-scheme:dark]" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Tagline</label>
-                <input type="text" name="tagline" defaultValue={movie?.tagline || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                <input type="text" name="tagline" defaultValue={displayData?.tagline || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
-                <textarea name="overview" defaultValue={movie?.overview || ''} rows={4} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors resize-y" />
+                <textarea name="overview" defaultValue={displayData?.overview || ''} rows={4} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors resize-y" />
               </div>
 
               {/* Grid Fields */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Runtime (minutes)</label>
-                  <input type="number" name="runtime" defaultValue={movie?.runtime || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="number" name="runtime" defaultValue={displayData?.runtime || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Status</label>
-                  <select name="status" defaultValue={movie?.status || 'Released'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
+                  <select name="status" defaultValue={displayData?.status || 'Released'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
                     <option value="Released">Released</option>
                     <option value="Post Production">Post Production</option>
                     <option value="Rumored">Rumored</option>
@@ -391,11 +420,11 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Popularity</label>
-                  <input type="number" step="0.1" name="popularity" defaultValue={movie?.popularity || 0} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="number" step="0.1" name="popularity" defaultValue={displayData?.popularity || 0} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Language</label>
-                  <select name="original_language" defaultValue={movie?.original_language || 'en'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
+                  <select name="original_language" defaultValue={displayData?.original_language || 'en'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
                     <option value="en">English</option>
                     <option value="es">Spanish</option>
                     <option value="fr">French</option>
@@ -412,14 +441,14 @@ export function MovieEditForm({ movie }: { movie?: any }) {
             <div className="max-w-6xl space-y-12 animate-in fade-in duration-300">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Backdrops ({movie?.images?.backdrops?.length || (movie?.backdrop_path ? 1 : 0)})</h2>
+                  <h2 className="text-xl font-bold text-white">Backdrops ({displayData?.images?.backdrops?.length || (displayData?.backdrop_path ? 1 : 0)})</h2>
                   <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                     Add Backdrop
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {movie?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
+                  {displayData?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
                     <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w780${img.file_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Backdrop" />
                       <button 
@@ -431,12 +460,12 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                       </button>
                     </div>
-                  )) || (movie?.backdrop_path && (
-                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${movie.backdrop_path}`)}>
-                      <img src={`https://image.tmdb.org/t/p/w780${movie.backdrop_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Backdrop" />
+                  )) || (displayData?.backdrop_path && (
+                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${displayData.backdrop_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w780${displayData.backdrop_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Backdrop" />
                       <button 
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(movie.id); }}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(displayData.id); }}
                         className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
                         title="Delete image"
                       >
@@ -451,14 +480,14 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Posters ({movie?.images?.posters?.length || (movie?.poster_path ? 1 : 0)})</h2>
+                  <h2 className="text-xl font-bold text-white">Posters ({displayData?.images?.posters?.length || (displayData?.poster_path ? 1 : 0)})</h2>
                   <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                     Add Poster
                   </button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                  {movie?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
+                  {displayData?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
                     <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w500${img.file_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Poster" />
                       <button 
@@ -470,12 +499,12 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                       </button>
                     </div>
-                  )) || (movie?.poster_path && (
-                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${movie.poster_path}`)}>
-                      <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Poster" />
+                  )) || (displayData?.poster_path && (
+                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${displayData.poster_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w500${displayData.poster_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Poster" />
                       <button 
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(movie.id); }}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(displayData.id); }}
                         className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
                         title="Delete image"
                       >
@@ -504,7 +533,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-white">Videos ({movie?.videos?.length || 0})</h2>
+                    <h2 className="text-xl font-bold text-white">Videos ({displayData?.videos?.length || 0})</h2>
                     {movie?.id && (
                       <button 
                         type="button" 
@@ -524,7 +553,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {movie?.videos?.map((video: any) => (
+                {displayData?.videos?.map((video: any) => (
                   <div key={video.id} className="bg-[#050505] rounded-xl overflow-hidden border border-white/5 flex flex-col group hover:border-white/10 transition-colors">
                     <div className="aspect-video relative group/preview">
                       {video.site === 'YouTube' ? (
@@ -549,7 +578,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                     </div>
                   </div>
                 ))}
-                {(!movie?.videos || movie.videos.length === 0) && (
+                {(!displayData?.videos || displayData.videos.length === 0) && (
                   <p className="text-white/50 col-span-full">No videos available.</p>
                 )}
               </div>
@@ -562,14 +591,14 @@ export function MovieEditForm({ movie }: { movie?: any }) {
           {activeTab === 'cast' && (
             <div className="max-w-6xl animate-in fade-in duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Cast ({movie?.cast?.length || 0})</h2>
+                <h2 className="text-xl font-bold text-white">Cast ({displayData?.cast?.length || 0})</h2>
                 <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                   Add Cast Member
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-xl border border-white/5 bg-[#050505] overflow-hidden">
-                {movie?.cast?.map((person: any) => (
+                {displayData?.cast?.map((person: any) => (
                   <div key={person.id} className="flex items-center gap-3 py-2.5 px-4 hover:bg-white/[0.02] transition-colors border-b border-white/5 border-r border-white/5 group">
                     <div className="w-9 h-9 shrink-0 bg-[#1e1e24] rounded-full overflow-hidden">
                       {person.profile_path ? (
@@ -589,7 +618,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                     </div>
                   </div>
                 ))}
-                {(!movie?.cast || movie.cast.length === 0) && (
+                {(!displayData?.cast || displayData.cast.length === 0) && (
                   <div className="col-span-full p-8 text-center text-white/50 text-sm">No cast available.</div>
                 )}
               </div>

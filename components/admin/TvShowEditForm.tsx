@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { updateTvShowAction, createTvShowAction, importTvShowFromTmdbAction, searchTmdbAction } from '@/app/actions/admin-content';
+import { updateTvShowAction, createTvShowAction, importTvShowFromTmdbAction, searchTmdbAction, previewTmdbTvAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -12,6 +12,9 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<any>(null);
+
+  const displayData = previewData || tvShow;
 
   console.log("TvShowEditForm rendered, tvShow prop:", tvShow);
 
@@ -67,18 +70,38 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
     setIsImporting(true);
     setMessage(null);
 
-    const res = await importTvShowFromTmdbAction(input.value);
+    const res = await previewTmdbTvAction(input.value);
 
-    if (res.success) {
-      setMessage({ text: 'TV Show imported successfully from TMDB!', type: 'success' });
-      setTimeout(() => {
-        setMessage(null);
-        if (res.id) {
-          router.push(`/admin/tv-shows/${res.id}`);
-        }
-      }, 1000);
+    if (res.success && res.data) {
+      const data = res.data;
+      const formattedData = {
+        id: null,
+        tmdb_id: data.id,
+        name: data.name,
+        overview: data.overview,
+        tagline: data.tagline,
+        first_air_date: data.first_air_date,
+        last_air_date: data.last_air_date,
+        episode_run_time: data.episode_run_time?.[0] || null,
+        number_of_seasons: data.number_of_seasons,
+        number_of_episodes: data.number_of_episodes,
+        popularity: data.popularity,
+        original_language: data.original_language,
+        status: data.status,
+        type: data.type,
+        genres: data.genres,
+        cast: data.credits?.cast || [],
+        videos: data.videos?.results || [],
+        images: data.images,
+        poster_path: data.poster_path,
+        backdrop_path: data.backdrop_path,
+        seasons: data.seasons || [],
+      };
+      setPreviewData(formattedData);
+      setMessage({ text: 'TV Show data loaded for preview. Review fields and click Save.', type: 'success' });
+      setIsImporting(false);
     } else {
-      setMessage({ text: res.error || 'Failed to import', type: 'error' });
+      setMessage({ text: res.error || 'Failed to import preview', type: 'error' });
       setIsImporting(false);
     }
   };
@@ -93,23 +116,34 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
       formData.set('is_featured', '');
     }
 
-    const res = tvShow
-      ? await updateTvShowAction(tvShow.id, formData)
+    let targetId = tvShow?.id;
+
+    if (!targetId && previewData?.tmdb_id) {
+      const importRes = await importTvShowFromTmdbAction(previewData.tmdb_id);
+      if (!importRes.success) {
+        setMessage({ text: importRes.error || 'Failed to import TMDB data', type: 'error' });
+        setIsSaving(false);
+        return;
+      }
+      targetId = importRes.id;
+    }
+
+    const res = targetId
+      ? await updateTvShowAction(targetId, formData)
       : await createTvShowAction(formData);
 
     if (res.success) {
-      setMessage({ text: tvShow ? 'TV Show updated successfully!' : 'TV Show created successfully!', type: 'success' });
+      setMessage({ text: 'TV Show saved successfully!', type: 'success' });
       setTimeout(() => {
         setMessage(null);
-        if (!tvShow && (res as any).id) {
-          router.push(`/admin/tv-shows/${(res as any).id}`);
+        if (!tvShow?.id && (targetId || (res as any).id)) {
+          router.push(`/admin/tv-shows/${targetId || (res as any).id}`);
         }
-      }, 1000);
-      setIsSaving(false);
+      }, 1500);
     } else {
-      setMessage({ text: res.error || 'Failed to update', type: 'error' });
-      setIsSaving(false);
+      setMessage({ text: res.error || 'Failed to save', type: 'error' });
     }
+    setIsSaving(false);
   };
 
   const tabs = [
@@ -172,7 +206,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
         </div>
 
         {/* Main Form Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-transparent">
+        <div className="flex-1 overflow-y-auto p-8 bg-transparent" key={displayData?.tmdb_id || displayData?.id || 'new'}>
 
           {/* PRIMARY FACTS TAB */}
           {activeTab === 'primary_facts' && (
@@ -267,8 +301,8 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
                   <div className="aspect-[2/3] bg-[#2a2a32] rounded border border-white/10 flex items-center justify-center relative group overflow-hidden">
-                    {tvShow?.poster_path && (
-                      <img src={`https://image.tmdb.org/t/p/w500${tvShow.poster_path}`} alt="Poster" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                    {displayData?.poster_path && (
+                      <img src={`https://image.tmdb.org/t/p/w500${displayData.poster_path}`} alt="Poster" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                     )}
                     <button type="button" className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       Replace image
@@ -280,8 +314,8 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-white/50 mb-2">Backdrop</label>
                   <div className="aspect-video bg-[#2a2a32] rounded border border-white/10 flex items-center justify-center relative group overflow-hidden">
-                    {tvShow?.backdrop_path && (
-                      <img src={`https://image.tmdb.org/t/p/w1280${tvShow.backdrop_path}`} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                    {displayData?.backdrop_path && (
+                      <img src={`https://image.tmdb.org/t/p/w1280${displayData.backdrop_path}`} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                     )}
                     <button type="button" className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       Replace image
@@ -294,16 +328,16 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
-                  <input type="text" name="name" defaultValue={tvShow?.name || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="text" name="name" defaultValue={displayData?.name || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Original title</label>
-                  <input type="text" name="original_title" defaultValue={tvShow?.name || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="text" name="original_name" defaultValue={displayData?.name || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_featured" defaultChecked={tvShow?.is_featured || false} className="sr-only peer" />
+                    <input type="checkbox" name="is_featured" defaultChecked={displayData?.is_featured || false} className="sr-only peer" />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff4b4b]"></div>
                     <span className="ml-3 text-sm font-medium text-white/70">Featured Series</span>
                   </label>
@@ -320,7 +354,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {tvShow?.genres?.map((genre: any) => (
+                  {displayData?.genres?.map((genre: any) => (
                     <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium flex items-center gap-2">
                       {genre.name}
                       <button type="button" className="hover:text-red-400">
@@ -328,7 +362,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                       </button>
                     </div>
                   ))}
-                  {(!tvShow?.genres || tvShow.genres.length === 0) && (
+                  {(!displayData?.genres || displayData.genres.length === 0) && (
                     <p className="text-white/50 text-sm">No genres assigned.</p>
                   )}
                 </div>
@@ -338,29 +372,29 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">First air date</label>
                 <div className="relative">
-                  <input type="date" name="first_air_date" defaultValue={tvShow?.first_air_date ? tvShow.first_air_date.split('T')[0] : ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors [color-scheme:dark]" />
+                  <input type="date" name="first_air_date" defaultValue={displayData?.first_air_date ? displayData.first_air_date.split('T')[0] : ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors [color-scheme:dark]" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Tagline</label>
-                <input type="text" name="tagline" defaultValue={tvShow?.tagline || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                <input type="text" name="tagline" defaultValue={displayData?.tagline || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
-                <textarea name="overview" defaultValue={tvShow?.overview || ''} rows={4} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors resize-y" />
+                <textarea name="overview" rows={5} defaultValue={displayData?.overview || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-3 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors resize-y leading-relaxed"></textarea>
               </div>
 
               {/* Grid Fields */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Number of seasons</label>
-                  <input type="number" name="number_of_seasons" defaultValue={tvShow?.number_of_seasons || 0} readOnly className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white/50 text-sm focus:outline-none cursor-not-allowed" />
+                  <input type="number" name="number_of_seasons" defaultValue={displayData?.number_of_seasons || 0} readOnly className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white/50 text-sm focus:outline-none cursor-not-allowed" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Status</label>
-                  <select name="status" defaultValue={tvShow?.status || 'Returning Series'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
+                  <select name="status" defaultValue={displayData?.status || 'Returning Series'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
                     <option value="Returning Series">Returning Series</option>
                     <option value="Ended">Ended</option>
                     <option value="Canceled">Canceled</option>
@@ -370,11 +404,11 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
 
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Popularity</label>
-                  <input type="number" step="0.1" name="popularity" defaultValue={tvShow?.popularity || 0} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="number" step="0.1" name="popularity" defaultValue={displayData?.popularity || 0} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Language</label>
-                  <select name="original_language" defaultValue={tvShow?.original_language || 'en'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
+                  <select name="original_language" defaultValue={displayData?.original_language || 'en'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
                     <option value="en">English</option>
                     <option value="es">Spanish</option>
                     <option value="fr">French</option>
@@ -389,43 +423,57 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
 
           {/* SEASONS TAB */}
           {activeTab === 'seasons' && (
-            <div className="max-w-6xl animate-in fade-in duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Seasons ({tvShow?.seasons?.length || 0})</h2>
-                <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                  Add Season
-                </button>
-              </div>
-              <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5">
-                {tvShow?.seasons?.map((season: any) => (
-                  <Link href={`/admin/tv-shows/${tvShow.id}/seasons/${season.season_number}`} key={season.id} className="flex items-center gap-4 py-3 px-4 hover:bg-white/[0.02] transition-colors group">
-                    <div className="w-12 shrink-0 bg-[#1e1e24] relative aspect-[2/3] rounded overflow-hidden">
-                      {season.poster_path ? (
-                        <img src={`https://image.tmdb.org/t/p/w300${season.poster_path}`} className="w-full h-full object-cover" alt={season.name} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px]">No Photo</div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0 flex items-center justify-between gap-6">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-white truncate group-hover:text-red-400 transition-colors" title={season.name}>
-                          {season.name}
-                        </p>
-                        <p className="text-white/50 text-xs mt-1 truncate">{season.episode_count} Episodes</p>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-white/40 shrink-0">
-                        {season.air_date && <span>{season.air_date.split('T')[0]}</span>}
-                      </div>
-                    </div>
-                    <div className="opacity-0 group-hover:opacity-100 pl-4 transition-opacity flex items-center gap-2">
-                       <span className="text-red-500/80 group-hover:text-red-500 font-medium text-xs transition-colors">
-                          Edit
-                       </span>
-                    </div>
+            <div className="max-w-4xl space-y-8 animate-in fade-in duration-300">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">Seasons ({displayData?.seasons?.length || 0})</h2>
+                {tvShow?.id && (
+                  <Link href={`/admin/tv-shows/${tvShow.id}/seasons/create`} className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Season
                   </Link>
-                ))}
-                {(!tvShow?.seasons || tvShow.seasons.length === 0) && (
+                )}
+              </div>
+              <div className="bg-[#050505] rounded-xl border border-white/5 overflow-hidden divide-y divide-white/5">
+                {displayData?.seasons?.map((season: any) => {
+                  const content = (
+                    <>
+                      <div className="w-12 shrink-0 bg-[#1e1e24] relative aspect-[2/3] rounded overflow-hidden">
+                        {season.poster_path ? (
+                          <img src={`https://image.tmdb.org/t/p/w300${season.poster_path}`} className="w-full h-full object-cover" alt={season.name} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px]">No Photo</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 flex items-center justify-between gap-6">
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm text-white truncate transition-colors ${tvShow?.id ? 'group-hover:text-red-400' : ''}`} title={season.name}>
+                            {season.name}
+                          </p>
+                          <p className="text-white/50 text-xs mt-1 truncate">{season.episode_count} Episodes</p>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-white/40 shrink-0">
+                          {season.air_date && <span>{season.air_date.split('T')[0]}</span>}
+                        </div>
+                      </div>
+                      {tvShow?.id && (
+                        <div className="text-white/20 group-hover:text-white/50 transition-colors shrink-0">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                      )}
+                    </>
+                  );
+
+                  return tvShow?.id ? (
+                    <Link href={`/admin/tv-shows/${tvShow.id}/seasons/${season.season_number}`} key={season.id} className="flex items-center gap-4 py-3 px-4 hover:bg-white/[0.02] transition-colors group">
+                      {content}
+                    </Link>
+                  ) : (
+                    <div key={season.id} className="flex items-center gap-4 py-3 px-4 transition-colors">
+                      {content}
+                    </div>
+                  );
+                })}
+                {(!displayData?.seasons || displayData.seasons.length === 0) && (
                   <div className="p-8 text-center text-white/50 text-sm">No seasons available.</div>
                 )}
               </div>
@@ -437,20 +485,20 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
             <div className="max-w-6xl space-y-12 animate-in fade-in duration-300">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Backdrops ({tvShow?.images?.backdrops?.length || (tvShow?.backdrop_path ? 1 : 0)})</h2>
+                  <h2 className="text-xl font-bold text-white">Backdrops ({displayData?.images?.backdrops?.length || (displayData?.backdrop_path ? 1 : 0)})</h2>
                   <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                     Add Backdrop
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tvShow?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
+                  {displayData?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
                     <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w780${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
                     </div>
-                  )) || (tvShow?.backdrop_path && (
-                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`)}>
-                      <img src={`https://image.tmdb.org/t/p/w780${tvShow.backdrop_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
+                  )) || (displayData?.backdrop_path && (
+                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${displayData.backdrop_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w780${displayData.backdrop_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
                     </div>
                   )) || (
                       <p className="text-white/50 col-span-full">No backdrops available.</p>
@@ -460,20 +508,20 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
 
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">Posters ({tvShow?.images?.posters?.length || (tvShow?.poster_path ? 1 : 0)})</h2>
+                  <h2 className="text-xl font-bold text-white">Posters ({displayData?.images?.posters?.length || (displayData?.poster_path ? 1 : 0)})</h2>
                   <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                     Add Poster
                   </button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                  {tvShow?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
+                  {displayData?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
                     <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w500${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
                     </div>
-                  )) || (tvShow?.poster_path && (
-                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${tvShow.poster_path}`)}>
-                      <img src={`https://image.tmdb.org/t/p/w500${tvShow.poster_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
+                  )) || (displayData?.poster_path && (
+                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${displayData.poster_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w500${displayData.poster_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
                     </div>
                   )) || (
                       <p className="text-white/50 col-span-full">No posters available.</p>
@@ -487,14 +535,14 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
           {activeTab === 'videos' && (
             <div className="max-w-6xl animate-in fade-in duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Videos ({tvShow?.videos?.length || 0})</h2>
+                <h2 className="text-xl font-bold text-white">Videos ({displayData?.videos?.length || 0})</h2>
                 <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                   Add Video
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {tvShow?.videos?.map((video: any) => (
+                {displayData?.videos?.map((video: any) => (
                   <div key={video.id} className="bg-[#050505] rounded-xl overflow-hidden border border-white/5 flex flex-col group hover:border-white/10 transition-colors">
                     <div className="aspect-video relative">
                       {video.site === 'YouTube' ? (
@@ -509,7 +557,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                     </div>
                   </div>
                 ))}
-                {(!tvShow?.videos || tvShow.videos.length === 0) && (
+                {(!displayData?.videos || displayData.videos.length === 0) && (
                   <p className="text-white/50 col-span-full">No videos available.</p>
                 )}
               </div>
@@ -520,14 +568,14 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
           {activeTab === 'cast' && (
             <div className="max-w-6xl animate-in fade-in duration-300">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Cast ({tvShow?.cast?.length || 0})</h2>
+                <h2 className="text-xl font-bold text-white">Cast ({displayData?.cast?.length || 0})</h2>
                 <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                   Add Cast Member
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-xl border border-white/5 bg-[#050505] overflow-hidden">
-                {tvShow?.cast?.map((person: any) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                {displayData?.cast?.slice(0, 24).map((person: any) => (
                   <div key={person.id} className="flex items-center gap-3 py-2.5 px-4 hover:bg-white/[0.02] transition-colors border-b border-white/5 border-r border-white/5 group">
                     <div className="w-9 h-9 shrink-0 bg-[#1e1e24] rounded-full overflow-hidden">
                       {person.profile_path ? (
@@ -547,7 +595,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                     </div>
                   </div>
                 ))}
-                {(!tvShow?.cast || tvShow.cast.length === 0) && (
+                {(!displayData?.cast || displayData.cast.length === 0) && (
                   <div className="col-span-full p-8 text-center text-white/50 text-sm">No cast available.</div>
                 )}
               </div>

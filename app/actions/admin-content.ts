@@ -156,6 +156,32 @@ export async function searchTmdbAction(query: string, type: 'movie' | 'tv') {
   }
 }
 
+export async function previewTmdbMovieAction(tmdbId: string | number) {
+  try {
+    const res = await fetchApi(`/admin/tmdb/movie/${tmdbId}`);
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, data: data.data };
+    }
+    return { success: false, error: 'Failed to fetch movie preview from TMDB' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+export async function previewTmdbTvAction(tmdbId: string | number) {
+  try {
+    const res = await fetchApi(`/admin/tmdb/tv/${tmdbId}`);
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, data: data.data };
+    }
+    return { success: false, error: 'Failed to fetch TV show preview from TMDB' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
 // -- UPDATES --
 
 export async function updateMovieAction(id: number | string, formData: FormData) {

@@ -81,6 +81,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             mediable_id: mediableId,
             mediable_type: mediableType,
             type: 'video',
+            collection: 'video',
             metadata: {
               label: name,
               language: language,
@@ -109,18 +110,19 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
 
           const formData = new FormData();
           formData.append('chunk_number', chunkNumber.toString());
-          formData.append('chunk', chunkBlob);
+          formData.append('chunk', chunkBlob, 'chunk.blob');
 
           setMessage(`Uploading chunk ${chunkNumber + 1} of ${totalChunks}...`);
 
-          const chunkRes = await fetch(`${API_URL}/admin/uploads/${currentUploadId}/chunk`, {
+          const chunkRes = await fetch(`${API_URL}/admin/uploads/${currentUploadId}/chunks`, {
             method: 'POST',
             headers: headers,
             body: formData,
           });
 
           if (!chunkRes.ok) {
-             throw new Error(`Failed to upload chunk ${chunkNumber}`);
+             const errText = await chunkRes.text();
+             throw new Error(`Failed to upload chunk ${chunkNumber}: ${errText}`);
           }
 
           const chunkData = await chunkRes.json();
@@ -371,6 +373,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                 onChange={(e) => setContentType(e.target.value)}
                 className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:outline-none focus:border-red-500 focus:bg-[#111111] transition-colors appearance-none"
               >
+                <option value="Movie">Movie</option>
                 <option value="Trailer">Trailer</option>
                 <option value="Featurette">Featurette</option>
                 <option value="Teaser">Teaser</option>
