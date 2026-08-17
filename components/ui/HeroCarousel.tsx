@@ -48,22 +48,71 @@ export function HeroCarousel({ items }: { items: any[] }) {
               
               <div className="relative w-full h-full flex items-end pb-40 px-8 md:px-16 lg:px-24">
                 <div className={`w-full max-w-2xl transition-all duration-1000 delay-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 tracking-tight drop-shadow-md">
-                    {item.title || item.name}
-                  </h1>
-                  <p className="text-gray-300 text-sm md:text-base max-w-xl line-clamp-3 mb-6 drop-shadow">
+                  {/* Badges */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="bg-[#fbbf24] text-black text-[10px] md:text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-sm shadow-sm">
+                      Trending This Week
+                    </span>
+                    <span className="bg-[#e50914] text-white text-[10px] md:text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-sm shadow-sm">
+                      {item.title ? 'Movie' : 'TV Series'}
+                    </span>
+                  </div>
+
+                  {/* Logo or Text Title */}
+                  {item.images?.logos?.[0]?.file_path ? (
+                    <img 
+                      src={`${tmdbBaseUrl}${item.images.logos[0].file_path}`} 
+                      alt={item.title || item.name}
+                      className="max-h-24 md:max-h-32 object-contain mb-4 drop-shadow-md origin-left"
+                    />
+                  ) : (
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 tracking-tight drop-shadow-md">
+                      {item.title || item.name}
+                    </h1>
+                  )}
+
+                  {/* Meta Info */}
+                  <div className="flex items-center gap-3 text-sm md:text-base font-semibold text-white/80 mb-6 drop-shadow">
+                    {item.vote_average > 0 && (
+                      <span className="flex items-center text-yellow-500">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        {Number(item.vote_average).toFixed(1)}
+                      </span>
+                    )}
+                    {item.release_date || item.first_air_date ? (
+                      <>
+                        <span>{new Date(item.release_date || item.first_air_date).getFullYear()}</span>
+                        <span className="text-white/40">•</span>
+                      </>
+                    ) : null}
+                    {item.runtime > 0 ? (
+                      <>
+                        <span>{Math.floor(item.runtime / 60)}h {item.runtime % 60}m</span>
+                        <span className="text-white/40">•</span>
+                      </>
+                    ) : item.episode_run_time?.[0] ? (
+                      <>
+                        <span>{item.episode_run_time[0]}m</span>
+                        <span className="text-white/40">•</span>
+                      </>
+                    ) : null}
+                    <span className="text-white/60">Action, Adventure</span>
+                  </div>
+
+                  <p className="text-white/70 text-sm md:text-base max-w-xl line-clamp-3 mb-8 drop-shadow">
                     {item.overview}
                   </p>
                   <div className="flex space-x-3">
                     <Link 
                       href={item.title ? `/movie/${item.slug}` : `/tv/${item.slug}`}
-                      className="px-6 py-2.5 bg-white text-black text-sm font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
+                      className="px-6 py-2.5 bg-[#e50914] text-white text-sm font-bold rounded-md hover:bg-red-700 transition-colors shadow-lg flex items-center gap-2"
                     >
-                      Play Now
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Watch Now
                     </Link>
                     <Link 
                       href={item.title ? `/movie/${item.slug}` : `/tv/${item.slug}`}
-                      className="px-6 py-2.5 bg-white/20 backdrop-blur-md text-white text-sm font-bold rounded-xl hover:bg-white/30 transition-colors border border-white/10"
+                      className="px-6 py-2.5 bg-white/20 backdrop-blur-md text-white text-sm font-bold rounded-md hover:bg-white/30 transition-colors border border-white/10"
                     >
                       More Info
                     </Link>
