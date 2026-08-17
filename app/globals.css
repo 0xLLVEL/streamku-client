@@ -17,11 +17,11 @@ body {
 
 @layer utilities {
   .liquid-glass {
-    @apply bg-white/5 backdrop-blur-[40px] border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] shadow-inner shadow-white/10;
+    @apply bg-white/5 backdrop-blur-[40px] border border-white/20 shadow-[0_8px_32px_0_rgb(0_0_0_/_37%)] shadow-inner shadow-white/10;
   }
-  
+
   .liquid-glass-heavy {
-    @apply bg-black/40 backdrop-blur-[60px] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] shadow-inner shadow-white/5;
+    @apply bg-black/40 backdrop-blur-[60px] border border-white/10 shadow-[0_8px_32px_0_rgb(0_0_0_/_50%)] shadow-inner shadow-white/5;
   }
 }
 
@@ -29,6 +29,7 @@ body {
   from {
     transform: scaleX(0);
   }
+
   to {
     transform: scaleX(1);
   }

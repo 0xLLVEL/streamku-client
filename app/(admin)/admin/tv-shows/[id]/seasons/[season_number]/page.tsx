@@ -18,7 +18,7 @@ export default async function EditSeasonPage({ params }: { params: Promise<{ id:
     const season = json.data;
 
     return (
-      <div className="h-[100vh] overflow-hidden bg-[#050505] p-6 md:p-8">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto flex flex-col">
         <SeasonEditForm tvShowId={id} season={season} />
       </div>
     );
