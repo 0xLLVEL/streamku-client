@@ -43,27 +43,27 @@ export function HeroCarousel({ items }: { items: any[] }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a0a0a] from-10% via-[#0a0a0a]/80 to-transparent" />
+                <div className="absolute inset-x-0 -bottom-2 h-64 bg-gradient-to-t from-[#0a0a0a] from-20% via-[#0a0a0a]/80 to-transparent pointer-events-none" />
               </div>
               
-              <div className="relative w-full h-full flex items-center px-8 md:px-16 lg:px-24">
-                <div className={`w-full max-w-3xl transition-all duration-1000 delay-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                  <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 tracking-tight drop-shadow-sm">
+              <div className="relative w-full h-full flex items-end pb-40 px-8 md:px-16 lg:px-24">
+                <div className={`w-full max-w-2xl transition-all duration-1000 delay-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 tracking-tight drop-shadow-md">
                     {item.title || item.name}
                   </h1>
-                  <p className="text-gray-300 text-lg max-w-2xl line-clamp-3 mb-8">
+                  <p className="text-gray-300 text-sm md:text-base max-w-xl line-clamp-3 mb-6 drop-shadow">
                     {item.overview}
                   </p>
-                  <div className="flex space-x-4">
+                  <div className="flex space-x-3">
                     <Link 
                       href={item.title ? `/movie/${item.slug}` : `/tv/${item.slug}`}
-                      className="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
+                      className="px-6 py-2.5 bg-white text-black text-sm font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
                     >
                       Play Now
                     </Link>
                     <Link 
                       href={item.title ? `/movie/${item.slug}` : `/tv/${item.slug}`}
-                      className="px-8 py-3 bg-white/20 backdrop-blur-md text-white font-bold rounded-xl hover:bg-white/30 transition-colors border border-white/10"
+                      className="px-6 py-2.5 bg-white/20 backdrop-blur-md text-white text-sm font-bold rounded-xl hover:bg-white/30 transition-colors border border-white/10"
                     >
                       More Info
                     </Link>
