@@ -23,6 +23,24 @@ export async function deleteContentAction(id: number | string, type: 'movies' | 
   }
 }
 
+export async function deleteVideoAction(movieId: number | string, videoId: number | string) {
+  try {
+    const res = await fetchApi(`/admin/movies/${movieId}/videos/${videoId}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      revalidatePath(`/admin/movies/${movieId}`);
+      return { success: true };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to delete video' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
 // -- CREATES --
 
 export async function createMovieAction(formData: FormData) {

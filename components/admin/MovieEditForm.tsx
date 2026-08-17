@@ -1,16 +1,20 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction } from '@/app/actions/admin-content';
+import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction, deleteVideoAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
+import { ChunkedUploader } from '@/components/ui/ChunkedUploader';
+import { VideoCreateForm } from '@/components/admin/VideoCreateForm';
 import Link from 'next/link';
 
 export function MovieEditForm({ movie }: { movie?: any }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('primary_facts');
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -115,16 +119,33 @@ export function MovieEditForm({ movie }: { movie?: any }) {
     { id: 'images', label: 'Images' },
     { id: 'videos', label: 'Videos' },
     { id: 'cast', label: 'Cast' },
-    { id: 'crew', label: 'Crew' },
-    { id: 'genres', label: 'Genres' },
-    { id: 'keywords', label: 'Keywords' },
-    { id: 'countries', label: 'Countries' },
     { id: 'reviews', label: 'Reviews' },
     { id: 'comments', label: 'Comments' },
   ];
 
+  const handleDeleteVideo = async (videoId: number) => {
+    if (!movie?.id || !confirm('Are you sure you want to delete this video?')) return;
+    try {
+      const res = await deleteVideoAction(movie.id, videoId);
+      if (res.success) {
+        setMessage({ text: 'Video deleted successfully!', type: 'success' });
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        setMessage({ text: res.error || 'Failed to delete video', type: 'error' });
+      }
+    } catch (err) {
+      setMessage({ text: 'An unexpected error occurred.', type: 'error' });
+    }
+  };
+
+  const handleDeleteImage = async (imageId: number) => {
+    if (!movie?.id || !confirm('Are you sure you want to delete this image?')) return;
+    // Mock deletion for images
+    setMessage({ text: 'Image deletion is not implemented in this demo.', type: 'error' });
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8">
+    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8 relative">
 
       {/* Sticky Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">
@@ -311,6 +332,30 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
               </div>
 
+              {/* Genres Section inline in Overview */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-xs font-medium text-white/50">Genres</label>
+                  <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Genre
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {movie?.genres?.map((genre: any) => (
+                    <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium flex items-center gap-2">
+                      {genre.name}
+                      <button type="button" className="hover:text-red-400">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                  ))}
+                  {(!movie?.genres || movie.genres.length === 0) && (
+                    <p className="text-white/50 text-sm">No genres assigned.</p>
+                  )}
+                </div>
+              </div>
+
               {/* Metadata Fields */}
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Release date</label>
@@ -359,7 +404,6 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   </select>
                 </div>
               </div>
-
             </div>
           )}
 
@@ -376,12 +420,28 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {movie?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
-                    <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
-                      <img src={`https://image.tmdb.org/t/p/w780${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
+                    <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w780${img.file_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Backdrop" />
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id); }}
+                        className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
+                        title="Delete image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
                     </div>
                   )) || (movie?.backdrop_path && (
-                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
-                      <img src={`https://image.tmdb.org/t/p/w780${movie.backdrop_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
+                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${movie.backdrop_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w780${movie.backdrop_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Backdrop" />
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(movie.id); }}
+                        className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
+                        title="Delete image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
                     </div>
                   )) || (
                       <p className="text-white/50 col-span-full">No backdrops available.</p>
@@ -399,12 +459,28 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                   {movie?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
-                    <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
-                      <img src={`https://image.tmdb.org/t/p/w500${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
+                    <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w500${img.file_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Poster" />
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id); }}
+                        className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
+                        title="Delete image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
                     </div>
                   )) || (movie?.poster_path && (
-                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
-                      <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
+                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${movie.poster_path}`)}>
+                      <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500" alt="Poster" />
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteImage(movie.id); }}
+                        className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
+                        title="Delete image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
                     </div>
                   )) || (
                       <p className="text-white/50 col-span-full">No posters available.</p>
@@ -416,23 +492,56 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
           {/* VIDEOS TAB */}
           {activeTab === 'videos' && (
-            <div className="max-w-6xl animate-in fade-in duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Videos ({movie?.videos?.length || 0})</h2>
-                <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                  Add Video
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="max-w-[1600px] w-full animate-in fade-in duration-300">
+              {isAddingVideo && movie?.id ? (
+                <VideoCreateForm 
+                  mediableId={movie.id} 
+                  mediableType="movie" 
+                  parentTitle={movie.title || 'Unknown Title'} 
+                  parentPoster={movie.poster_path}
+                  onClose={() => setIsAddingVideo(false)} 
+                />
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-white">Videos ({movie?.videos?.length || 0})</h2>
+                    {movie?.id && (
+                      <button 
+                        type="button" 
+                        onClick={() => setIsAddingVideo(true)}
+                        className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add video
+                      </button>
+                    )}
+                  </div>
+                  
+                  {!movie?.id && (
+                    <div className="mb-8 p-4 bg-white/5 border border-white/10 rounded-xl text-center">
+                      <p className="text-sm text-white/50">Please save the movie first before uploading videos.</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {movie?.videos?.map((video: any) => (
                   <div key={video.id} className="bg-[#050505] rounded-xl overflow-hidden border border-white/5 flex flex-col group hover:border-white/10 transition-colors">
-                    <div className="aspect-video relative">
+                    <div className="aspect-video relative group/preview">
                       {video.site === 'YouTube' ? (
                         <iframe src={`https://www.youtube.com/embed/${video.key}`} className="w-full h-full" allowFullScreen></iframe>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black text-white/50">Preview not supported</div>
                       )}
+                      
+                      {/* Delete Button overlay */}
+                      <button 
+                        type="button"
+                        onClick={() => handleDeleteVideo(video.id)}
+                        className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm"
+                        title="Delete video"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
                     </div>
                     <div className="p-4">
                       <p className="font-medium text-white truncate text-sm" title={video.name}>{video.name}</p>
@@ -444,6 +553,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   <p className="text-white/50 col-span-full">No videos available.</p>
                 )}
               </div>
+                </>
+              )}
             </div>
           )}
 
@@ -485,31 +596,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
             </div>
           )}
 
-          {/* GENRES TAB */}
-          {activeTab === 'genres' && (
-            <div className="max-w-4xl animate-in fade-in duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Genres</h2>
-                <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                  Add Genre
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {movie?.genres?.map((genre: any) => (
-                  <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium">
-                    {genre.name}
-                  </div>
-                ))}
-                {(!movie?.genres || movie.genres.length === 0) && (
-                  <p className="text-white/50">No genres assigned.</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* OTHER TABS PLACEHOLDERS (Crew, Keywords, Countries, Reviews, Comments) */}
-          {['crew', 'keywords', 'countries', 'reviews', 'comments'].includes(activeTab) && (
+          {/* OTHER TABS PLACEHOLDERS (Reviews, Comments) */}
+          {['reviews', 'comments'].includes(activeTab) && (
             <div className="flex flex-col items-center justify-center h-full text-white/30 animate-in fade-in duration-300">
               <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
               <h2 className="text-xl font-medium mb-2">{tabs.find(t => t.id === activeTab)?.label} Manager</h2>
@@ -519,6 +607,23 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-200" onClick={() => setPreviewImage(null)}>
+          <button 
+            type="button" 
+            className="absolute top-6 right-6 text-white/50 hover:text-white bg-black/50 p-2 rounded-full backdrop-blur-md transition-colors"
+            onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <div className="relative max-w-full max-h-full">
+            <img src={previewImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
+          </div>
+        </div>
+      )}
+
     </form>
   );
 }

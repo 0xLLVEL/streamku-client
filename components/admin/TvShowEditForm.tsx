@@ -11,6 +11,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   console.log("TvShowEditForm rendered, tvShow prop:", tvShow);
 
@@ -117,10 +118,6 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
     { id: 'images', label: 'Images' },
     { id: 'videos', label: 'Videos' },
     { id: 'cast', label: 'Cast' },
-    { id: 'crew', label: 'Crew' },
-    { id: 'genres', label: 'Genres' },
-    { id: 'keywords', label: 'Keywords' },
-    { id: 'countries', label: 'Countries' },
     { id: 'reviews', label: 'Reviews' },
     { id: 'comments', label: 'Comments' },
   ];
@@ -313,6 +310,30 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                 </div>
               </div>
 
+              {/* Genres Section inline in Overview */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-xs font-medium text-white/50">Genres</label>
+                  <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Genre
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {tvShow?.genres?.map((genre: any) => (
+                    <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium flex items-center gap-2">
+                      {genre.name}
+                      <button type="button" className="hover:text-red-400">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                  ))}
+                  {(!tvShow?.genres || tvShow.genres.length === 0) && (
+                    <p className="text-white/50 text-sm">No genres assigned.</p>
+                  )}
+                </div>
+              </div>
+
               {/* Metadata Fields */}
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">First air date</label>
@@ -424,11 +445,11 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {tvShow?.images?.backdrops?.slice(0, 12).map((img: any, i: number) => (
-                    <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
+                    <div key={i} className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w780${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
                     </div>
                   )) || (tvShow?.backdrop_path && (
-                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
+                    <div className="aspect-video bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w780${tvShow.backdrop_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Backdrop" />
                     </div>
                   )) || (
@@ -447,11 +468,11 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                   {tvShow?.images?.posters?.slice(0, 12).map((img: any, i: number) => (
-                    <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
+                    <div key={i} className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${img.file_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w500${img.file_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
                     </div>
                   )) || (tvShow?.poster_path && (
-                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group">
+                    <div className="aspect-[2/3] bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group cursor-pointer" onClick={() => setPreviewImage(`https://image.tmdb.org/t/p/original${tvShow.poster_path}`)}>
                       <img src={`https://image.tmdb.org/t/p/w500${tvShow.poster_path}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Poster" />
                     </div>
                   )) || (
@@ -533,31 +554,9 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
             </div>
           )}
 
-          {/* GENRES TAB */}
-          {activeTab === 'genres' && (
-            <div className="max-w-4xl animate-in fade-in duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Genres</h2>
-                <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                  Add Genre
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {tvShow?.genres?.map((genre: any) => (
-                  <div key={genre.id} className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded text-[13px] font-medium">
-                    {genre.name}
-                  </div>
-                ))}
-                {(!tvShow?.genres || tvShow.genres.length === 0) && (
-                  <p className="text-white/50">No genres assigned.</p>
-                )}
-              </div>
-            </div>
-          )}
 
-          {/* OTHER TABS PLACEHOLDERS (Crew, Keywords, Countries, Reviews, Comments) */}
-          {['crew', 'keywords', 'countries', 'reviews', 'comments'].includes(activeTab) && (
+          {/* OTHER TABS PLACEHOLDERS (Reviews, Comments) */}
+          {['reviews', 'comments'].includes(activeTab) && (
             <div className="flex flex-col items-center justify-center h-full text-white/30 animate-in fade-in duration-300">
               <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
               <h2 className="text-xl font-medium mb-2">{tabs.find(t => t.id === activeTab)?.label} Manager</h2>
@@ -567,6 +566,23 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
 
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-200" onClick={() => setPreviewImage(null)}>
+          <button 
+            type="button" 
+            className="absolute top-6 right-6 text-white/50 hover:text-white bg-black/50 p-2 rounded-full backdrop-blur-md transition-colors"
+            onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <div className="relative max-w-full max-h-full">
+            <img src={previewImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
+          </div>
+        </div>
+      )}
+
     </form>
   );
 }
