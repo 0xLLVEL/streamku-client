@@ -11,15 +11,16 @@ interface VideoCreateFormProps {
   parentPoster?: string;
   onClose?: () => void;
   inline?: boolean;
+  existingVideoQualityIds?: number[];
 }
 
-export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentPoster, onClose, inline = false }: VideoCreateFormProps) {
+export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentPoster, onClose, inline = false, existingVideoQualityIds = [] }: VideoCreateFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
 
   const [sourceType, setSourceType] = useState('Upload');
-  
+
   // Form State
   const [name, setName] = useState('');
   const [season, setSeason] = useState('');
@@ -36,7 +37,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
   const [uploadId, setUploadId] = useState<string | null>(null);
   const [qualities, setQualities] = useState<any[]>([]);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const API_URL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
   useEffect(() => {
     const fetchQualities = async () => {
@@ -48,9 +49,15 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         });
         if (res.ok) {
           const json = await res.json();
-          setQualities(json.data || []);
-          if (json.data && json.data.length > 0) {
-            setQuality(json.data[0].id.toString());
+          const qs = json.data || [];
+          setQualities(qs);
+          if (qs.length > 0) {
+            const availableQ = qs.find((q: any) => !existingVideoQualityIds.includes(Number(q.id)));
+            if (availableQ) {
+              setQuality(availableQ.id.toString());
+            } else {
+              setQuality(qs[0].id.toString());
+            }
           }
         }
       } catch (err) {
@@ -67,9 +74,9 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
       setProgress(0);
       setMessage('');
       if (!name) {
-         // Auto-fill name without extension and truncate to max 100 chars
-         let autoName = e.target.files[0].name.replace(/\.[^/.]+$/, "");
-         setName(autoName.substring(0, 100));
+        // Auto-fill name without extension and truncate to max 100 chars
+        let autoName = e.target.files[0].name.replace(/\.[^/.]+$/, "");
+        setName(autoName.substring(0, 100));
       }
     }
   };
@@ -107,7 +114,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             mediable_type: mediableType,
             type: 'video',
             collection: 'video',
-            quality_id: parseInt(quality) || null,
+            quality_id: quality ? parseInt(quality) : undefined,
             metadata: {
               label: (inline && parentTitle) ? parentTitle.substring(0, 100) : (name ? name.substring(0, 100) : ''),
               language: language,
@@ -127,7 +134,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
 
         const chunkSize = initData.chunk_size;
         const totalChunks = initData.total_chunks;
-        
+
         // 2. Upload Chunks
         for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
           const start = chunkNumber * chunkSize;
@@ -138,21 +145,41 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           formData.append('chunk_number', chunkNumber.toString());
           formData.append('chunk', chunkBlob, 'chunk.blob');
 
-          setMessage(`Uploading chunk ${chunkNumber + 1} of ${totalChunks}...`);
+          const currentUploadedMB = (start / (1024 * 1024)).toFixed(2);
+          const totalMB = (videoFile.size / (1024 * 1024)).toFixed(2);
+          setMessage(`Uploading ${currentUploadedMB} MB / ${totalMB} MB...`);
 
-          const chunkRes = await fetch(`${API_URL}/admin/uploads/${currentUploadId}/chunks`, {
-            method: 'POST',
-            headers: headers,
-            body: formData,
+          await new Promise<void>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_URL}/admin/uploads/${currentUploadId}/chunks`);
+
+            Object.entries(headers).forEach(([key, value]) => {
+              xhr.setRequestHeader(key, value as string);
+            });
+
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) {
+                const currentLoaded = start + e.loaded;
+                const totalMB = (videoFile.size / (1024 * 1024)).toFixed(2);
+                const currentUploadedMB = (currentLoaded / (1024 * 1024)).toFixed(2);
+                setMessage(`Uploading ${currentUploadedMB} MB / ${totalMB} MB...`);
+
+                const percent = (currentLoaded / videoFile.size) * 100;
+                setProgress(percent);
+              }
+            };
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve();
+              } else {
+                reject(new Error(`Failed to upload chunk ${chunkNumber}: ${xhr.responseText}`));
+              }
+            };
+
+            xhr.onerror = () => reject(new Error('Network error during chunk upload'));
+            xhr.send(formData);
           });
-
-          if (!chunkRes.ok) {
-             const errText = await chunkRes.text();
-             throw new Error(`Failed to upload chunk ${chunkNumber}: ${errText}`);
-          }
-
-          const chunkData = await chunkRes.json();
-          setProgress(chunkData.progress_percent);
         }
 
         // 3. Complete Upload
@@ -171,7 +198,15 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
 
         setStatus('idle');
         setVideoFile(null);
-        
+        if (qualities.length > 0) {
+          const availableQ = qualities.find((q: any) => !existingVideoQualityIds.includes(Number(q.id)));
+          if (availableQ) {
+            setQuality(availableQ.id.toString());
+          }
+        } else {
+          setQuality('');
+        }
+
         if (onClose) onClose();
         router.refresh();
 
@@ -189,31 +224,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
 
   return (
     <div className={`flex flex-col relative ${inline ? 'bg-transparent' : 'bg-[#121212] rounded-2xl overflow-hidden border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300 z-50'}`}>
-      
-      {/* Uploading Overlay */}
-      {status !== 'idle' && status !== 'error' && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8">
-          <div className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-8 max-w-md w-full flex flex-col items-center text-center shadow-2xl">
-             {status === 'completed' ? (
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mb-4 animate-in zoom-in duration-300">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-             ) : (
-                <svg className="animate-spin h-10 w-10 text-red-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-             )}
-             <h3 className="text-xl font-bold text-white mb-2">{status === 'completed' ? 'Success!' : status === 'processing' ? 'Processing...' : 'Uploading Video'}</h3>
-             <p className="text-sm text-white/50 mb-6">{message}</p>
-             
-             {status === 'uploading' && (
-                <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                  <div className="bg-red-500 h-full transition-all duration-300 relative" style={{ width: `${progress}%` }}>
-                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                  </div>
-                </div>
-             )}
-          </div>
-        </div>
-      )}
+
 
       {/* Header (Only shown when not inline) */}
       {!inline && (
@@ -226,9 +237,10 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           </div>
           <div className="flex items-center gap-4">
             {status === 'error' && <span className="text-sm text-red-400 font-medium">{message}</span>}
-            <button 
+            <button
               onClick={handleSave}
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-md text-sm font-semibold transition-colors border border-white/5"
+              disabled={status === 'uploading' || status === 'processing' || !quality}
+              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-md text-sm font-semibold transition-colors border border-white/5 disabled:opacity-50"
             >
               Save
             </button>
@@ -242,9 +254,9 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div className="aspect-video bg-[#050505] rounded-xl flex items-center justify-center relative overflow-hidden shadow-lg border border-white/5 group">
             {videoFile ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                 <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                 <h4 className="text-white font-medium text-lg">{videoFile.name}</h4>
-                 <p className="text-white/40 text-sm mt-1">{(videoFile.size / (1024*1024)).toFixed(2)} MB • Ready to upload</p>
+                <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <h4 className="text-white font-medium text-lg">{videoFile.name}</h4>
+                <p className="text-white/40 text-sm mt-1">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload</p>
               </div>
             ) : (
               <button className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
@@ -252,6 +264,33 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               </button>
             )}
           </div>
+          
+          {/* Upload Progress Below Video Player */}
+          {status !== 'idle' && status !== 'error' && (
+            <div className="bg-white/5 border border-white/5 rounded-lg p-3 flex flex-col gap-2 shadow-sm animate-in fade-in duration-300">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  {status === 'completed' ? (
+                     <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                  ) : (
+                     <svg className="animate-spin h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  )}
+                  <span className="font-medium text-white/90 truncate">{status === 'completed' ? 'Success!' : status === 'processing' ? 'Processing...' : 'Uploading Video'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/50 text-xs font-mono">
+                  <span>{message}</span>
+                  {status === 'uploading' && <span className="text-white/70 font-semibold">{Math.round(progress)}%</span>}
+                </div>
+              </div>
+              {status === 'uploading' && (
+                <div className="w-full bg-white/10 rounded-full h-1 overflow-hidden">
+                  <div className="bg-red-500 h-full transition-all duration-150 relative" style={{ width: `${progress}%` }}>
+                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -273,11 +312,11 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           {!inline && (
             <div>
               <label className="block text-xs font-medium text-white/50 mb-2">Name</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 shadow-sm text-white text-sm focus:border-red-600 focus:outline-none focus:bg-white/5 transition-colors" 
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 shadow-sm text-white text-sm focus:border-red-600 focus:outline-none focus:bg-white/5 transition-colors"
                 placeholder="e.g. Official Trailer"
               />
             </div>
@@ -302,7 +341,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           {mediableType !== 'movie' && !inline && (
             <div>
               <label className="block text-xs font-medium text-white/50 mb-2">Season</label>
-              <select 
+              <select
                 value={season}
                 onChange={(e) => setSeason(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 shadow-sm text-white/70 text-sm focus:outline-none focus:border-red-600 focus:bg-white/10 transition-colors appearance-none"
@@ -327,7 +366,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div>
             <label className="block text-xs font-medium text-white/50 mb-2">Source type</label>
             <div className="relative">
-              <select 
+              <select
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:bg-white/10 transition-all appearance-none shadow-sm"
@@ -342,14 +381,14 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div>
             <label className="block text-xs font-medium text-white/50 mb-2">Source</label>
             {sourceType === 'Embed' ? (
-              <textarea 
+              <textarea
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/70 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:bg-white/10 transition-all h-24 resize-none shadow-sm"
                 placeholder="Full embed code snippet or just src url"
               ></textarea>
             ) : (
-              <div 
+              <div
                 onClick={() => fileInputRef.current?.click()}
                 className={`w-full bg-white/5 border ${videoFile ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'} rounded-lg px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-white/30 transition-all shadow-sm`}
               >
@@ -357,12 +396,12 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                 <span className={`text-sm truncate ${videoFile ? 'text-white' : 'text-white/40'}`}>
                   {videoFile ? videoFile.name : 'No file chosen'}
                 </span>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
                   onChange={handleVideoFileChange}
-                  accept="video/mp4,video/x-m4v,video/*" 
+                  accept="video/mp4,video/x-m4v,video/*"
                 />
               </div>
             )}
@@ -371,15 +410,24 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div>
             <label className="block text-xs font-medium text-white/50 mb-2">Quality</label>
             <div className="relative">
-              <select 
+              <select
                 value={quality}
                 onChange={(e) => setQuality(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:bg-white/10 transition-all appearance-none shadow-sm"
               >
-                <option value="">Auto / Processing</option>
-                {qualities.map(q => (
-                  <option key={q.id} value={q.id}>{q.name} ({q.label})</option>
-                ))}
+                {qualities.map(q => {
+                  const qId = Number(q.id);
+                  const isUploaded = existingVideoQualityIds.includes(qId);
+                  return (
+                    <option
+                      key={qId}
+                      value={qId}
+                      disabled={isUploaded}
+                    >
+                      {q.name} ({q.label}) {isUploaded ? '- Already Uploaded' : ''}
+                    </option>
+                  );
+                })}
               </select>
               <svg className="w-4 h-4 text-white/40 absolute right-4 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
@@ -388,7 +436,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div>
             <label className="block text-xs font-medium text-white/50 mb-2">Language</label>
             <div className="relative">
-              <select 
+              <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:bg-white/10 transition-all appearance-none shadow-sm"
@@ -404,7 +452,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             <div>
               <label className="block text-xs font-medium text-white/50 mb-2">Content type</label>
               <div className="relative">
-                <select 
+                <select
                   value={contentType}
                   onChange={(e) => setContentType(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:bg-white/10 transition-all appearance-none shadow-sm"
@@ -423,9 +471,9 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           {inline && (
             <div className="pt-4 flex flex-col gap-2 mt-auto">
               {status === 'error' && <span className="text-sm text-red-400 font-medium">{message}</span>}
-              <button 
+              <button
                 onClick={handleSave}
-                disabled={status === 'uploading' || status === 'processing'}
+                disabled={status === 'uploading' || status === 'processing' || !quality}
                 className="w-full bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-md text-sm font-semibold transition-all disabled:opacity-50 border border-white/5"
               >
                 Upload Video

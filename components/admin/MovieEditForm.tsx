@@ -18,6 +18,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
   const [previewData, setPreviewData] = useState<any>(null);
 
   const displayData = previewData || movie;
+  const existingVideoQualityIds = movie?.media?.filter((m: any) => m.type === 'video' && m.quality?.id).map((m: any) => Number(m.quality.id)) || [];
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -529,6 +530,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   parentTitle={movie.title || 'Unknown Title'} 
                   parentPoster={movie.poster_path}
                   onClose={() => setIsAddingVideo(false)} 
+                  existingVideoQualityIds={existingVideoQualityIds}
                 />
               ) : (
                 <>

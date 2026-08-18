@@ -11,6 +11,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [activeVideo, setActiveVideo] = useState<any>(null);
+  const existingVideoQualityIds = episode.media?.filter((m: any) => m.type === 'video' && m.quality?.id).map((m: any) => Number(m.quality.id)) || [];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +34,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
   const handleDeleteVideo = async (e: React.MouseEvent, mediaId: number) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this video?')) return;
-    
+
     const res = await deleteMediaAction(mediaId);
     if (res.success) {
       router.refresh();
@@ -67,7 +68,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
 
       <div className="flex-1 overflow-y-auto p-8 bg-transparent">
         <div className="max-w-6xl mx-auto space-y-12">
-          
+
           {/* OVERVIEW SECTION */}
           <section className="animate-in fade-in duration-300">
             <h2 className="text-lg font-bold text-white mb-6">Episode Details</h2>
@@ -124,31 +125,26 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                         <video src={`http://localhost:8000/api/v1/media/${video.id}/stream`} className="w-full h-full object-contain pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
                       )}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                         <div className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 group-hover:bg-red-600 group-hover:text-white transition-all shadow-lg border border-white/20 group-hover:border-red-500 group-hover:scale-110">
-                           <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
-                         </div>
+                        <div className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 group-hover:bg-red-600 group-hover:text-white transition-all shadow-lg border border-white/20 group-hover:border-red-500 group-hover:scale-110">
+                          <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 flex flex-col justify-center min-w-0">
                       <p className="text-base text-red-500 font-bold truncate group-hover:text-red-400 transition-colors" title={video.metadata?.label || video.original_filename}>
                         {video.metadata?.label || video.original_filename}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-xs text-white/50">{video.metadata?.language || 'Unknown'}</span>
-                        <span className="text-white/30">•</span>
-                        <span className="text-xs text-white/50">{video.metadata?.content_type || 'Episode'}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center pr-4 gap-6">
-                      <div className="flex flex-col items-end">
-                        <span className="text-sm text-white/60 font-medium">{video.quality?.name || 'Processing'}</span>
+                        <span className="text-sm text-white/60 font-medium">{video.quality?.name}</span>
                         <span className="text-xs text-white/30 mt-1">
-                          {video.created_at ? new Date(video.created_at).toLocaleDateString('en-CA') : ''}
+                          Uploaded {video.created_at ? new Date(video.created_at).toLocaleDateString('en-CA') : ''}
                         </span>
                       </div>
-                      <button 
+                    </div>
+
+                    <div className="flex items-center pr-4 gap-6">
+                      <button
                         type="button"
                         onClick={(e) => handleDeleteVideo(e, video.id)}
                         className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
@@ -166,7 +162,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
 
             <hr className="border-white/5 mb-8" />
             <h3 className="text-lg font-bold text-white mb-6">Upload New Video</h3>
-            <VideoCreateForm mediableType="episode" mediableId={episode.id} parentTitle={episode.name} inline={true} />
+            <VideoCreateForm mediableType="episode" mediableId={episode.id} parentTitle={episode.name} inline={true} existingVideoQualityIds={existingVideoQualityIds} />
           </section>
 
         </div>
@@ -176,18 +172,18 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
       {activeVideo && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-10 animate-in fade-in duration-200">
           <div className="relative w-full max-w-5xl aspect-video bg-black rounded-lg overflow-hidden border border-white/10 shadow-2xl">
-            <button 
-              type="button" 
-              onClick={() => setActiveVideo(null)} 
+            <button
+              type="button"
+              onClick={() => setActiveVideo(null)}
               className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 transition-colors backdrop-blur-sm shadow-md"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-            <video 
-              src={`http://localhost:8000/api/v1/media/${activeVideo.id}/stream`} 
-              className="w-full h-full" 
-              controls 
-              autoPlay 
+            <video
+              src={`http://localhost:8000/api/v1/media/${activeVideo.id}/stream`}
+              className="w-full h-full"
+              controls
+              autoPlay
             />
           </div>
         </div>
