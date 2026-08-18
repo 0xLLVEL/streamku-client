@@ -38,74 +38,78 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       title: 'System',
       items: [
-        { name: 'TMDB Import', path: '/admin/import', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> },
-        { name: 'Roles', path: '/admin/roles', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> },
         { name: 'Settings', path: '/admin/settings', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> },
       ]
     }
   ];
 
-  const isSystem = pathname.startsWith('/admin/import') || pathname.startsWith('/admin/roles') || pathname.startsWith('/admin/settings');
-  const activeSection = isSystem ? navSections[1] : navSections[0];
-
   return (
     <div className="min-h-screen flex bg-[#0A0A0A] text-white font-sans overflow-hidden">
       
-      {/* Icon Sidebar (Metronic Style Primary) */}
-      <aside className="w-[70px] bg-[#0A0A0A] border-r border-white/5 flex flex-col items-center py-6 shrink-0 relative z-30">
-        <Link href="/" className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold mb-8">
-          S
-        </Link>
-        <nav className="flex flex-col gap-4">
-          <Link href="/admin" className={`w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer relative group transition-colors ${!isSystem ? 'bg-white/5 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-            <div className="absolute left-12 bg-gray-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Content</div>
+      {/* Single Unified Sidebar */}
+      <aside className="w-64 bg-[#0A0A0A] border-r border-white/5 flex flex-col shrink-0 relative z-30 h-screen overflow-y-auto custom-scrollbar">
+        {/* Logo Header */}
+        <div className="h-20 flex items-center px-6 shrink-0 border-b border-white/5">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+              S
+            </div>
+            <span className="font-bold text-lg tracking-wide text-white">Streamku</span>
+            <span className="bg-red-500/20 text-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2">ADMIN</span>
           </Link>
-          <Link href="/admin/settings" className={`w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer relative group transition-colors ${isSystem ? 'bg-white/5 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-            <div className="absolute left-12 bg-gray-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">System</div>
-          </Link>
-        </nav>
-      </aside>
+        </div>
 
-      {/* Secondary Sidebar (Metronic Style Secondary) */}
-      <aside className="w-64 bg-[#0A0A0A] flex flex-col shrink-0 relative z-20 h-screen overflow-y-auto custom-scrollbar border-r border-white/5">
-        <nav className="flex-1 px-4 py-8 space-y-1">
-          {activeSection.items.map((item: any) => {
-            const isActive = item.path === '/admin' ? pathname === '/admin' : pathname.startsWith(item.path);
-            return (
-              <div key={item.path} className="flex items-center group relative">
-                <Link
-                  href={item.path}
-                  className={`flex-1 flex items-center px-4 py-2 rounded-md transition-colors duration-150 text-[13px] font-medium pr-10 ${isActive
-                      ? 'bg-red-500/10 text-red-500 shadow-sm'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                    }`}
-                >
-                  {item.name}
-                </Link>
-                {item.addPath && (
-                  <Link 
-                    href={item.addPath}
-                    className={`absolute right-2 p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${isActive ? 'text-red-500 hover:bg-red-500/20 opacity-100' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                    title={`Add ${item.name}`}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                  </Link>
-                )}
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 flex flex-col gap-8">
+          {navSections.map((section) => (
+            <div key={section.title} className="flex flex-col gap-2">
+              <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider px-3 mb-1">{section.title}</h3>
+              <div className="flex flex-col gap-1">
+                {section.items.map((item: any) => {
+                  const isActive = item.path === '/admin' ? pathname === '/admin' : pathname.startsWith(item.path);
+                  return (
+                    <div key={item.path} className="flex items-center group relative">
+                      <Link
+                        href={item.path}
+                        className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 text-[13px] font-medium ${isActive
+                            ? 'bg-red-500/10 text-red-500 shadow-sm'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                          }`}
+                      >
+                        <span className={`${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                          {item.icon}
+                        </span>
+                        {item.name}
+                      </Link>
+                      {item.addPath && (
+                        <Link 
+                          href={item.addPath}
+                          className={`absolute right-2 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100 ${isActive ? 'text-red-500 hover:bg-red-500/20 opacity-100' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                          title={`Add ${item.name}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </nav>
 
-        <div className="p-4 mt-auto">
+        {/* User Profile */}
+        <div className="p-4 border-t border-white/5 shrink-0">
            <form action={async () => { await logoutAction(); }} className="w-full">
-            <button type="submit" className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-[#000000] text-gray-400 hover:text-white border border-white/5 transition-colors text-[13px] font-medium">
+            <button type="submit" className="flex items-center justify-between w-full px-3 py-3 rounded-lg bg-[#000000] text-gray-400 hover:text-white border border-white/5 hover:border-white/10 transition-colors text-[13px] font-medium group">
                <div className="flex items-center gap-3">
-                 <div className="w-6 h-6 rounded bg-red-600/20 text-red-500 flex items-center justify-center text-xs font-bold">{user.name.charAt(0)}</div>
-                 <span className="truncate max-w-[100px]">{user.name}</span>
+                 <div className="w-7 h-7 rounded bg-red-600/20 text-red-500 flex items-center justify-center text-sm font-bold">{user.name.charAt(0)}</div>
+                 <div className="flex flex-col items-start">
+                   <span className="truncate max-w-[100px] text-white">{user.name}</span>
+                   <span className="text-[10px] text-gray-500">Admin</span>
+                 </div>
                </div>
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+               <svg className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
           </form>
         </div>

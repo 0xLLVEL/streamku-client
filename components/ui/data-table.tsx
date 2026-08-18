@@ -9,6 +9,9 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   SortingState,
+  PaginationState,
+  RowSelectionState,
+  getPaginationRowModel,
 } from "@tanstack/react-table"
 
 import {
@@ -23,32 +26,80 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  pageCount?: number
+  pagination?: PaginationState
+  onPaginationChange?: React.Dispatch<React.SetStateAction<PaginationState>>
+  sorting?: SortingState
+  onSortingChange?: React.Dispatch<React.SetStateAction<SortingState>>
+  globalFilter?: string
+  onGlobalFilterChange?: React.Dispatch<React.SetStateAction<string>>
+  rowSelection?: RowSelectionState
+  onRowSelectionChange?: React.Dispatch<React.SetStateAction<RowSelectionState>>
+  isLoading?: boolean
+  toolbarAction?: React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  pageCount,
+  pagination: controlledPagination,
+  onPaginationChange: setControlledPagination,
+  sorting: controlledSorting,
+  onSortingChange: setControlledSorting,
+  globalFilter: controlledGlobalFilter,
+  onGlobalFilterChange: setControlledGlobalFilter,
+  rowSelection: controlledRowSelection,
+  onRowSelectionChange: setControlledRowSelection,
+  isLoading,
+  toolbarAction,
 }: DataTableProps<TData, TValue>) {
-  const [globalFilter, setGlobalFilter] = React.useState('')
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [internalGlobalFilter, setInternalGlobalFilter] = React.useState('')
+  const [internalSorting, setInternalSorting] = React.useState<SortingState>([])
+  const [internalPagination, setInternalPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 20 })
+  const [internalRowSelection, setInternalRowSelection] = React.useState<RowSelectionState>({})
+
+  const isControlled = controlledPagination !== undefined
+
+  const globalFilter = isControlled ? controlledGlobalFilter : internalGlobalFilter
+  const setGlobalFilter = isControlled ? setControlledGlobalFilter! : setInternalGlobalFilter
+
+  const sorting = isControlled ? controlledSorting : internalSorting
+  const setSorting = isControlled ? setControlledSorting! : setInternalSorting
+
+  const pagination = isControlled ? controlledPagination : internalPagination
+  const setPagination = isControlled ? setControlledPagination! : setInternalPagination
+
+  const rowSelection = isControlled ? controlledRowSelection : internalRowSelection
+  const setRowSelection = isControlled ? setControlledRowSelection! : setInternalRowSelection
 
   const table = useReactTable({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
+    pageCount: pageCount ?? -1,
     state: {
       globalFilter,
       sorting,
+      pagination,
+      rowSelection,
     },
+    enableRowSelection: true,
+    manualPagination: isControlled,
+    manualSorting: isControlled,
+    manualFiltering: isControlled,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onRowSelectionChange: setRowSelection,
   })
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Search Bar Toolbar */}
+      {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
           <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,14 +113,17 @@ export function DataTable<TData, TValue>({
             className="bg-[#0A0A0A] border border-white/5 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-red-500 text-white w-full transition-colors placeholder:text-gray-600"
           />
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 bg-[#0A0A0A] border border-white/5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-          Filter
-        </button>
+        
+        {toolbarAction}
       </div>
 
       {/* Table Area */}
-      <div className="rounded-xl border border-white/5 bg-[#0A0A0A] overflow-hidden">
+      <div className="rounded-xl border border-white/5 bg-[#0A0A0A] overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-50 bg-black/20 flex items-center justify-center backdrop-blur-[1px]">
+            <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -126,6 +180,30 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination UI */}
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-gray-500 font-medium">
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() === -1 ? '?' : table.getPageCount()}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 disabled:opacity-30 transition-colors text-white text-xs font-medium"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 disabled:opacity-30 transition-colors text-white text-xs font-medium"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
     </div>
   )
 }

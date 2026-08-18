@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { deleteContentAction } from '@/app/actions/admin-content';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DeleteButtonProps {
   id: number | string;
-  type: 'movies' | 'tv-shows' | 'genres';
+  type: 'movies' | 'tv-shows' | 'genres' | 'cast';
 }
 
 export function DeleteButton({ id, type }: DeleteButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to completely delete this item? This action cannot be undone.`)) {
@@ -22,8 +24,9 @@ export function DeleteButton({ id, type }: DeleteButtonProps) {
     if (!res.success) {
       alert(res.error || 'Failed to delete');
       setIsDeleting(false);
+    } else {
+      queryClient.invalidateQueries({ queryKey: [`admin-${type}`] });
     }
-    // If success, Next.js revalidatePath will automatically refresh the server component table
   };
 
   return (

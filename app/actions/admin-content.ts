@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 // -- DELETIONS --
 
-export async function deleteContentAction(id: number | string, type: 'movies' | 'tv-shows' | 'genres') {
+export async function deleteContentAction(id: number | string, type: 'movies' | 'tv-shows' | 'genres' | 'cast') {
   try {
     const res = await fetchApi(`/admin/${type}/${id}`, {
       method: 'DELETE',
@@ -18,6 +18,28 @@ export async function deleteContentAction(id: number | string, type: 'movies' | 
 
     const data = await res.json();
     return { success: false, error: data.message || `Failed to delete ${type}` };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+export async function bulkDeleteContentAction(ids: (number | string)[], type: 'movies' | 'tv-shows' | 'genres' | 'cast') {
+  try {
+    // In a real app we'd have a true bulk API endpoint, 
+    // but here we can just loop over the existing single delete endpoint for simplicity
+    // or if the backend supports it, we'd call a bulk endpoint.
+    // For now we'll do promise.all
+    const promises = ids.map(id => fetchApi(`/admin/${type}/${id}`, { method: 'DELETE' }));
+    const results = await Promise.all(promises);
+    
+    const allOk = results.every(res => res.ok);
+    
+    if (allOk) {
+      revalidatePath(`/admin/${type}`);
+      return { success: true };
+    }
+    
+    return { success: false, error: `Failed to delete some ${type}` };
   } catch (err) {
     return { success: false, error: 'An unexpected error occurred.' };
   }
