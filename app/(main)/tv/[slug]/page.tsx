@@ -42,7 +42,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
         <HeroTrailer
           backdropPath={show.backdrop_path}
           title={show.name}
-          videos={show.videos}
+          trailerUrl={show.trailer_url}
         />
 
 

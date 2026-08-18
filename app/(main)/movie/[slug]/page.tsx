@@ -41,7 +41,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         <HeroTrailer
           backdropPath={movie.backdrop_path}
           title={movie.title}
-          videos={movie.videos}
+          trailerUrl={movie.trailer_url}
         />
 
         {/* Content Container Aligned to Bottom */}

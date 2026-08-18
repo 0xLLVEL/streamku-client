@@ -31,14 +31,14 @@ export async function bulkDeleteContentAction(ids: (number | string)[], type: 'm
     // For now we'll do promise.all
     const promises = ids.map(id => fetchApi(`/admin/${type}/${id}`, { method: 'DELETE' }));
     const results = await Promise.all(promises);
-    
+
     const allOk = results.every(res => res.ok);
-    
+
     if (allOk) {
       revalidatePath(`/admin/${type}`);
       return { success: true };
     }
-    
+
     return { success: false, error: `Failed to delete some ${type}` };
   } catch (err) {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -63,6 +63,24 @@ export async function deleteVideoAction(movieId: number | string, videoId: numbe
   }
 }
 
+export async function deleteSeasonAction(tvShowId: number | string, seasonNumber: number | string) {
+  try {
+    const res = await fetchApi(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      revalidatePath(`/admin/tv-shows/${tvShowId}`);
+      return { success: true };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to delete season' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
 // -- CREATES --
 
 export async function createMovieAction(formData: FormData) {
@@ -73,6 +91,7 @@ export async function createMovieAction(formData: FormData) {
       tagline: formData.get('tagline'),
       release_date: formData.get('release_date') || null,
       status: formData.get('status'),
+      trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
     };
 
@@ -102,6 +121,7 @@ export async function createTvShowAction(formData: FormData) {
       tagline: formData.get('tagline'),
       first_air_date: formData.get('first_air_date') || null,
       status: formData.get('status'),
+      trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
     };
 
@@ -214,6 +234,7 @@ export async function updateMovieAction(id: number | string, formData: FormData)
       tagline: formData.get('tagline'),
       release_date: formData.get('release_date') || null,
       status: formData.get('status'),
+      trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
     };
 
@@ -243,6 +264,7 @@ export async function updateTvShowAction(id: number | string, formData: FormData
       tagline: formData.get('tagline'),
       first_air_date: formData.get('first_air_date') || null,
       status: formData.get('status'),
+      trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
     };
 

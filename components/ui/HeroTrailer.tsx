@@ -5,11 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 interface HeroTrailerProps {
   backdropPath: string | null;
   title: string;
-  videos?: Array<{
-    site: string;
-    type: string;
-    key: string;
-  }>;
+  trailerUrl?: string | null;
 }
 
 declare global {
@@ -19,20 +15,22 @@ declare global {
   }
 }
 
-export function HeroTrailer({ backdropPath, title, videos }: HeroTrailerProps) {
+export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProps) {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [apiReady, setApiReady] = useState(false);
   const playerRef = useRef<any>(null);
   const tmdbBaseUrl = 'https://image.tmdb.org/t/p/original';
   
-  // Find a YouTube trailer
-  const trailer = videos?.find(
-    (v) => v.site === 'YouTube' && v.type === 'Trailer'
-  );
+  // Extract YouTube ID from URL
+  let trailerKey = null;
+  if (trailerUrl) {
+    const match = trailerUrl.match(/[?&]v=([^&]+)/);
+    if (match) trailerKey = match[1];
+  }
 
   // Load YouTube Iframe API
   useEffect(() => {
-    if (!trailer) return;
+    if (!trailerKey) return;
 
     // If already loaded
     if (window.YT && window.YT.Player) {
@@ -52,18 +50,18 @@ export function HeroTrailer({ backdropPath, title, videos }: HeroTrailerProps) {
     return () => {
       window.onYouTubeIframeAPIReady = () => {};
     };
-  }, [trailer]);
+  }, [trailerKey]);
 
   // Initialize Player
   useEffect(() => {
-    if (!apiReady || !trailer) return;
+    if (!apiReady || !trailerKey) return;
 
     let timer: NodeJS.Timeout;
 
     // Start 4-second cooldown before initializing player
     timer = setTimeout(() => {
       playerRef.current = new window.YT.Player('youtube-player', {
-        videoId: trailer.key,
+        videoId: trailerKey,
         playerVars: {
           autoplay: 1,
           controls: 0,
@@ -99,7 +97,7 @@ export function HeroTrailer({ backdropPath, title, videos }: HeroTrailerProps) {
         playerRef.current.destroy();
       }
     };
-  }, [apiReady, trailer]);
+  }, [apiReady, trailerKey]);
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
@@ -111,7 +109,7 @@ export function HeroTrailer({ backdropPath, title, videos }: HeroTrailerProps) {
       />
       
       {/* Video Player Container */}
-      {trailer && (
+      {trailerKey && (
         <div 
           className={`absolute inset-0 bg-black transition-opacity duration-[2000ms] ease-in-out pointer-events-none ${videoPlaying ? 'opacity-100' : 'opacity-0'}`}
         >
