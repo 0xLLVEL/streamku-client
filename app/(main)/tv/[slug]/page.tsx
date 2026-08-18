@@ -165,7 +165,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
 
       {/* Seasons Grid in Liquid Glass */}
       {/* Seasons or Episodes Section */}
-      <SeasonEpisodeViewer seasons={show.seasons || []} />
+      <SeasonEpisodeViewer seasons={show.seasons || []} showSlug={slug} />
 
       {/* More Like This */}
       {(recommendations && recommendations.length > 0) && (

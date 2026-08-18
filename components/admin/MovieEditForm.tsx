@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction, deleteVideoAction, previewTmdbMovieAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VideoCreateForm } from '@/components/admin/VideoCreateForm';
-import { FormInput } from '@/components/ui/FormInput';
-import { FormSelect } from '@/components/ui/FormSelect';
 import Link from 'next/link';
 
 export function MovieEditForm({ movie }: { movie?: any }) {
@@ -344,9 +346,15 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               </div>
 
               {/* Title Fields */}
-              <div className="space-y-4">
-                <FormInput label="Title" name="title" defaultValue={displayData?.title || ''} />
-                <FormInput label="Original title" name="original_title" defaultValue={displayData?.original_title || ''} />
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input id="title" name="title" defaultValue={displayData?.title || ''} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="original_title">Original title</Label>
+                  <Input id="original_title" name="original_title" defaultValue={displayData?.original_title || ''} />
+                </div>
 
                 <div className="flex items-center gap-3 pt-2">
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -382,32 +390,61 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               </div>
 
               {/* Metadata Fields */}
-              <FormInput type="date" label="Release date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="[color-scheme:dark]" />
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="release_date">Release date</Label>
+                  <Input type="date" id="release_date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="[color-scheme:dark]" />
+                </div>
 
-              <FormInput label="Tagline" name="tagline" defaultValue={displayData?.tagline || ''} />
+                <div className="space-y-2">
+                  <Label htmlFor="tagline">Tagline</Label>
+                  <Input id="tagline" name="tagline" defaultValue={displayData?.tagline || ''} />
+                </div>
 
-              <div>
-                <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
-                <textarea name="overview" defaultValue={displayData?.overview || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm resize-y" />
+                <div className="space-y-2">
+                  <Label htmlFor="overview">Overview</Label>
+                  <Textarea id="overview" name="overview" defaultValue={displayData?.overview || ''} rows={4} />
+                </div>
               </div>
 
               {/* Grid Fields */}
               <div className="grid grid-cols-2 gap-6">
-                <FormInput type="number" label="Runtime (minutes)" name="runtime" defaultValue={displayData?.runtime || ''} />
-                <FormSelect label="Status" name="status" defaultValue={displayData?.status || 'Released'} options={[
-                  { value: 'Released', label: 'Released' },
-                  { value: 'Post Production', label: 'Post Production' },
-                  { value: 'Rumored', label: 'Rumored' }
-                ]} />
-
-                <FormInput type="number" step="0.1" label="Popularity" name="popularity" defaultValue={displayData?.popularity || 0} />
-                <FormSelect label="Language" name="original_language" defaultValue={displayData?.original_language || 'en'} options={[
-                  { value: 'en', label: 'English' },
-                  { value: 'es', label: 'Spanish' },
-                  { value: 'fr', label: 'French' },
-                  { value: 'ja', label: 'Japanese' },
-                  { value: 'ko', label: 'Korean' }
-                ]} />
+                <div className="space-y-2">
+                  <Label htmlFor="runtime">Runtime (minutes)</Label>
+                  <Input type="number" id="runtime" name="runtime" defaultValue={displayData?.runtime || ''} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select name="status" defaultValue={displayData?.status || 'Released'}>
+                    <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                      <SelectItem value="Released" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Released</SelectItem>
+                      <SelectItem value="Post Production" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Post Production</SelectItem>
+                      <SelectItem value="Rumored" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Rumored</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="popularity">Popularity</Label>
+                  <Input type="number" step="0.1" id="popularity" name="popularity" defaultValue={displayData?.popularity || 0} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="original_language">Language</Label>
+                  <Select name="original_language" defaultValue={displayData?.original_language || 'en'}>
+                    <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                      <SelectItem value="en" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">English</SelectItem>
+                      <SelectItem value="es" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Spanish</SelectItem>
+                      <SelectItem value="fr" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">French</SelectItem>
+                      <SelectItem value="ja" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Japanese</SelectItem>
+                      <SelectItem value="ko" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Korean</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}

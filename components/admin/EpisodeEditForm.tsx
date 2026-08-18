@@ -5,7 +5,9 @@ import { updateEpisodeAction, deleteMediaAction } from '@/app/actions/admin-cont
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { VideoCreateForm } from './VideoCreateForm';
-import { FormInput } from '@/components/ui/FormInput';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId: number | string, seasonNumber: number | string, episode: any }) {
   const router = useRouter();
@@ -86,15 +88,24 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                   </div>
                 </div>
 
-                <div className="col-span-2 space-y-4">
-                  <FormInput label="Name" name="name" defaultValue={episode.name} />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormInput type="date" label="Air Date" name="air_date" defaultValue={episode.air_date ? episode.air_date.split('T')[0] : ''} className="[color-scheme:dark]" />
-                    <FormInput type="number" label="Runtime (minutes)" name="runtime" defaultValue={episode.runtime || ''} />
+                <div className="col-span-2 space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" name="name" defaultValue={episode.name} />
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
-                    <textarea name="overview" defaultValue={episode.overview} rows={5} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all resize-y shadow-sm" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="air_date">Air Date</Label>
+                      <Input type="date" id="air_date" name="air_date" defaultValue={episode.air_date ? episode.air_date.split('T')[0] : ''} className="[color-scheme:dark]" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="runtime">Runtime (minutes)</Label>
+                      <Input type="number" id="runtime" name="runtime" defaultValue={episode.runtime || ''} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="overview">Overview</Label>
+                    <Textarea id="overview" name="overview" defaultValue={episode.overview} rows={5} />
                   </div>
                 </div>
               </div>

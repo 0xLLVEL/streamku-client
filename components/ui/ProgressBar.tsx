@@ -1,4 +1,5 @@
 import React from 'react';
+import { Progress } from './progress';
 
 interface ProgressBarProps {
   progress: number;
@@ -47,16 +48,10 @@ export function ProgressBar({ progress, status, message, onPause, onResume }: Pr
         </div>
       </div>
       {(status === 'uploading' || status === 'paused' || status === 'processing') && (
-        <div className="w-full bg-white/10 rounded-full h-1 overflow-hidden">
-          <div 
-            className={`h-full transition-all duration-150 relative ${status === 'paused' ? 'bg-orange-500' : 'bg-red-500'}`} 
-            style={{ width: `${status === 'processing' ? 100 : progress}%` }}
-          >
-            {(status === 'uploading' || status === 'processing') && (
-              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-            )}
-          </div>
-        </div>
+        <Progress 
+          value={status === 'processing' ? 100 : progress} 
+          className={`h-1 bg-white/10 ${status === 'paused' ? '[&>div]:bg-orange-500' : '[&>div]:bg-red-500'} ${status === 'processing' || status === 'uploading' ? '[&>div]:animate-pulse' : ''}`}
+        />
       )}
     </div>
   );

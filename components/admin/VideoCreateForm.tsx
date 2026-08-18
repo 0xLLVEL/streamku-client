@@ -4,8 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchApi } from '@/lib/apiClient';
 import { useTusUpload } from '@/hooks/useTusUpload';
-import { FormInput } from '@/components/ui/FormInput';
-import { FormSelect } from '@/components/ui/FormSelect';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 
 interface VideoCreateFormProps {
@@ -178,12 +180,15 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         {/* Right Column - Form Fields */}
         <div className="w-full lg:w-[400px] flex flex-col gap-6 shrink-0">
           {!inline && (
-            <FormInput
-              label="Name"
-              placeholder="e.g. Official Trailer"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="e.g. Official Trailer"
+                value={name}
+                onChange={(e: any) => setName(e.target.value)}
+              />
+            </div>
           )}
 
           {!inline && (
@@ -203,12 +208,17 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           )}
 
           {mediableType !== 'movie' && !inline && (
-            <FormSelect
-              label="Season"
-              value={season}
-              onChange={(e) => setSeason(e.target.value)}
-              options={[{ value: '1', label: 'Season 1' }]}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="season">Season</Label>
+              <Select value={season} onValueChange={(val) => setSeason(val || '')}>
+                <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                  <SelectValue placeholder="Select season" />
+                </SelectTrigger>
+                <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                  <SelectItem value="1" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Season 1</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {!inline && (
@@ -222,25 +232,27 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             </div>
           )}
 
-          <FormSelect
-            label="Source type"
-            value={sourceType}
-            onChange={(e) => setSourceType(e.target.value)}
-            options={[
-              { value: 'Upload', label: 'Upload' },
-              { value: 'Embed', label: 'Embed' }
-            ]}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="source_type">Source type</Label>
+            <Select value={sourceType} onValueChange={(val) => setSourceType(val || '')}>
+              <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                <SelectValue placeholder="Select source type" />
+              </SelectTrigger>
+              <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                <SelectItem value="Upload" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Upload</SelectItem>
+                <SelectItem value="Embed" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Embed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div>
             <label className="block text-xs font-medium text-white/50 mb-2">Source</label>
             {sourceType === 'Embed' ? (
-              <textarea
+              <Textarea
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/70 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:bg-white/10 transition-all h-24 resize-none shadow-sm"
                 placeholder="Full embed code snippet or just src url"
-              ></textarea>
+              />
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
@@ -261,39 +273,51 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             )}
           </div>
 
-          <FormSelect
-            label="Quality"
-            value={quality}
-            onChange={(e) => setQuality(e.target.value)}
-            options={qualities.filter(q => !existingVideoQualityIds.includes(Number(q.id))).map(q => ({
-              value: q.id.toString(),
-              label: `${q.name} (${q.label})`
-            }))}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="quality">Quality</Label>
+            <Select value={quality} onValueChange={(val) => setQuality(val || '')}>
+              <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                <SelectValue placeholder="Select quality" />
+              </SelectTrigger>
+              <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                {qualities.filter(q => !existingVideoQualityIds.includes(Number(q.id))).map(q => (
+                  <SelectItem key={q.id} value={q.id.toString()} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
+                    {q.name} ({q.label})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <FormSelect
-            label="Language"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            options={[
-              { value: 'English', label: 'English' },
-              { value: 'Indonesian', label: 'Indonesian' }
-            ]}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="language">Language</Label>
+            <Select value={language} onValueChange={(val) => setLanguage(val || '')}>
+              <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                <SelectItem value="English" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">English</SelectItem>
+                <SelectItem value="Indonesian" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Indonesian</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {!inline && (
-            <FormSelect
-              label="Content type"
-              value={contentType}
-              onChange={(e) => setContentType(e.target.value)}
-              options={[
-                { value: 'Movie', label: 'Movie' },
-                { value: 'Trailer', label: 'Trailer' },
-                { value: 'Featurette', label: 'Featurette' },
-                { value: 'Teaser', label: 'Teaser' },
-                { value: 'Episode', label: 'Episode' }
-              ]}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="content_type">Content type</Label>
+              <Select value={contentType} onValueChange={(val) => setContentType(val || '')}>
+                <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors placeholder:text-white/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 focus-visible:border-red-500/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                  <SelectValue placeholder="Select content type" />
+                </SelectTrigger>
+                <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                  <SelectItem value="Movie" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Movie</SelectItem>
+                  <SelectItem value="Trailer" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Trailer</SelectItem>
+                  <SelectItem value="Featurette" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Featurette</SelectItem>
+                  <SelectItem value="Teaser" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Teaser</SelectItem>
+                  <SelectItem value="Episode" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Episode</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {inline && (

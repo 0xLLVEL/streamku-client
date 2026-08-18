@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { updateGenreAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
-import { FormInput } from '@/components/ui/FormInput';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/label';
 
 export function GenreEditForm({ genre }: { genre: any }) {
   const router = useRouter();
@@ -37,7 +38,10 @@ export function GenreEditForm({ genre }: { genre: any }) {
         </div>
       )}
 
-      <FormInput label="Genre Name" name="name" defaultValue={genre.name} />
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-sm font-medium text-white/60 uppercase tracking-wider block">Genre Name</Label>
+        <Input id="name" name="name" defaultValue={genre.name} />
+      </div>
 
       <div className="pt-6 border-t border-white/5 flex justify-end gap-4">
         <button type="button" onClick={() => router.push('/admin/genres')} className="px-6 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/5 transition-all font-bold uppercase tracking-wider text-sm">
