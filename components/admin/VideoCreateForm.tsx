@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { getAuthTokenAction } from '@/app/actions/upload';
 import { useRouter } from 'next/navigation';
+import * as tus from 'tus-js-client';
 
 interface VideoCreateFormProps {
   mediableId: number;
@@ -31,10 +32,11 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
   // Upload State
-  const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'completed' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'paused' | 'processing' | 'completed' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('');
   const [uploadId, setUploadId] = useState<string | null>(null);
+  const tusUploadRef = useRef<tus.Upload | null>(null);
   const [qualities, setQualities] = useState<any[]>([]);
 
   const API_URL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -89,6 +91,12 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         return;
       }
 
+      if (status === 'paused' && tusUploadRef.current) {
+        tusUploadRef.current.start();
+        setStatus('uploading');
+        return;
+      }
+
       setStatus('uploading');
       setProgress(0);
       setMessage('Initiating upload...');
@@ -97,118 +105,65 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         const token = await getAuthTokenAction();
         if (!token) throw new Error('Authentication required');
 
-        const headers: HeadersInit = {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
-        };
-
-        // 1. Initiate Upload
-        const initRes = await fetch(`${API_URL}/admin/uploads/initiate`, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const upload = new tus.Upload(videoFile, {
+          endpoint: `${API_URL}/admin/tus`,
+          retryDelays: [0, 3000, 5000, 10000, 20000],
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+          metadata: {
+            name: videoFile.name,
             filename: videoFile.name,
-            mime_type: videoFile.type || 'video/mp4',
-            total_size: videoFile.size,
-            mediable_id: mediableId,
+            extension: videoFile.name.split('.').pop() || 'mp4',
+            filetype: videoFile.type || 'video/mp4',
+            mediable_id: mediableId.toString(),
             mediable_type: mediableType,
+            quality_id: quality,
             type: 'video',
             collection: 'video',
-            quality_id: quality ? parseInt(quality) : undefined,
-            metadata: {
-              label: (inline && parentTitle) ? parentTitle.substring(0, 100) : (name ? name.substring(0, 100) : ''),
-              language: language,
-              content_type: contentType
+            label: (inline && parentTitle) ? parentTitle.substring(0, 100) : (name ? name.substring(0, 100) : ''),
+            language: language,
+            content_type: contentType,
+            size: videoFile.size.toString(),
+          },
+          onError: function (error) {
+            console.error('TUS Error:', error);
+            setStatus('error');
+            setMessage('Failed because: ' + error);
+          },
+          onProgress: function (bytesUploaded, bytesTotal) {
+            const percentage = (bytesUploaded / bytesTotal) * 100;
+            setProgress(percentage);
+            
+            const uploadedMB = (bytesUploaded / (1024 * 1024)).toFixed(2);
+            const totalMB = (bytesTotal / (1024 * 1024)).toFixed(2);
+            setMessage(`Uploading ${uploadedMB} MB / ${totalMB} MB...`);
+          },
+          onSuccess: function () {
+            setStatus('completed');
+            setMessage('Upload complete!');
+            setVideoFile(null);
+            tusUploadRef.current = null;
+            
+            if (qualities.length > 0) {
+              const availableQ = qualities.find((q: any) => !existingVideoQualityIds.includes(Number(q.id)));
+              if (availableQ) {
+                setQuality(availableQ.id.toString());
+              }
+            } else {
+              setQuality('');
             }
-          })
+            
+            setTimeout(() => {
+              if (onClose) onClose();
+              router.refresh();
+            }, 1000);
+          },
         });
 
-        if (!initRes.ok) {
-          const errData = await initRes.json();
-          throw new Error(errData.message || 'Failed to initiate upload');
-        }
-
-        const { data: initData } = await initRes.json();
-        const currentUploadId = initData.upload_id;
-        setUploadId(currentUploadId);
-
-        const chunkSize = initData.chunk_size;
-        const totalChunks = initData.total_chunks;
-
-        // 2. Upload Chunks
-        for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
-          const start = chunkNumber * chunkSize;
-          const end = Math.min(start + chunkSize, videoFile.size);
-          const chunkBlob = videoFile.slice(start, end);
-
-          const formData = new FormData();
-          formData.append('chunk_number', chunkNumber.toString());
-          formData.append('chunk', chunkBlob, 'chunk.blob');
-
-          const currentUploadedMB = (start / (1024 * 1024)).toFixed(2);
-          const totalMB = (videoFile.size / (1024 * 1024)).toFixed(2);
-          setMessage(`Uploading ${currentUploadedMB} MB / ${totalMB} MB...`);
-
-          await new Promise<void>((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${API_URL}/admin/uploads/${currentUploadId}/chunks`);
-
-            Object.entries(headers).forEach(([key, value]) => {
-              xhr.setRequestHeader(key, value as string);
-            });
-
-            xhr.upload.onprogress = (e) => {
-              if (e.lengthComputable) {
-                const currentLoaded = start + e.loaded;
-                const totalMB = (videoFile.size / (1024 * 1024)).toFixed(2);
-                const currentUploadedMB = (currentLoaded / (1024 * 1024)).toFixed(2);
-                setMessage(`Uploading ${currentUploadedMB} MB / ${totalMB} MB...`);
-
-                const percent = (currentLoaded / videoFile.size) * 100;
-                setProgress(percent);
-              }
-            };
-
-            xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                resolve();
-              } else {
-                reject(new Error(`Failed to upload chunk ${chunkNumber}: ${xhr.responseText}`));
-              }
-            };
-
-            xhr.onerror = () => reject(new Error('Network error during chunk upload'));
-            xhr.send(formData);
-          });
-        }
-
-        // 3. Complete Upload
-        setStatus('processing');
-        setMessage('Processing video...');
-
-        const completeRes = await fetch(`${API_URL}/admin/uploads/${currentUploadId}/complete`, {
-          method: 'POST',
-          headers: headers
-        });
-
-        if (!completeRes.ok) {
-          const errorData = await completeRes.json();
-          throw new Error(errorData.message || 'Failed to complete upload');
-        }
-
-        setStatus('idle');
-        setVideoFile(null);
-        if (qualities.length > 0) {
-          const availableQ = qualities.find((q: any) => !existingVideoQualityIds.includes(Number(q.id)));
-          if (availableQ) {
-            setQuality(availableQ.id.toString());
-          }
-        } else {
-          setQuality('');
-        }
-
-        if (onClose) onClose();
-        router.refresh();
+        tusUploadRef.current = upload;
+        upload.start();
 
       } catch (err: any) {
         console.error(err);
@@ -275,17 +230,32 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                   ) : (
                      <svg className="animate-spin h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   )}
-                  <span className="font-medium text-white/90 truncate">{status === 'completed' ? 'Success!' : status === 'processing' ? 'Processing...' : 'Uploading Video'}</span>
+                  <span className="font-medium text-white/90 truncate">{status === 'completed' ? 'Success!' : status === 'processing' ? 'Processing...' : status === 'paused' ? 'Paused' : 'Uploading Video'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/50 text-xs font-mono">
                   <span>{message}</span>
-                  {status === 'uploading' && <span className="text-white/70 font-semibold">{Math.round(progress)}%</span>}
+                  {(status === 'uploading' || status === 'paused') && <span className="text-white/70 font-semibold">{Math.round(progress)}%</span>}
+                  
+                  {status === 'uploading' && (
+                    <button type="button" onClick={() => {
+                        tusUploadRef.current?.abort();
+                        setStatus('paused');
+                        setMessage('Upload paused');
+                    }} className="ml-2 hover:text-white transition-colors bg-white/10 px-2 py-0.5 rounded" title="Pause Upload">
+                      <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                  )}
+                  {status === 'paused' && (
+                    <button type="button" onClick={handleSave} className="ml-2 hover:text-white transition-colors bg-white/10 px-2 py-0.5 rounded" title="Resume Upload">
+                      <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                  )}
                 </div>
               </div>
-              {status === 'uploading' && (
+              {(status === 'uploading' || status === 'paused') && (
                 <div className="w-full bg-white/10 rounded-full h-1 overflow-hidden">
-                  <div className="bg-red-500 h-full transition-all duration-150 relative" style={{ width: `${progress}%` }}>
-                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                  <div className={`h-full transition-all duration-150 relative ${status === 'paused' ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${progress}%` }}>
+                    {status === 'uploading' && <div className="absolute inset-0 bg-white/20 animate-pulse"></div>}
                   </div>
                 </div>
               )}
