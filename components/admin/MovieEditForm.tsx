@@ -248,7 +248,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                         onChange={handleSearch}
                         onFocus={() => { if (searchQuery) setShowDropdown(true); }}
                         placeholder="Search for a movie..."
-                        className="w-full bg-[#000000] border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500/20 focus:outline-none transition-all placeholder:text-white/20"
+                        className="w-full bg-[#000000] border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600/20 focus:outline-none transition-all placeholder:text-white/20"
                       />
 
                       {/* Dropdown */}
@@ -293,7 +293,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <span className="text-white/30 text-sm font-mono">ID:</span>
                         </div>
-                        <input type="text" inputMode="numeric" pattern="[0-9]*" id="tmdb_id_input" placeholder="e.g. 550" className="w-full bg-[#000000] border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500/20 focus:outline-none transition-all placeholder:text-white/20" />
+                        <input type="text" inputMode="numeric" pattern="[0-9]*" id="tmdb_id_input" placeholder="e.g. 550" className="w-full bg-[#000000] border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600/20 focus:outline-none transition-all placeholder:text-white/20" />
                       </div>
                       <button type="button" onClick={handleTmdbImport} disabled={isImporting} className="bg-white/10 hover:bg-white/20 border border-white/5 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap">
                         {isImporting ? (
@@ -317,7 +317,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               <div className="grid grid-cols-3 gap-6">
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
-                  <div className="aspect-[2/3] bg-[#2a2a32] rounded border border-white/10 flex items-center justify-center relative group overflow-hidden">
+                  <div className="aspect-[2/3] bg-white/5 rounded-lg border border-white/10 shadow-sm flex items-center justify-center relative group overflow-hidden">
                     {displayData?.poster_path && (
                       <img src={`https://image.tmdb.org/t/p/w500${displayData.poster_path}`} alt="Poster" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                     )}
@@ -330,7 +330,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-white/50 mb-2">Backdrop</label>
-                  <div className="aspect-video bg-[#2a2a32] rounded border border-white/10 flex items-center justify-center relative group overflow-hidden">
+                  <div className="aspect-video bg-white/5 rounded-lg border border-white/10 shadow-sm flex items-center justify-center relative group overflow-hidden">
                     {displayData?.backdrop_path && (
                       <img src={`https://image.tmdb.org/t/p/w1280${displayData.backdrop_path}`} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                     )}
@@ -345,11 +345,11 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
-                  <input type="text" name="title" defaultValue={displayData?.title || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="text" name="title" defaultValue={displayData?.title || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Original title</label>
-                  <input type="text" name="original_title" defaultValue={displayData?.title || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="text" name="original_title" defaultValue={displayData?.title || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
@@ -389,29 +389,29 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Release date</label>
                 <div className="relative">
-                  <input type="date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors [color-scheme:dark]" />
+                  <input type="date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm [color-scheme:dark]" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Tagline</label>
-                <input type="text" name="tagline" defaultValue={displayData?.tagline || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                <input type="text" name="tagline" defaultValue={displayData?.tagline || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
-                <textarea name="overview" defaultValue={displayData?.overview || ''} rows={4} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors resize-y" />
+                <textarea name="overview" defaultValue={displayData?.overview || ''} rows={4} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm resize-y" />
               </div>
 
               {/* Grid Fields */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Runtime (minutes)</label>
-                  <input type="number" name="runtime" defaultValue={displayData?.runtime || ''} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="number" name="runtime" defaultValue={displayData?.runtime || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Status</label>
-                  <select name="status" defaultValue={displayData?.status || 'Released'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
+                  <select name="status" defaultValue={displayData?.status || 'Released'} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm appearance-none">
                     <option value="Released">Released</option>
                     <option value="Post Production">Post Production</option>
                     <option value="Rumored">Rumored</option>
@@ -420,11 +420,11 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Popularity</label>
-                  <input type="number" step="0.1" name="popularity" defaultValue={displayData?.popularity || 0} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors" />
+                  <input type="number" step="0.1" name="popularity" defaultValue={displayData?.popularity || 0} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-white/50 mb-2">Language</label>
-                  <select name="original_language" defaultValue={displayData?.original_language || 'en'} className="w-full bg-transparent border border-white/10 rounded px-4 py-2.5 text-white text-sm focus:border-[#ff4b4b] focus:outline-none focus:bg-[#25252d] transition-colors appearance-none">
+                  <select name="original_language" defaultValue={displayData?.original_language || 'en'} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm appearance-none">
                     <option value="en">English</option>
                     <option value="es">Spanish</option>
                     <option value="fr">French</option>

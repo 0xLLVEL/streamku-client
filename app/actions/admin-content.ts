@@ -291,3 +291,47 @@ export async function updateSeasonAction(tvShowId: number | string, seasonNumber
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
+
+export async function updateEpisodeAction(tvShowId: number | string, seasonNumber: number | string, episodeNumber: number | string, formData: FormData) {
+  try {
+    const payload = {
+      name: formData.get('name'),
+      overview: formData.get('overview'),
+      air_date: formData.get('air_date') || null,
+      runtime: formData.get('runtime') ? parseInt(formData.get('runtime') as string, 10) : null,
+    };
+
+    const res = await fetchApi(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}/episodes/${episodeNumber}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      revalidatePath(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}/episodes/${episodeNumber}`);
+      revalidatePath(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`);
+      return { success: true };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to update episode' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+export async function deleteMediaAction(mediaId: number | string) {
+  try {
+    const res = await fetchApi(`/admin/media/${mediaId}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      return { success: true };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to delete media' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}

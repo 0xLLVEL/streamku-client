@@ -38,7 +38,7 @@ export function GenreEditForm({ genre }: { genre: any }) {
 
       <div>
         <label className="block text-sm font-bold text-white/70 mb-2 uppercase tracking-wider">Genre Name</label>
-        <input type="text" name="name" defaultValue={genre.name} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500/50" />
+        <input type="text" name="name" defaultValue={genre.name} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-600/50" />
       </div>
 
       <div className="pt-6 border-t border-white/5 flex justify-end gap-4">
