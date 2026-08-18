@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction, deleteVideoAction, previewTmdbMovieAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,8 +13,8 @@ import Link from 'next/link';
 
 export function MovieEditForm({ movie }: { movie?: any }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('primary_facts');
-  const [isSaving, setIsSaving] = useState(false);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
@@ -105,9 +106,46 @@ export function MovieEditForm({ movie }: { movie?: any }) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const saveMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      let targetId = movie?.id;
+
+      if (!targetId && previewData?.tmdb_id) {
+        const importRes = await importMovieFromTmdbAction(previewData.tmdb_id);
+        if (!importRes.success) {
+          throw new Error(importRes.error || 'Failed to import TMDB data');
+        }
+        targetId = importRes.id;
+      }
+
+      const res = targetId
+        ? await updateMovieAction(targetId, formData)
+        : await createMovieAction(formData);
+
+      if (!res.success) {
+        throw new Error(res.error || 'Failed to save movie');
+      }
+
+      return { res, targetId };
+    },
+    onSuccess: ({ res, targetId }) => {
+      setMessage({ text: 'Movie saved successfully!', type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['admin-movies'] });
+      
+      setTimeout(() => {
+        setMessage(null);
+        if (!movie?.id && (targetId || (res as any).id)) {
+          router.push(`/admin/movies/${targetId || (res as any).id}`);
+        }
+      }, 2000);
+    },
+    onError: (error: Error) => {
+      setMessage({ text: error.message, type: 'error' });
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSaving(true);
     setMessage(null);
 
     const formData = new FormData(e.currentTarget);
@@ -115,34 +153,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
       formData.set('is_featured', '');
     }
 
-    let targetId = movie?.id;
-
-    if (!targetId && previewData?.tmdb_id) {
-      const importRes = await importMovieFromTmdbAction(previewData.tmdb_id);
-      if (!importRes.success) {
-        setMessage({ text: importRes.error || 'Failed to import TMDB data', type: 'error' });
-        setIsSaving(false);
-        return;
-      }
-      targetId = importRes.id;
-    }
-
-    const res = targetId
-      ? await updateMovieAction(targetId, formData)
-      : await createMovieAction(formData);
-
-    if (res.success) {
-      setMessage({ text: 'Movie saved successfully!', type: 'success' });
-      setTimeout(() => {
-        setMessage(null);
-        if (!movie?.id && (targetId || (res as any).id)) {
-          router.push(`/admin/movies/${targetId || (res as any).id}`);
-        }
-      }, 1500);
-    } else {
-      setMessage({ text: res.error || 'Failed to save', type: 'error' });
-    }
-    setIsSaving(false);
+    saveMutation.mutate(formData);
   };
 
   const tabs = [
@@ -179,7 +190,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8 relative">
+    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
 
       {/* Sticky Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">
@@ -201,8 +212,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               {message.text}
             </span>
           )}
-          <button type="submit" disabled={isSaving} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded font-medium text-sm transition-all disabled:opacity-50">
-            {isSaving ? 'Saving...' : 'Save'}
+          <button type="submit" disabled={saveMutation.isPending} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded font-medium text-sm transition-all disabled:opacity-50">
+            {saveMutation.isPending ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>

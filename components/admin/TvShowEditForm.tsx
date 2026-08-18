@@ -159,7 +159,7 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8">
+    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
 
       {/* Sticky Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">

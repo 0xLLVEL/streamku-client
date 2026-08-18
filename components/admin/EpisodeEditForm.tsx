@@ -47,7 +47,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
   };
 
   return (
-    <div className="flex flex-col h-[100vh] -m-6 md:-m-8">
+    <div className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
       {/* Sticky Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">
         <div className="flex items-center gap-4">

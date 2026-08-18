@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { fetchApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -39,9 +40,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={cn("h-full", "antialiased", "dark", inter.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-white">
-        <AuthProvider initialUser={user}>
-          {children}
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider initialUser={user}>
+            {children}
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
