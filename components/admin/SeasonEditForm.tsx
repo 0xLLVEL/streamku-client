@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { updateSeasonAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FormInput } from '@/components/ui/FormInput';
 
 export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string, season: any }) {
   const router = useRouter();
@@ -97,14 +98,8 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                 </div>
 
                 <div className="col-span-2 space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 mb-2">Name</label>
-                    <input type="text" name="name" defaultValue={season.name} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 mb-2">Air Date</label>
-                    <input type="date" name="air_date" defaultValue={season.air_date ? season.air_date.split('T')[0] : ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm [color-scheme:dark]" />
-                  </div>
+                  <FormInput label="Name" name="name" defaultValue={season.name} />
+                  <FormInput type="date" label="Air Date" name="air_date" defaultValue={season.air_date ? season.air_date.split('T')[0] : ''} className="[color-scheme:dark]" />
                   <div>
                     <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
                     <textarea name="overview" defaultValue={season.overview} rows={5} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all resize-y shadow-sm" />

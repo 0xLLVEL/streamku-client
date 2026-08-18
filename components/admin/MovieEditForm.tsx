@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { updateMovieAction, createMovieAction, importMovieFromTmdbAction, searchTmdbAction, deleteVideoAction, previewTmdbMovieAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
-import { ChunkedUploader } from '@/components/ui/ChunkedUploader';
 import { VideoCreateForm } from '@/components/admin/VideoCreateForm';
+import { FormInput } from '@/components/ui/FormInput';
+import { FormSelect } from '@/components/ui/FormSelect';
 import Link from 'next/link';
 
 export function MovieEditForm({ movie }: { movie?: any }) {
@@ -344,14 +345,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
               {/* Title Fields */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
-                  <input type="text" name="title" defaultValue={displayData?.title || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Original title</label>
-                  <input type="text" name="original_title" defaultValue={displayData?.title || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
+                <FormInput label="Title" name="title" defaultValue={displayData?.title || ''} />
+                <FormInput label="Original title" name="original_title" defaultValue={displayData?.original_title || ''} />
 
                 <div className="flex items-center gap-3 pt-2">
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -387,17 +382,9 @@ export function MovieEditForm({ movie }: { movie?: any }) {
               </div>
 
               {/* Metadata Fields */}
-              <div>
-                <label className="block text-xs font-medium text-white/50 mb-2">Release date</label>
-                <div className="relative">
-                  <input type="date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm [color-scheme:dark]" />
-                </div>
-              </div>
+              <FormInput type="date" label="Release date" name="release_date" defaultValue={displayData?.release_date ? displayData.release_date.split('T')[0] : ''} className="[color-scheme:dark]" />
 
-              <div>
-                <label className="block text-xs font-medium text-white/50 mb-2">Tagline</label>
-                <input type="text" name="tagline" defaultValue={displayData?.tagline || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-              </div>
+              <FormInput label="Tagline" name="tagline" defaultValue={displayData?.tagline || ''} />
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
@@ -406,33 +393,21 @@ export function MovieEditForm({ movie }: { movie?: any }) {
 
               {/* Grid Fields */}
               <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Runtime (minutes)</label>
-                  <input type="number" name="runtime" defaultValue={displayData?.runtime || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Status</label>
-                  <select name="status" defaultValue={displayData?.status || 'Released'} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm appearance-none">
-                    <option value="Released">Released</option>
-                    <option value="Post Production">Post Production</option>
-                    <option value="Rumored">Rumored</option>
-                  </select>
-                </div>
+                <FormInput type="number" label="Runtime (minutes)" name="runtime" defaultValue={displayData?.runtime || ''} />
+                <FormSelect label="Status" name="status" defaultValue={displayData?.status || 'Released'} options={[
+                  { value: 'Released', label: 'Released' },
+                  { value: 'Post Production', label: 'Post Production' },
+                  { value: 'Rumored', label: 'Rumored' }
+                ]} />
 
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Popularity</label>
-                  <input type="number" step="0.1" name="popularity" defaultValue={displayData?.popularity || 0} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Language</label>
-                  <select name="original_language" defaultValue={displayData?.original_language || 'en'} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm appearance-none">
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="ja">Japanese</option>
-                    <option value="ko">Korean</option>
-                  </select>
-                </div>
+                <FormInput type="number" step="0.1" label="Popularity" name="popularity" defaultValue={displayData?.popularity || 0} />
+                <FormSelect label="Language" name="original_language" defaultValue={displayData?.original_language || 'en'} options={[
+                  { value: 'en', label: 'English' },
+                  { value: 'es', label: 'Spanish' },
+                  { value: 'fr', label: 'French' },
+                  { value: 'ja', label: 'Japanese' },
+                  { value: 'ko', label: 'Korean' }
+                ]} />
               </div>
             </div>
           )}

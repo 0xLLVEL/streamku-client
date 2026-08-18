@@ -5,6 +5,7 @@ import { updateEpisodeAction, deleteMediaAction } from '@/app/actions/admin-cont
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { VideoCreateForm } from './VideoCreateForm';
+import { FormInput } from '@/components/ui/FormInput';
 
 export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId: number | string, seasonNumber: number | string, episode: any }) {
   const router = useRouter();
@@ -86,19 +87,10 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                 </div>
 
                 <div className="col-span-2 space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 mb-2">Name</label>
-                    <input type="text" name="name" defaultValue={episode.name} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                  </div>
+                  <FormInput label="Name" name="name" defaultValue={episode.name} />
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-white/50 mb-2">Air Date</label>
-                      <input type="date" name="air_date" defaultValue={episode.air_date ? episode.air_date.split('T')[0] : ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm [color-scheme:dark]" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-white/50 mb-2">Runtime (minutes)</label>
-                      <input type="number" name="runtime" defaultValue={episode.runtime || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                    </div>
+                    <FormInput type="date" label="Air Date" name="air_date" defaultValue={episode.air_date ? episode.air_date.split('T')[0] : ''} className="[color-scheme:dark]" />
+                    <FormInput type="number" label="Runtime (minutes)" name="runtime" defaultValue={episode.runtime || ''} />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>

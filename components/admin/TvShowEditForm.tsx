@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { updateTvShowAction, createTvShowAction, importTvShowFromTmdbAction, searchTmdbAction, previewTmdbTvAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
+import { FormInput } from '@/components/ui/FormInput';
+import { FormSelect } from '@/components/ui/FormSelect';
 import Link from 'next/link';
 
 export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
@@ -15,8 +17,6 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
   const [previewData, setPreviewData] = useState<any>(null);
 
   const displayData = previewData || tvShow;
-
-  console.log("TvShowEditForm rendered, tvShow prop:", tvShow);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -326,14 +326,8 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
 
               {/* Title Fields */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
-                  <input type="text" name="name" defaultValue={displayData?.name || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Original title</label>
-                  <input type="text" name="original_name" defaultValue={displayData?.name || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
+                <FormInput label="Title" name="name" defaultValue={displayData?.name || ''} />
+                <FormInput label="Original title" name="original_name" defaultValue={displayData?.original_name || displayData?.name || ''} />
 
                 <div className="flex items-center gap-3 pt-2">
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -369,17 +363,9 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
               </div>
 
               {/* Metadata Fields */}
-              <div>
-                <label className="block text-xs font-medium text-white/50 mb-2">First air date</label>
-                <div className="relative">
-                  <input type="date" name="first_air_date" defaultValue={displayData?.first_air_date ? displayData.first_air_date.split('T')[0] : ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm [color-scheme:dark]" />
-                </div>
-              </div>
+              <FormInput type="date" label="First air date" name="first_air_date" defaultValue={displayData?.first_air_date ? displayData.first_air_date.split('T')[0] : ''} className="[color-scheme:dark]" />
 
-              <div>
-                <label className="block text-xs font-medium text-white/50 mb-2">Tagline</label>
-                <input type="text" name="tagline" defaultValue={displayData?.tagline || ''} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-              </div>
+              <FormInput label="Tagline" name="tagline" defaultValue={displayData?.tagline || ''} />
 
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2">Overview</label>
@@ -388,34 +374,22 @@ export function TvShowEditForm({ tvShow }: { tvShow?: any }) {
 
               {/* Grid Fields */}
               <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Number of seasons</label>
-                  <input type="number" name="number_of_seasons" defaultValue={displayData?.number_of_seasons || 0} readOnly className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 shadow-sm text-white/50 text-sm focus:outline-none cursor-not-allowed" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Status</label>
-                  <select name="status" defaultValue={displayData?.status || 'Returning Series'} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm appearance-none">
-                    <option value="Returning Series">Returning Series</option>
-                    <option value="Ended">Ended</option>
-                    <option value="Canceled">Canceled</option>
-                    <option value="In Production">In Production</option>
-                  </select>
-                </div>
+                <FormInput type="number" label="Number of seasons" name="number_of_seasons" defaultValue={displayData?.number_of_seasons || 0} readOnly />
+                <FormSelect label="Status" name="status" defaultValue={displayData?.status || 'Returning Series'} options={[
+                  { value: 'Returning Series', label: 'Returning Series' },
+                  { value: 'Ended', label: 'Ended' },
+                  { value: 'Canceled', label: 'Canceled' },
+                  { value: 'In Production', label: 'In Production' }
+                ]} />
 
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Popularity</label>
-                  <input type="number" step="0.1" name="popularity" defaultValue={displayData?.popularity || 0} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-white/50 mb-2">Language</label>
-                  <select name="original_language" defaultValue={displayData?.original_language || 'en'} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none focus:bg-white/10 transition-all shadow-sm appearance-none">
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="ja">Japanese</option>
-                    <option value="ko">Korean</option>
-                  </select>
-                </div>
+                <FormInput type="number" step="0.1" label="Popularity" name="popularity" defaultValue={displayData?.popularity || 0} />
+                <FormSelect label="Language" name="original_language" defaultValue={displayData?.original_language || 'en'} options={[
+                  { value: 'en', label: 'English' },
+                  { value: 'es', label: 'Spanish' },
+                  { value: 'fr', label: 'French' },
+                  { value: 'ja', label: 'Japanese' },
+                  { value: 'ko', label: 'Korean' }
+                ]} />
               </div>
 
             </div>
