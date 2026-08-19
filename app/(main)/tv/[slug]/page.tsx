@@ -78,6 +78,11 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
                   mediaEndpoint={`/tv-shows/${show.slug}/seasons/1/episodes/1/media`}
                   title={`${show.name} - S1 E1`}
                   poster={`https://image.tmdb.org/t/p/w1280${show.backdrop_path}`}
+                  videos={show.seasons?.[0]?.episodes?.[0]?.videos}
+                  type="tv"
+                  tmdbId={show.tmdb_id}
+                  seasonNumber={1}
+                  episodeNumber={1}
                   label="Play S1 E1"
                   className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]" 
                 />

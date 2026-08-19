@@ -7,7 +7,8 @@ import {
   createMovieAction,
   importMovieFromTmdbAction,
   searchTmdbAction,
-  deleteVideoAction,
+  deleteMediaAction,
+  deleteEmbedVideoAction,
   previewTmdbMovieAction,
 } from "@/app/actions/admin-content";
 import { useRouter } from "next/navigation";
@@ -156,6 +157,26 @@ export function MovieEditForm({ movie }: { movie?: any }) {
     }
   };
 
+  const handleDeleteEmbedVideo = async (e: React.MouseEvent, videoId: string | number) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this stream?')) return;
+
+    if (movie?.id) {
+      const res = await deleteEmbedVideoAction({
+        mediableId: movie.id,
+        mediableType: 'movie',
+        videoId,
+      });
+
+      if (res.success) {
+        setMessage({ text: 'Stream deleted successfully', type: 'success' });
+        router.refresh();
+      } else {
+        setMessage({ text: res.error || 'Failed to delete stream', type: 'error' });
+      }
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       let targetId = movie?.id;
@@ -215,25 +236,6 @@ export function MovieEditForm({ movie }: { movie?: any }) {
     { id: "reviews", label: "Reviews" },
     { id: "comments", label: "Comments" },
   ];
-
-  const handleDeleteVideo = async (videoId: number) => {
-    if (!movie?.id) return;
-    if (!confirm("Are you sure you want to delete this video?")) return;
-    try {
-      const res = await deleteVideoAction(movie.id, videoId);
-      if (res.success) {
-        setMessage({ text: "Video deleted successfully!", type: "success" });
-        setTimeout(() => setMessage(null), 3000);
-      } else {
-        setMessage({
-          text: res.error || "Failed to delete video",
-          type: "error",
-        });
-      }
-    } catch (err) {
-      setMessage({ text: "An unexpected error occurred.", type: "error" });
-    }
-  };
 
   const handleDeleteImage = async (imageId: number) => {
     if (!movie?.id) return;
@@ -328,11 +330,10 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`text-left px-4 py-2 rounded-md transition-colors duration-150 text-[13px] font-medium ${
-                    activeTab === tab.id
+                  className={`text-left px-4 py-2 rounded-md transition-colors duration-150 text-[13px] font-medium ${activeTab === tab.id
                       ? "bg-red-500/10 text-red-500 shadow-sm"
                       : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -353,7 +354,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-600/20 rounded-full blur-3xl group-hover:bg-red-600/30 transition-colors duration-700"></div>
                   </div>
-                  
+
                   <div className="flex flex-row items-center gap-5 relative z-10">
                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-red-600/20 to-red-500/20 border border-white/10 shadow-inner">
                       <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
@@ -607,8 +608,8 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   ))}
                   {(!displayData?.genres ||
                     displayData.genres.length === 0) && (
-                    <p className="text-white/50 text-sm">No genres assigned.</p>
-                  )}
+                      <p className="text-white/50 text-sm">No genres assigned.</p>
+                    )}
                 </div>
               </div>
 
@@ -1007,6 +1008,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                   mediableType="movie"
                   parentTitle={movie.title || "Unknown Title"}
                   parentPoster={movie.poster_path}
+                  parentTmdbId={movie.tmdb_id}
                   onClose={() => setIsAddingVideo(false)}
                   existingVideoQualityIds={existingVideoQualityIds}
                 />
@@ -1014,7 +1016,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 <>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-white">
-                      Streams ({displayData?.media?.length || 0})
+                      Streams ({(displayData?.media?.length || 0) + (displayData?.videos?.length || 0)})
                     </h2>
                     {movie?.id && (
                       <button
@@ -1022,19 +1024,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                         onClick={() => setIsAddingVideo(true)}
                         className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
                       >
-                        <svg
-                          className="w-3.5 h-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 4v16m8-8H4"
-                          ></path>
-                        </svg>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                         Upload Stream
                       </button>
                     )}
@@ -1048,11 +1038,53 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Uploaded streams will be displayed here */}
-                    {(!displayData?.media ||
-                      displayData.media.length === 0) && (
-                      <p className="text-white/50 col-span-full">
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Uploaded media (Tus) */}
+                    {displayData?.media?.map((media: any) => (
+                      <div key={`media-${media.id}`} className="bg-white/5 border border-white/10 rounded-lg p-4 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors">
+                        <div className="w-32 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-white/20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center min-w-0">
+                          <p className="text-base text-white font-bold truncate">
+                            {media.metadata?.label || media.name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-sm text-white/60 font-medium">Uploaded Media</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* External streams (VidKing, etc) */}
+                    {displayData?.videos?.map((video: any) => (
+                      <div key={`video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-4 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors">
+                        <div className="w-32 aspect-video bg-black border border-white/5 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                          <span className="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded">{video.site}</span>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center min-w-0">
+                          <p className="text-base text-white font-bold truncate">
+                            {video.name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-xs text-white/30 mt-1">ID: {video.key}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center pr-2">
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteEmbedVideo(e, video.id)}
+                            className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
+                            title="Delete Stream"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {(!displayData?.media || displayData.media.length === 0) && (!displayData?.videos || displayData.videos.length === 0) && (
+                      <p className="text-white/50 col-span-full py-8 text-center bg-white/5 rounded-xl border border-white/5">
                         No streams available.
                       </p>
                     )}

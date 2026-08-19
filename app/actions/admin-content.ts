@@ -63,6 +63,73 @@ export async function deleteVideoAction(movieId: number | string, videoId: numbe
   }
 }
 
+export async function createEmbedVideoAction(params: {
+  mediableId: number | string;
+  mediableType: 'movie' | 'tv-show';
+  key: string;
+  site: string;
+  name: string;
+}) {
+  try {
+    const endpoint = params.mediableType === 'movie'
+      ? `/admin/movies/${params.mediableId}/videos`
+      : `/admin/tv-shows/${params.mediableId}/videos`;
+
+    const res = await fetchApi(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        key: params.key,
+        site: params.site,
+        name: params.name,
+        official: false,
+      }),
+    });
+
+    if (res.ok) {
+      const revalidatePath_ = params.mediableType === 'movie'
+        ? `/admin/movies/${params.mediableId}`
+        : `/admin/tv-shows/${params.mediableId}`;
+      revalidatePath(revalidatePath_);
+      const data = await res.json();
+      return { success: true, data: data.data };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to save embed video' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+export async function deleteEmbedVideoAction(params: {
+  mediableId: string | number;
+  mediableType: 'movie' | 'tv-show';
+  videoId: string | number;
+}) {
+  try {
+    const endpoint = params.mediableType === 'movie'
+      ? `/admin/movies/${params.mediableId}/videos/${params.videoId}`
+      : `/admin/tv-shows/${params.mediableId}/videos/${params.videoId}`;
+
+    const res = await fetchApi(endpoint, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      const revalidatePath_ = params.mediableType === 'movie'
+        ? `/admin/movies/${params.mediableId}`
+        : `/admin/tv-shows/${params.mediableId}`;
+      revalidatePath(revalidatePath_);
+      return { success: true };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to delete stream' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
 export async function deleteSeasonAction(tvShowId: number | string, seasonNumber: number | string) {
   try {
     const res = await fetchApi(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`, {

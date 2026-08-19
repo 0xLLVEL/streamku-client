@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateEpisodeAction, deleteMediaAction } from '@/app/actions/admin-content';
+import { updateEpisodeAction, deleteMediaAction, deleteEmbedVideoAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { VideoCreateForm } from './VideoCreateForm';
@@ -40,9 +40,28 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
 
     const res = await deleteMediaAction(mediaId);
     if (res.success) {
+      setMessage({ text: 'Video deleted successfully', type: 'success' });
       router.refresh();
     } else {
       alert(res.error || 'Failed to delete video');
+    }
+  };
+
+  const handleDeleteEmbedVideo = async (e: React.MouseEvent, videoId: string | number) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this stream?')) return;
+
+    const res = await deleteEmbedVideoAction({
+      mediableId: episode.id,
+      mediableType: 'tv-show',
+      videoId,
+    });
+
+    if (res.success) {
+      setMessage({ text: 'Stream deleted successfully', type: 'success' });
+      router.refresh();
+    } else {
+      setMessage({ text: res.error || 'Failed to delete stream', type: 'error' });
     }
   };
 
@@ -117,9 +136,10 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
           {/* VIDEO SECTION */}
           <section className="animate-in fade-in duration-300">
             <h3 className="text-lg font-bold text-white mb-6">Uploaded Videos</h3>
-            {episode.media && episode.media.filter((m: any) => m.type === 'video').length > 0 ? (
+            {(episode.media?.filter((m: any) => m.type === 'video').length > 0 || episode.videos?.length > 0) ? (
               <div className="flex flex-col gap-3 mb-8">
-                {episode.media.filter((m: any) => m.type === 'video').map((video: any) => (
+                {/* Uploaded media */}
+                {episode.media?.filter((m: any) => m.type === 'video').map((video: any) => (
                   <div key={video.id} onClick={() => setActiveVideo(video)} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors cursor-pointer group">
                     <div className="w-48 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0">
                       {episode.still_path ? (
@@ -158,9 +178,40 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                     </div>
                   </div>
                 ))}
+                
+                {/* External streams (VidKing, Embed, etc.) */}
+                {episode.videos?.map((video: any) => (
+                  <div key={`ext-video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors group">
+                    <div className="w-48 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                      <span className="text-sm font-bold text-red-500 bg-red-500/10 px-3 py-1 rounded-md">{video.site}</span>
+                    </div>
+
+                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                      <p className="text-base text-red-500 font-bold truncate group-hover:text-red-400 transition-colors" title={video.name}>
+                        {video.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-xs text-white/30 mt-1">
+                          ID: {video.key}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center pr-4 gap-6">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteEmbedVideo(e, video.id)}
+                        className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
+                        title="Delete Stream"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
-              <p className="text-sm text-white/50 mb-8">No videos uploaded yet.</p>
+              <p className="text-sm text-white/50 mb-8">No streams available.</p>
             )}
 
             <hr className="border-white/5 mb-8" />

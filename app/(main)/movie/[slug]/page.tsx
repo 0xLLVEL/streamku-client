@@ -69,12 +69,14 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                 </div>
               )}
 
-              {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <PlayAction 
                   mediaEndpoint={`/movies/${movie.slug}/media`}
                   title={movie.title}
                   poster={`https://image.tmdb.org/t/p/w1280${movie.poster_path}`}
+                  videos={movie.videos}
+                  type="movie"
+                  tmdbId={movie.tmdb_id}
                   className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]" 
                 />
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">

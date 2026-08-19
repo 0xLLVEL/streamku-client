@@ -112,6 +112,7 @@ function EpisodeList({ episodes, showSlug }: { episodes: any[], showSlug: string
 function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [embedUrl, setEmbedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -120,9 +121,28 @@ function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) 
   }, []);
 
   const handlePlayClick = async () => {
-    if (streamUrl) {
+    if (streamUrl || embedUrl) {
       setIsOpen(true);
       return;
+    }
+
+    if (episode.videos && episode.videos.length > 0) {
+      const extVideo = episode.videos[0];
+      if (extVideo.site === 'VidKing') {
+        let vUrl = '';
+        if (extVideo.key.includes('/')) {
+          vUrl = `https://vidking.net/embed/tv/${extVideo.key}`;
+        } else {
+          vUrl = `https://vidking.net/embed/tv/${extVideo.key}/${episode.season_number}/${episode.episode_number}`;
+        }
+        setEmbedUrl(vUrl);
+        setIsOpen(true);
+        return;
+      } else {
+        setEmbedUrl(extVideo.key);
+        setIsOpen(true);
+        return;
+      }
     }
 
     if (!showSlug) return;
@@ -208,14 +228,30 @@ function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) 
         </div>
       </div>
 
-      {mounted && isOpen && streamUrl && createPortal(
+      {mounted && isOpen && (streamUrl || embedUrl) && createPortal(
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-in fade-in duration-300">
-           <VideoPlayer 
-             src={streamUrl} 
-             title={`Episode ${episode.episode_number}: ${episode.name}`}
-             poster={`https://image.tmdb.org/t/p/w1280${episode.still_path}`} 
-             onBack={() => setIsOpen(false)} 
-           />
+           {streamUrl ? (
+             <VideoPlayer 
+               src={streamUrl} 
+               title={`Episode ${episode.episode_number}: ${episode.name}`}
+               poster={`https://image.tmdb.org/t/p/w1280${episode.still_path}`} 
+               onBack={() => setIsOpen(false)} 
+             />
+           ) : embedUrl ? (
+             <div className="w-full h-full relative flex flex-col bg-black">
+               <button 
+                 onClick={() => setIsOpen(false)}
+                 className="absolute top-6 left-6 z-50 p-3 bg-black/50 hover:bg-red-600 rounded-full text-white transition-all backdrop-blur-md border border-white/10"
+               >
+                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+               </button>
+               <iframe 
+                 src={embedUrl} 
+                 className="w-full h-full border-none outline-none bg-black"
+                 allowFullScreen
+               ></iframe>
+             </div>
+           ) : null}
         </div>,
         document.body
       )}
