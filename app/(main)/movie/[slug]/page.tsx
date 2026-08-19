@@ -7,15 +7,16 @@ import { PlayAction } from '@/components/ui/PlayAction';
 import Link from 'next/link';
 
 import { PosterCard } from '@/components/ui/PosterCard';
+import { Movie, MediaItem } from '@/types';
 
-async function getMovie(slug: string) {
+async function getMovie(slug: string): Promise<Movie | null> {
   const res = await fetchApi(`/movies/${slug}`, { next: { revalidate: 60 } });
   if (!res.ok) return null;
   const json = await res.json();
   return json.data;
 }
 
-async function getRecommendations(slug: string) {
+async function getRecommendations(slug: string): Promise<MediaItem[]> {
   const res = await fetchApi(`/movies/${slug}/recommendations`, { next: { revalidate: 60 } });
   if (!res.ok) return [];
   const json = await res.json();
@@ -39,8 +40,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
       <div className="relative h-[95vh] w-full flex items-center justify-center">
         {/* Backdrop Image */}
         <HeroTrailer
-          backdropPath={movie.backdrop_path}
-          title={movie.title}
+          backdropPath={movie.backdrop_path ?? null}
+          title={movie.title ?? ''}
           trailerUrl={movie.trailer_url}
         />
 
@@ -58,26 +59,27 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
               {/* Genres */}
               {movie.genres && movie.genres.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-300 mb-6 drop-shadow-md">
-                  {movie.genres.map((genre: any, idx: number) => (
+                  {movie.genres?.map((genre, idx, arr) => (
                     <span key={genre.id} className="flex items-center">
                       <Link href={`/genres/${genre.slug}`} className="hover:text-white transition-colors cursor-pointer">
                         {genre.name}
                       </Link>
-                      {idx < movie.genres.length - 1 && <span className="mx-2 text-gray-500">•</span>}
+                      {idx < arr.length - 1 && <span className="mx-2 text-gray-500">•</span>}
                     </span>
                   ))}
                 </div>
               )}
 
               <div className="flex flex-wrap items-center gap-3 mb-6">
-                <PlayAction 
+                <PlayAction
                   mediaEndpoint={`/movies/${movie.slug}/media`}
-                  title={movie.title}
-                  poster={`https://image.tmdb.org/t/p/w1280${movie.poster_path}`}
+                  title={movie.title ?? ''}
+                  poster={`https://image.tmdb.org/t/p/w1280${movie.poster_path ?? ''}`}
                   videos={movie.videos}
                   type="movie"
                   tmdbId={movie.tmdb_id}
-                  className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]" 
+                  watchableId={movie.id}
+                  className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]"
                 />
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
@@ -91,10 +93,6 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg>
                   Add to Collection
                 </button>
-                <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                  Trailer
-                </button>
               </div>
 
               {/* Metadata Row */}
@@ -102,10 +100,10 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                 {movie.release_date && <span>{new Date(movie.release_date).getFullYear()}</span>}
                 {movie.runtime && <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>}
                 <span className="px-2 py-0.5 border border-gray-500 rounded text-xs font-bold text-gray-300">HD</span>
-                {movie.vote_average > 0 && (
+                {(movie.vote_average ?? 0) > 0 && (
                   <span className="flex items-center text-yellow-500">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                    {parseFloat(movie.vote_average).toFixed(1)}
+                    {Number(movie.vote_average ?? 0).toFixed(1)}
                   </span>
                 )}
                 {movie.original_language && <span className="uppercase">{movie.original_language}</span>}
@@ -139,7 +137,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         <div className="w-full px-8 md:px-16 lg:px-24 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 drop-shadow-md">Top Cast</h2>
           <DraggableList className="pb-4" innerClassName="space-x-6">
-            {movie.cast.slice(0, 15).map((actor: any, index: number) => (
+            {movie.cast.slice(0, 15).map((actor, index) => (
               <div key={index} className="snap-start flex-shrink-0 w-28 md:w-36 group">
                 <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
                   {actor.profile_path ? (
@@ -165,7 +163,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
           <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">More Like This</h2>
           <DraggableList className="pb-4" innerClassName="space-x-3">
-            {recommendations.map((item: any, idx: number) => (
+            {recommendations.map((item, idx) => (
               <div key={item.id} className="snap-start shrink-0">
                 <PosterCard item={item} />
               </div>

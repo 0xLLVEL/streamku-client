@@ -8,9 +8,12 @@ interface VideoPlayerProps {
   poster?: string;
   title: string;
   onBack?: () => void;
+  watchableId?: number;
+  watchableType?: 'movie' | 'episode';
+  initialTime?: number;
 }
 
-export function VideoPlayer({ src, poster, title, onBack }: VideoPlayerProps) {
+export function VideoPlayer({ src, poster, title, onBack, watchableId, watchableType = 'movie', initialTime = 0 }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,6 +27,54 @@ export function VideoPlayer({ src, poster, title, onBack }: VideoPlayerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
+  const initialTimeSet = useRef(false);
+
+  // Sync progress
+  useEffect(() => {
+    if (!watchableId || !isPlaying) return;
+    
+    const interval = setInterval(async () => {
+      if (!videoRef.current) return;
+      const time = videoRef.current.currentTime;
+      const dur = videoRef.current.duration;
+      
+      if (time > 0) {
+        try {
+          const { fetchApi } = await import('@/lib/apiClient');
+          await fetchApi('history/sync', {
+            method: 'PATCH',
+            body: JSON.stringify({
+              watchable_type: watchableType,
+              watchable_id: watchableId,
+              progress_seconds: Math.floor(time),
+              completed: dur && time >= dur - 60 ? true : false,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+            requireAuth: true,
+          }).catch(e => {
+            if (e.message.includes('not found')) {
+              fetchApi('history', {
+                method: 'POST',
+                body: JSON.stringify({
+                  watchable_type: watchableType,
+                  watchable_id: watchableId,
+                  progress_seconds: Math.floor(time),
+                  duration_seconds: Math.floor(dur || 0),
+                  completed: dur && time >= dur - 60 ? true : false,
+                }),
+                headers: { 'Content-Type': 'application/json' },
+                requireAuth: true,
+              }).catch(console.error);
+            }
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }, 15000); // every 15 seconds
+
+    return () => clearInterval(interval);
+  }, [isPlaying, watchableId, watchableType]);
 
   // Auto-hide controls
   useEffect(() => {
@@ -59,6 +110,10 @@ export function VideoPlayer({ src, poster, title, onBack }: VideoPlayerProps) {
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      if (initialTime > 0 && !initialTimeSet.current) {
+        videoRef.current.currentTime = initialTime;
+        initialTimeSet.current = true;
+      }
     }
   };
 

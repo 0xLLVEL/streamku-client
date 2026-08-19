@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { VideoPlayer } from '@/components/ui/VideoPlayer';
 
+import { Season, Episode } from '@/types';
+
 interface SeasonEpisodeViewerProps {
-  seasons: any[];
+  seasons: Season[];
   showSlug: string;
 }
 
@@ -22,7 +24,7 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
     return (
       <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
         <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">Episodes</h2>
-        <EpisodeList episodes={season.episodes} showSlug={showSlug} />
+        <EpisodeList episodes={season.episodes || []} showSlug={showSlug} />
       </div>
     );
   }
@@ -46,7 +48,7 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
             <p className="text-sm text-white/50 mt-1 font-medium">{season.episode_count} Episodes</p>
           </div>
         </div>
-        <EpisodeList episodes={season.episodes} showSlug={showSlug} />
+        <EpisodeList episodes={season.episodes || []} showSlug={showSlug} />
       </div>
     );
   }
@@ -55,14 +57,14 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
   return (
     <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
       <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">Seasons</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-        {seasons.map((season: any) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {seasons.map((season: Season) => (
           <div 
             key={season.id} 
             onClick={() => setSelectedSeasonId(season.id)}
-            className="liquid-glass rounded-2xl p-4 md:p-5 flex gap-5 md:gap-6 hover:bg-white/10 transition-colors group cursor-pointer"
+            className="cursor-pointer group"
           >
-            <div className="w-24 md:w-32 shrink-0 rounded-xl overflow-hidden shadow-lg border border-white/5">
+            <div className="rounded-xl overflow-hidden shadow-lg border border-white/5 bg-black/20 aspect-[2/3]">
               {season.poster_path ? (
                 <img 
                   src={`https://image.tmdb.org/t/p/w300${season.poster_path}`} 
@@ -70,19 +72,11 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full aspect-[2/3] bg-black/40 flex items-center justify-center text-[10px] md:text-xs text-white/30">No Poster</div>
+                <div className="w-full h-full flex items-center justify-center text-[10px] md:text-xs text-white/30">No Poster</div>
               )}
             </div>
-            <div className="flex flex-col justify-center min-w-0">
-              <h3 className="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-red-500 transition-colors truncate">{season.name}</h3>
-              <div className="flex items-center gap-2 text-sm text-white/60 mb-2 font-medium">
-                {season.air_date && <span>{new Date(season.air_date).getFullYear()}</span>}
-                <span>•</span>
-                <span>{season.episode_count} Episodes</span>
-              </div>
-              {season.overview && (
-                <p className="text-white/50 text-xs md:text-sm line-clamp-2 md:line-clamp-3 leading-relaxed">{season.overview}</p>
-              )}
+            <div className="mt-3">
+              <h3 className="text-sm font-bold text-white group-hover:text-red-500 transition-colors truncate">{season.name}</h3>
             </div>
           </div>
         ))}
@@ -91,25 +85,21 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
   );
 }
 
-function EpisodeList({ episodes, showSlug }: { episodes: any[], showSlug: string }) {
+function EpisodeList({ episodes, showSlug }: { episodes: Episode[], showSlug: string }) {
   if (!episodes || episodes.length === 0) {
-    return (
-      <div className="flex flex-col liquid-glass rounded-2xl overflow-hidden">
-        <div className="text-white/50 p-6 text-sm text-center">No episodes available.</div>
-      </div>
-    );
+    return <div className="text-white/50 text-sm">No episodes found.</div>;
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-8 pt-4">
-      {episodes.map((episode: any) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      {episodes.map((episode: Episode) => (
         <EpisodeCard key={episode.id} episode={episode} showSlug={showSlug} />
       ))}
     </div>
   );
 }
 
-function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) {
+function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
@@ -119,6 +109,53 @@ function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !embedUrl || !episode.id) return;
+
+    const handleMessage = async (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        const time = data.time || data.currentTime || data.progress;
+        const dur = data.duration || data.totalTime;
+        
+        if (typeof time === 'number' && time > 0) {
+          const { fetchApi } = await import('@/lib/apiClient');
+          await fetchApi('history/sync', {
+            method: 'PATCH',
+            body: JSON.stringify({
+              watchable_type: 'episode',
+              watchable_id: episode.id,
+              progress_seconds: Math.floor(time),
+              completed: dur && time >= dur - 60 ? true : false,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+            requireAuth: true,
+          }).catch(e => {
+            if (e.message.includes('not found')) {
+              fetchApi('history', {
+                method: 'POST',
+                body: JSON.stringify({
+                  watchable_type: 'episode',
+                  watchable_id: episode.id,
+                  progress_seconds: Math.floor(time),
+                  duration_seconds: Math.floor(dur || 0),
+                  completed: dur && time >= dur - 60 ? true : false,
+                }),
+                headers: { 'Content-Type': 'application/json' },
+                requireAuth: true,
+              }).catch(console.error);
+            }
+          });
+        }
+      } catch (e) {
+        // Ignore JSON parse errors for non-vidking messages
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isOpen, embedUrl, episode.id]);
 
   const handlePlayClick = async () => {
     if (streamUrl || embedUrl) {
@@ -209,7 +246,7 @@ function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) 
             </div>
           )}
 
-          {episode.runtime > 0 && (
+          {(episode.runtime ?? 0) > 0 && (
             <div className="absolute bottom-1.5 right-1.5 bg-black/60 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] text-white/90 font-bold backdrop-blur-md">
               {episode.runtime}m
             </div>
@@ -236,6 +273,8 @@ function EpisodeCard({ episode, showSlug }: { episode: any, showSlug: string }) 
                title={`Episode ${episode.episode_number}: ${episode.name}`}
                poster={`https://image.tmdb.org/t/p/w1280${episode.still_path}`} 
                onBack={() => setIsOpen(false)} 
+               watchableId={episode.id}
+               watchableType="episode"
              />
            ) : embedUrl ? (
              <div className="w-full h-full relative flex flex-col bg-black">

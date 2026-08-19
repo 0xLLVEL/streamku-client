@@ -16,6 +16,8 @@ interface PlayActionProps {
   label?: string;
   className?: string;
   icon?: React.ReactNode;
+  watchableId?: number;
+  initialTime?: number;
 }
 
 export function PlayAction({
@@ -29,7 +31,9 @@ export function PlayAction({
   episodeNumber,
   label = "Play",
   className,
-  icon
+  icon,
+  watchableId,
+  initialTime = 0,
 }: PlayActionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
@@ -41,6 +45,55 @@ export function PlayAction({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !embedUrl || !watchableId) return;
+
+    const handleMessage = async (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        // Vidking sends { event: 'timeupdate', currentTime: number, duration: number } or similar
+        // Adjust this if Vidking uses different property names
+        const time = data.time || data.currentTime || data.progress;
+        const dur = data.duration || data.totalTime;
+        
+        if (typeof time === 'number' && time > 0) {
+          const { fetchApi } = await import('@/lib/apiClient');
+          await fetchApi('history/sync', {
+            method: 'PATCH',
+            body: JSON.stringify({
+              watchable_type: type === 'movie' ? 'movie' : 'episode',
+              watchable_id: watchableId,
+              progress_seconds: Math.floor(time),
+              completed: dur && time >= dur - 60 ? true : false,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+            requireAuth: true,
+          }).catch(e => {
+            if (e.message.includes('not found')) {
+              fetchApi('history', {
+                method: 'POST',
+                body: JSON.stringify({
+                  watchable_type: type === 'movie' ? 'movie' : 'episode',
+                  watchable_id: watchableId,
+                  progress_seconds: Math.floor(time),
+                  duration_seconds: Math.floor(dur || 0),
+                  completed: dur && time >= dur - 60 ? true : false,
+                }),
+                headers: { 'Content-Type': 'application/json' },
+                requireAuth: true,
+              }).catch(console.error);
+            }
+          });
+        }
+      } catch (e) {
+        // Ignore JSON parse errors for non-vidking messages
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isOpen, embedUrl, watchableId, type]);
 
   const handlePlayClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -140,6 +193,9 @@ export function PlayAction({
               title={title}
               poster={poster}
               onBack={() => setIsOpen(false)}
+              watchableId={watchableId}
+              watchableType={type === 'movie' ? 'movie' : 'episode'}
+              initialTime={initialTime}
             />
           ) : embedUrl ? (
             <div className="w-full h-full relative flex flex-col bg-black">
