@@ -3,7 +3,7 @@
 import { useAuth } from '@/providers/AuthProvider';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { logoutAction } from '@/app/actions/auth';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -11,15 +11,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     if (!loading && (!user || !user.is_admin)) {
       router.replace('/');
     }
   }, [user, loading, router]);
 
-  if (loading || !user || !user.is_admin) {
+  if (!mounted || loading || !user || !user.is_admin) {
     return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white">Authenticating...</div>;
   }
+  
+  console.log('AdminLayout rendering Dashboard', { loading, user, is_admin: user?.is_admin, isServer: typeof window === 'undefined' });
 
   const navSections = [
     {

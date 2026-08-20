@@ -31,9 +31,9 @@ interface VideoCreateFormProps {
 function parseVidKingId(input: string): string | null {
   const trimmed = input.trim();
   // Match full URL like https://www.vidking.net/embed/movie/12345 or https://vidking.net/embed/tv/12345/1/1
-  const urlMatch = trimmed.match(/vidking\.net\/(?:embed|v)\/(?:movie\/|tv\/)?([a-zA-Z0-9_-]+)/);
+  const urlMatch = trimmed.match(/vidking\.net\/(?:embed|v)\/(?:movie\/|tv\/)?([a-zA-Z0-9_\/-]+)/);
   if (urlMatch) return urlMatch[1];
-  if (/^[a-zA-Z0-9_-]+$/.test(trimmed)) return trimmed;
+  if (/^[a-zA-Z0-9_\/-]+$/.test(trimmed)) return trimmed;
   return null;
 }
 
@@ -131,11 +131,9 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     setEmbedSaveStatus('idle');
     setEmbedSaveMessage('');
 
-    const mediableTypeForAction = mediableType === 'episode' ? 'tv-show' : mediableType;
-
     const res = await createEmbedVideoAction({
       mediableId,
-      mediableType: mediableTypeForAction as 'movie' | 'tv-show',
+      mediableType: mediableType as 'movie' | 'tv-show' | 'episode',
       key: vidkingId,
       site: 'VidKing',
       name: name || parentTitle || 'Stream',
@@ -222,7 +220,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           {sourceType === 'VidKing' && vidkingId ? (
             <div className="aspect-video bg-[#050505] rounded-xl overflow-hidden shadow-lg border border-white/5 relative">
               <iframe
-                src={`https://www.vidking.net/embed/${mediableType === 'movie' ? 'movie' : 'tv'}/${vidkingId}${mediableType !== 'movie' ? '/1/1' : ''}`}
+                src={`https://www.vidking.net/embed/${mediableType === 'movie' ? 'movie' : 'tv'}/${vidkingId}${(mediableType !== 'movie' && !vidkingId.includes('/')) ? '/1/1' : ''}`}
                 className="w-full h-full"
                 allowFullScreen
                 allow="autoplay; fullscreen"

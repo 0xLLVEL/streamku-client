@@ -65,7 +65,7 @@ export async function deleteVideoAction(movieId: number | string, videoId: numbe
 
 export async function createEmbedVideoAction(params: {
   mediableId: number | string;
-  mediableType: 'movie' | 'tv-show';
+  mediableType: 'movie' | 'tv-show' | 'episode';
   key: string;
   site: string;
   name: string;
@@ -73,7 +73,9 @@ export async function createEmbedVideoAction(params: {
   try {
     const endpoint = params.mediableType === 'movie'
       ? `/admin/movies/${params.mediableId}/videos`
-      : `/admin/tv-shows/${params.mediableId}/videos`;
+      : params.mediableType === 'episode'
+        ? `/admin/episodes/${params.mediableId}/videos`
+        : `/admin/tv-shows/${params.mediableId}/videos`;
 
     const res = await fetchApi(endpoint, {
       method: 'POST',
@@ -88,7 +90,9 @@ export async function createEmbedVideoAction(params: {
     if (res.ok) {
       const revalidatePath_ = params.mediableType === 'movie'
         ? `/admin/movies/${params.mediableId}`
-        : `/admin/tv-shows/${params.mediableId}`;
+        : params.mediableType === 'episode'
+          ? `/admin/episodes/${params.mediableId}`
+          : `/admin/tv-shows/${params.mediableId}`;
       revalidatePath(revalidatePath_);
       const data = await res.json();
       return { success: true, data: data.data };
@@ -103,13 +107,15 @@ export async function createEmbedVideoAction(params: {
 
 export async function deleteEmbedVideoAction(params: {
   mediableId: string | number;
-  mediableType: 'movie' | 'tv-show';
+  mediableType: 'movie' | 'tv-show' | 'episode';
   videoId: string | number;
 }) {
   try {
     const endpoint = params.mediableType === 'movie'
       ? `/admin/movies/${params.mediableId}/videos/${params.videoId}`
-      : `/admin/tv-shows/${params.mediableId}/videos/${params.videoId}`;
+      : params.mediableType === 'episode'
+        ? `/admin/episodes/${params.mediableId}/videos/${params.videoId}`
+        : `/admin/tv-shows/${params.mediableId}/videos/${params.videoId}`;
 
     const res = await fetchApi(endpoint, {
       method: 'DELETE',

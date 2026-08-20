@@ -74,18 +74,48 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
 
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center gap-3 mb-6">
-                <PlayAction
-                  mediaEndpoint={`/tv-shows/${show.slug}/seasons/1/episodes/1/media`}
-                  title={`${show.name} - S1 E1`}
-                  poster={`https://image.tmdb.org/t/p/w1280${show.backdrop_path}`}
-                  videos={show.seasons?.[0]?.episodes?.[0]?.videos}
-                  type="tv"
-                  tmdbId={show.tmdb_id}
-                  seasonNumber={1}
-                  episodeNumber={1}
-                  label="Play S1 E1"
-                  className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]"
-                />
+                {(() => {
+                  let continueEpisode = show.seasons?.[0]?.episodes?.[0];
+                  let isContinue = false;
+
+                  if (show.seasons) {
+                    for (const s of show.seasons) {
+                      if (s.episodes) {
+                        for (const ep of s.episodes) {
+                          if (ep.history && ep.history.progress_seconds > 0) {
+                            if (!ep.history.completed) {
+                              continueEpisode = ep;
+                              isContinue = true;
+                            } else {
+                              // If completed, maybe they want to watch the next episode,
+                              // but finding the next episode is complex here.
+                              // So we just keep it simple.
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  if (!continueEpisode) return null;
+
+                  return (
+                    <PlayAction
+                      mediaEndpoint={`/tv-shows/${show.slug}/seasons/${continueEpisode.season_number || 1}/episodes/${continueEpisode.episode_number}/media`}
+                      title={`${show.name} - S${continueEpisode.season_number || 1} E${continueEpisode.episode_number}`}
+                      poster={`https://image.tmdb.org/t/p/w1280${show.backdrop_path}`}
+                      videos={continueEpisode.videos}
+                      type="tv"
+                      tmdbId={show.tmdb_id}
+                      watchableId={continueEpisode.id}
+                      seasonNumber={continueEpisode.season_number}
+                      episodeNumber={continueEpisode.episode_number}
+                      initialTime={isContinue && continueEpisode.history ? continueEpisode.history.progress_seconds : 0}
+                      label={isContinue ? `Continue S${continueEpisode.season_number || 1} E${continueEpisode.episode_number}` : `Play S1 E1`}
+                      className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]"
+                    />
+                  );
+                })()}
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
                   Watchlist

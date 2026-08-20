@@ -39,6 +39,11 @@ export interface Episode {
   vote_average?: number;
   vote_count?: number;
   videos?: Video[];
+  history?: {
+    progress_seconds: number;
+    duration_seconds: number;
+    completed: boolean;
+  };
 }
 
 export interface Season {
@@ -83,6 +88,11 @@ export interface Movie {
   genres?: Genre[];
   cast?: Cast[];
   videos?: Video[];
+  history?: {
+    progress_seconds: number;
+    duration_seconds: number;
+    completed: boolean;
+  };
 }
 
 export interface TvShow {

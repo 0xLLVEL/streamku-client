@@ -64,7 +64,7 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
             onClick={() => setSelectedSeasonId(season.id)}
             className="cursor-pointer group"
           >
-            <div className="rounded-xl overflow-hidden shadow-lg border border-white/5 bg-black/20 aspect-[2/3]">
+            <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 aspect-[2/3]">
               {season.poster_path ? (
                 <img 
                   src={`https://image.tmdb.org/t/p/w300${season.poster_path}`} 
@@ -219,7 +219,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
     <>
       <div 
         onClick={handlePlayClick}
-        className="liquid-glass rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-xl relative"
+        className="liquid-glass shadow-none rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:-translate-y-1 relative"
       >
         {loading && (
           <div className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center">
@@ -251,6 +251,16 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
               {episode.runtime}m
             </div>
           )}
+
+          {/* Progress Bar */}
+          {episode.history && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+              <div 
+                className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]"
+                style={{ width: `${Math.min(100, Math.max(0, episode.history.duration_seconds > 0 ? (episode.history.progress_seconds / episode.history.duration_seconds) * 100 : 0))}%` }}
+              />
+            </div>
+          )}
         </div>
         
         <div className="p-3 md:p-3.5 flex flex-col min-h-[85px] justify-center">
@@ -275,6 +285,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
                onBack={() => setIsOpen(false)} 
                watchableId={episode.id}
                watchableType="episode"
+               initialTime={episode.history ? episode.history.progress_seconds : 0}
              />
            ) : embedUrl ? (
              <div className="w-full h-full relative flex flex-col bg-black">

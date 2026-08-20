@@ -53,7 +53,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
 
     const res = await deleteEmbedVideoAction({
       mediableId: episode.id,
-      mediableType: 'tv-show',
+      mediableType: 'episode',
       videoId,
     });
 
@@ -214,9 +214,15 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
               <p className="text-sm text-white/50 mb-8">No streams available.</p>
             )}
 
-            <hr className="border-white/5 mb-8" />
             <h3 className="text-lg font-bold text-white mb-6">Upload New Video</h3>
-            <VideoCreateForm mediableType="episode" mediableId={episode.id} parentTitle={episode.name} inline={true} existingVideoQualityIds={existingVideoQualityIds} />
+            <VideoCreateForm 
+              mediableType="episode" 
+              mediableId={episode.id} 
+              parentTitle={episode.name} 
+              inline={true} 
+              existingVideoQualityIds={existingVideoQualityIds} 
+              parentTmdbId={episode.season?.tv_show?.tmdb_id ? `${episode.season.tv_show.tmdb_id}/${seasonNumber}/${episode.episode_number}` : undefined}
+            />
           </section>
 
         </div>

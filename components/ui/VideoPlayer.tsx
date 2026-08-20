@@ -47,7 +47,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
               watchable_type: watchableType,
               watchable_id: watchableId,
               progress_seconds: Math.floor(time),
-              completed: dur && time >= dur - 60 ? true : false,
+              completed: dur && time > 0 && time >= Math.max(dur - 60, dur * 0.9) ? true : false,
             }),
             headers: { 'Content-Type': 'application/json' },
             requireAuth: true,
@@ -60,7 +60,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
                   watchable_id: watchableId,
                   progress_seconds: Math.floor(time),
                   duration_seconds: Math.floor(dur || 0),
-                  completed: dur && time >= dur - 60 ? true : false,
+                  completed: dur && time > 0 && time >= Math.max(dur - 60, dur * 0.9) ? true : false,
                 }),
                 headers: { 'Content-Type': 'application/json' },
                 requireAuth: true,
@@ -71,7 +71,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
           console.error(e);
         }
       }
-    }, 15000); // every 15 seconds
+    }, 5000); // every 5 seconds
 
     return () => clearInterval(interval);
   }, [isPlaying, watchableId, watchableType]);
