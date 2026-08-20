@@ -154,6 +154,28 @@ export async function deleteSeasonAction(tvShowId: number | string, seasonNumber
   }
 }
 
+export async function bulkGenerateVidkingEpisodesAction(tvShowId: number | string, seasonNumber: number | string, formData: FormData) {
+  try {
+    const totalEpisodes = Number(formData.get('total_episodes'));
+    if (!totalEpisodes || totalEpisodes < 1) return { success: false, error: 'Invalid total episodes' };
+
+    const res = await fetchApi(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}/episodes/bulk-vidking`, {
+      method: 'POST',
+      body: JSON.stringify({ total_episodes: totalEpisodes }),
+    });
+
+    if (res.ok) {
+      revalidatePath(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`);
+      return { success: true };
+    }
+
+    const data = await res.json();
+    return { success: false, error: data.message || 'Failed to bulk generate episodes' };
+  } catch (err) {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
 // -- CREATES --
 
 export async function createMovieAction(formData: FormData) {

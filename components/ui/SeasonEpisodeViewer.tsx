@@ -168,9 +168,9 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
       if (extVideo.site === 'VidKing') {
         let vUrl = '';
         if (extVideo.key.includes('/')) {
-          vUrl = `https://vidking.net/embed/tv/${extVideo.key}`;
+          vUrl = `https://www.vidking.net/embed/tv/${extVideo.key}`;
         } else {
-          vUrl = `https://vidking.net/embed/tv/${extVideo.key}/${episode.season_number}/${episode.episode_number}`;
+          vUrl = `https://www.vidking.net/embed/tv/${extVideo.key}/${episode.season_number}/${episode.episode_number}`;
         }
         setEmbedUrl(vUrl);
         setIsOpen(true);

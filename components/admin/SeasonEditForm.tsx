@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateSeasonAction } from '@/app/actions/admin-content';
+import { updateSeasonAction, bulkGenerateVidkingEpisodesAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +13,32 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [totalEpisodes, setTotalEpisodes] = useState('10');
+  const [generateMessage, setGenerateMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+  const handleBulkGenerate = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const num = parseInt(totalEpisodes);
+    if (!num || num < 1) return;
+
+    setIsGenerating(true);
+    setGenerateMessage(null);
+
+    const formData = new FormData();
+    formData.append('total_episodes', num.toString());
+
+    const res = await bulkGenerateVidkingEpisodesAction(tvShowId, season.season_number, formData);
+    
+    if (res.success) {
+      setGenerateMessage({ text: 'Episodes generated successfully!', type: 'success' });
+      setTimeout(() => setGenerateMessage(null), 3000);
+    } else {
+      setGenerateMessage({ text: res.error || 'Failed to generate', type: 'error' });
+    }
+    setIsGenerating(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -120,7 +146,32 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
           {/* EPISODES TAB */}
           {activeTab === 'episodes' && (
             <div className="max-w-6xl animate-in fade-in duration-300">
-              <h2 className="text-xl font-bold text-white mb-6">Episodes ({season.episodes?.length || 0})</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Episodes ({season.episodes?.length || 0})</h2>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-white/50">Auto-generate up to:</span>
+                  <Input 
+                    type="number" 
+                    min="1" 
+                    max="1000" 
+                    value={totalEpisodes} 
+                    onChange={(e) => setTotalEpisodes(e.target.value)} 
+                    className="w-20 h-8 text-sm"
+                  />
+                  <button 
+                    onClick={handleBulkGenerate} 
+                    disabled={isGenerating}
+                    className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded font-medium text-xs transition-colors disabled:opacity-50"
+                  >
+                    {isGenerating ? 'Generating...' : 'Bulk Generate VidKing'}
+                  </button>
+                  {generateMessage && (
+                    <span className={`text-xs ml-2 ${generateMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                      {generateMessage.text}
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5">
                 {season.episodes?.map((episode: any) => (
                   <div key={episode.id} className="flex items-center gap-6 py-5 px-6 hover:bg-white/[0.03] transition-colors group">
