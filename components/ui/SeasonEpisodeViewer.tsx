@@ -91,7 +91,7 @@ function EpisodeList({ episodes, showSlug }: { episodes: Episode[], showSlug: st
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
       {episodes.map((episode: Episode) => (
         <EpisodeCard key={episode.id} episode={episode} showSlug={showSlug} />
       ))}
@@ -219,7 +219,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
     <>
       <div 
         onClick={handlePlayClick}
-        className="liquid-glass shadow-none rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:-translate-y-1 relative"
+        className="shadow-none rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-transform hover:-translate-y-1 relative bg-white/[0.02] hover:bg-white/[0.05]"
       >
         {loading && (
           <div className="absolute inset-0 z-20 bg-black/50 flex items-center justify-center">
@@ -229,7 +229,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
             </svg>
           </div>
         )}
-        <div className="w-full aspect-video bg-black/50 relative border-b border-white/5">
+        <div className="w-full aspect-video bg-black/50 relative">
           {episode.still_path ? (
             <img src={`https://image.tmdb.org/t/p/w500${episode.still_path}`} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
@@ -263,14 +263,14 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
           )}
         </div>
         
-        <div className="p-3 md:p-3.5 flex flex-col min-h-[85px] justify-center">
-          <h3 className="text-xs md:text-sm font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-1">
-            Episode {episode.episode_number}: {episode.name}
+        <div className="p-2.5 flex flex-col justify-center">
+          <h3 className="text-[11px] md:text-xs font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-1">
+            {episode.episode_number}. {episode.name}
           </h3>
           {episode.overview ? (
-            <p className="text-white/50 text-[10px] md:text-[11px] line-clamp-2 leading-relaxed">{episode.overview}</p>
+            <p className="text-white/40 text-[9px] md:text-[10px] line-clamp-2 leading-relaxed">{episode.overview}</p>
           ) : (
-            <p className="text-white/30 text-[10px] md:text-[11px] italic">No description available.</p>
+            <p className="text-white/30 text-[9px] md:text-[10px] italic">No description available.</p>
           )}
         </div>
       </div>
