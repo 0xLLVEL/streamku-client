@@ -49,7 +49,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {/* Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full transition-all duration-500 pointer-events-none" style={{ paddingTop: isScrolled ? '1rem' : '0' }}>
         <nav
-          className={`pointer-events-auto transition-all duration-500 flex items-center justify-between px-6 mx-4 w-full md:max-w-[1400px]
+          className={`pointer-events-auto transition-all duration-500 flex items-center justify-between px-6 mx-4 w-full md:max-w-[1600px]
             ${isScrolled
               ? 'liquid-glass rounded-full shadow-2xl h-14'
               : 'bg-transparent border border-transparent shadow-none h-20'
@@ -106,27 +106,42 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white transition-colors font-semibold"
+                  className="flex items-center gap-2.5 p-1 pr-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white transition-all shadow-md group"
                 >
-                  <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{user.name}</span>
-                  <svg className={`w-4 h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="font-medium group-hover:text-red-300 transition-colors hidden sm:block max-w-[100px] truncate">{user.name}</span>
+                  <svg className={`w-3.5 h-3.5 text-white/50 transition-transform duration-300 hidden sm:block ${isUserMenuOpen ? 'rotate-180 text-white' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                 </button>
 
                 {isUserMenuOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)}></div>
-                    <div className="absolute right-0 mt-3 w-48 liquid-glass rounded-2xl shadow-2xl py-2 z-50 border border-white/20 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                    <div className="absolute right-0 mt-3 w-56 bg-[#0a0a0a]/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] py-2 z-50 border border-white/10 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-4 py-3 border-b border-white/5 mb-1">
+                        <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                        <p className="text-[11px] text-white/50 truncate mt-0.5">{user.email}</p>
+                      </div>
+                      
                       {user?.is_admin && (
-                        <Link href="/admin" onClick={() => setIsUserMenuOpen(false)} className="block px-5 py-3 text-sm font-bold text-red-400 hover:bg-white/10 transition-colors border-b border-white/10">
+                        <Link href="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+                          <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                           Admin Dashboard
                         </Link>
                       )}
-                      <Link href="/settings" onClick={() => setIsUserMenuOpen(false)} className="block px-5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                        Settings
+                      
+                      <Link href="/settings" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        Account Settings
                       </Link>
+                      
+                      <div className="h-px bg-white/5 my-1" />
+                      
                       <form action={formAction}>
-                        <button type="submit" className="w-full text-left block px-5 py-3 text-sm font-bold text-red-400 hover:bg-white/10 transition-colors">
-                          Logout
+                        <button type="submit" className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                          Sign Out
                         </button>
                       </form>
                     </div>
