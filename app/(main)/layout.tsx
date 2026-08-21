@@ -14,6 +14,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [state, formAction] = useActionState(logoutAction, null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,6 +60,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="text-3xl font-black text-red-600 tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               STREAMKU
             </Link>
+
+            {/* Mobile Menu Toggle Button */}
+            <button
+              className="md:hidden text-white focus:outline-none"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                )}
+              </svg>
+            </button>
 
             {/* Nav Links with new cinematic font style */}
             <div className="hidden md:flex space-x-2 text-[0.95rem] tracking-wide font-sans relative">
@@ -160,6 +175,27 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             )}
           </div>
         </nav>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 mx-4 mt-2 liquid-glass rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-40 animate-in slide-in-from-top-2">
+            <div className="flex flex-col py-2">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path + '/'));
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`px-6 py-3 font-medium transition-colors ${isActive ? 'text-red-500 bg-white/5' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}

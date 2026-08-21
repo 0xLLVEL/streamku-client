@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 import { PosterCard } from '@/components/ui/PosterCard';
 import { WatchlistButton } from '@/components/ui/WatchlistButton';
+import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
@@ -32,11 +33,20 @@ async function getWatchlistState(id: any) {
   return watchlist != undefined ? watchlist.id : null;
 }
 
+async function getFavoriteState(id: any) {
+  const res = await fetchApi(`/favorites`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  const json = await res.json();
+  const favorite = json.data.find((item: any) => item.media_id === id)
+  return favorite != undefined ? favorite.id : null;
+}
+
 export default async function MovieDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const movie = await getMovie(slug);
   const recommendations = await getRecommendations(slug);
-  const watchlist = await getWatchlistState(movie?.id)
+  const watchlist = await getWatchlistState(movie?.id);
+  const favorite = await getFavoriteState(movie?.id);
 
   if (!movie) {
     notFound();
@@ -54,13 +64,13 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         />
 
         {/* Content Container Aligned to Bottom */}
-        <div className="relative z-30 w-full h-full flex flex-col justify-end px-8 md:px-16 lg:px-24 pb-20">
-          <div className="flex flex-row items-end justify-between w-full">
+        <div className="relative z-30 w-full h-full flex flex-col justify-end px-4 md:px-12 lg:px-24 pb-10 md:pb-20">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between w-full gap-6 md:gap-0">
 
             {/* Left Side: Title, Metadata, Description */}
-            <div className="flex-1 max-w-2xl">
+            <div className="flex-1 w-full max-w-2xl">
               {/* Massive Cinematic Title */}
-              <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-gray-400 mb-2 tracking-tighter drop-shadow-2xl">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-gray-400 mb-2 tracking-tighter drop-shadow-2xl leading-tight">
                 {movie.title}
               </h1>
 
@@ -92,10 +102,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                   className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]"
                 />
                 <WatchlistButton watchableId={movie.id} watchableType="movie" watchable={watchlist} />
-                <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
-                  Favourite
-                </button>
+                <FavoriteButton favoritableId={movie.id} favoritableType="movie" favorite={favorite} />
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg>
                   Add to Collection

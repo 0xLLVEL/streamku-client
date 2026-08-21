@@ -43,7 +43,7 @@ export default async function BrowsePage() {
       <HeroCarousel items={heroItems} />
 
       {/* Content Rows */}
-      <div className="w-full px-8 md:px-16 lg:px-24 space-y-12 relative z-20">
+      <div className="w-full px-4 md:px-12 lg:px-24 space-y-12 relative z-20">
         <ContinueWatchingRow items={history} />
         {rows.filter((row) => row.title !== 'Featured').map((row, idx) => {
           if (!row.items || row.items.length === 0) return null;
