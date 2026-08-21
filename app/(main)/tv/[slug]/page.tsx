@@ -7,6 +7,7 @@ import { PlayAction } from '@/components/ui/PlayAction';
 import Link from 'next/link';
 
 import { PosterCard } from '@/components/ui/PosterCard';
+import { WatchlistButton } from '@/components/ui/WatchlistButton';
 import { TvShow, MediaItem } from '@/types';
 
 async function getTvShow(slug: string): Promise<TvShow | null> {
@@ -116,10 +117,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
                     />
                   );
                 })()}
-                <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
-                  Watchlist
-                </button>
+                <WatchlistButton watchableId={show.id} watchableType="tv_show" />
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                   Favourite

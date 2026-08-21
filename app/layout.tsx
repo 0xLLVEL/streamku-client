@@ -6,7 +6,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { fetchApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const inter = Inter({
   variable: "--font-inter",
@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Streamku - Premium Streaming",
-  description: "Your ultimate entertainment platform.",
+  title: "Streamku",
+  description: "Streamku adalah platform streaming yang menyediakan film dan serial TV berkualitas tinggi.",
 };
 
 async function getUser() {

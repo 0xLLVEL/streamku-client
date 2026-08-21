@@ -272,13 +272,6 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         {/* Right Column */}
         <div className="w-full lg:w-[400px] flex flex-col gap-6 shrink-0">
           {!inline && (
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" placeholder="e.g. Official Trailer" value={name} onChange={(e: any) => setName(e.target.value)} />
-            </div>
-          )}
-
-          {!inline && (
             <div>
               <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
               <div className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">

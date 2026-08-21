@@ -346,7 +346,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
           key={displayData?.tmdb_id || displayData?.id || "new"}
         >
           {/* PRIMARY FACTS TAB */}
-          {activeTab === "primary_facts" && (
+          <div className={activeTab === "primary_facts" ? "block" : "hidden"}>
             <div className="max-w-4xl space-y-8 animate-in fade-in duration-300">
               {!movie && (
                 <div className="relative bg-gradient-to-br from-red-600/10 via-red-500/5 to-transparent border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl backdrop-blur-md group">
@@ -758,10 +758,10 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* IMAGES TAB */}
-          {activeTab === "images" && (
+          <div className={activeTab === "images" ? "block" : "hidden"}>
             <div className="max-w-6xl space-y-12 animate-in fade-in duration-300">
               <div>
                 <div className="flex items-center justify-between mb-6">
@@ -997,10 +997,10 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* VIDEOS TAB */}
-          {activeTab === "videos" && (
+          <div className={activeTab === "videos" ? "block" : "hidden"}>
             <div className="max-w-[1600px] w-full animate-in fade-in duration-300">
               {isAddingVideo && movie?.id ? (
                 <VideoCreateForm
@@ -1092,10 +1092,10 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 </>
               )}
             </div>
-          )}
+          </div>
 
           {/* CAST TAB */}
-          {activeTab === "cast" && (
+          <div className={activeTab === "cast" ? "block" : "hidden"}>
             <div className="max-w-6xl animate-in fade-in duration-300">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">
@@ -1183,10 +1183,10 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 )}
               </div>
             </div>
-          )}
+          </div>
 
           {/* OTHER TABS PLACEHOLDERS (Reviews, Comments) */}
-          {["reviews", "comments"].includes(activeTab) && (
+          <div className={["reviews", "comments"].includes(activeTab) ? "block" : "hidden"}>
             <div className="flex flex-col items-center justify-center h-full text-white/30 animate-in fade-in duration-300">
               <svg
                 className="w-16 h-16 mb-4 opacity-50"
@@ -1209,7 +1209,7 @@ export function MovieEditForm({ movie }: { movie?: any }) {
                 to manage {activeTab} here in a future update.
               </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
 

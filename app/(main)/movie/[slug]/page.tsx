@@ -7,6 +7,7 @@ import { PlayAction } from '@/components/ui/PlayAction';
 import Link from 'next/link';
 
 import { PosterCard } from '@/components/ui/PosterCard';
+import { WatchlistButton } from '@/components/ui/WatchlistButton';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
@@ -23,16 +24,23 @@ async function getRecommendations(slug: string): Promise<MediaItem[]> {
   return json.data?.data || [];
 }
 
+async function getWatchlistState(id: any) {
+  const res = await fetchApi(`/watchlist`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  const json = await res.json();
+  const watchlist = json.data.find((item: any) => item.media_id === id)
+  return watchlist != undefined ? watchlist.id : null;
+}
+
 export default async function MovieDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const movie = await getMovie(slug);
   const recommendations = await getRecommendations(slug);
+  const watchlist = await getWatchlistState(movie?.id)
 
   if (!movie) {
     notFound();
   }
-
-  const tmdbBaseUrl = 'https://image.tmdb.org/t/p/original';
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -83,10 +91,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                   label={movie.history ? 'Continue' : 'Play Movie'}
                   className="flex items-center gap-2 px-8 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-colors text-sm font-bold text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]"
                 />
-                <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
-                  Watchlist
-                </button>
+                <WatchlistButton watchableId={movie.id} watchableType="movie" watchable={watchlist} />
                 <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                   Favourite

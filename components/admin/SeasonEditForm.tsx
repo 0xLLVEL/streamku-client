@@ -2,20 +2,18 @@
 
 import { useState } from 'react';
 import { updateSeasonAction, bulkGenerateVidkingEpisodesAction } from '@/app/actions/admin-content';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string, season: any }) {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [totalEpisodes, setTotalEpisodes] = useState('10');
+  const [totalEpisodes, setTotalEpisodes] = useState(season.episodes?.length?.toString() || '10');
   const [generateMessage, setGenerateMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const handleBulkGenerate = async (e: React.MouseEvent) => {
@@ -30,7 +28,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
     formData.append('total_episodes', num.toString());
 
     const res = await bulkGenerateVidkingEpisodesAction(tvShowId, season.season_number, formData);
-    
+
     if (res.success) {
       setGenerateMessage({ text: 'Episodes generated successfully!', type: 'success' });
       setTimeout(() => setGenerateMessage(null), 3000);
@@ -96,8 +94,8 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={`text-left px-4 py-2 rounded-md transition-colors duration-150 text-[13px] font-medium ${activeTab === tab.id
-                    ? 'bg-red-500/10 text-red-500 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  ? 'bg-red-500/10 text-red-500 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                   }`}
               >
                 {tab.label}
@@ -150,16 +148,16 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                 <h2 className="text-xl font-bold text-white">Episodes ({season.episodes?.length || 0})</h2>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-white/50">Auto-generate up to:</span>
-                  <Input 
-                    type="number" 
-                    min="1" 
-                    max="1000" 
-                    value={totalEpisodes} 
-                    onChange={(e) => setTotalEpisodes(e.target.value)} 
+                  <Input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={totalEpisodes}
+                    onChange={(e) => setTotalEpisodes(e.target.value)}
                     className="w-20 h-8 text-sm"
                   />
-                  <button 
-                    onClick={handleBulkGenerate} 
+                  <button
+                    onClick={handleBulkGenerate}
                     disabled={isGenerating}
                     className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded font-medium text-xs transition-colors disabled:opacity-50"
                   >
@@ -185,8 +183,8 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                     <div className="flex-1 min-w-0 flex items-center justify-between gap-6">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-base text-white truncate" title={episode.name}>
-                           <span className="text-white/40 mr-3 font-mono text-sm">S{season.season_number} E{episode.episode_number}</span>
-                           {episode.name}
+                          <span className="text-white/40 mr-3 font-mono text-sm">S{season.season_number} E{episode.episode_number}</span>
+                          {episode.name}
                         </p>
                         <p className="text-white/50 text-sm mt-1.5 line-clamp-2">{episode.overview || 'No overview available.'}</p>
                       </div>
@@ -196,9 +194,9 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                       </div>
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 pl-4 transition-opacity flex items-center gap-2">
-                       <Link href={`/admin/tv-shows/${tvShowId}/seasons/${season.season_number}/episodes/${episode.episode_number}`} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all shadow-sm" title="Edit Episode">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                       </Link>
+                      <Link href={`/admin/tv-shows/${tvShowId}/seasons/${season.season_number}/episodes/${episode.episode_number}`} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all shadow-sm" title="Edit Episode">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                      </Link>
                     </div>
                   </div>
                 ))}
