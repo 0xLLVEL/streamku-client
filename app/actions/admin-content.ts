@@ -18,7 +18,7 @@ export async function deleteContentAction(id: number | string, type: 'movies' | 
 
     const data = await res.json();
     return { success: false, error: data.message || `Failed to delete ${type}` };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -40,7 +40,7 @@ export async function bulkDeleteContentAction(ids: (number | string)[], type: 'm
     }
 
     return { success: false, error: `Failed to delete some ${type}` };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -58,7 +58,7 @@ export async function deleteVideoAction(movieId: number | string, videoId: numbe
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to delete video' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -100,7 +100,7 @@ export async function createEmbedVideoAction(params: {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to save embed video' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -131,7 +131,7 @@ export async function deleteEmbedVideoAction(params: {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to delete stream' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -149,7 +149,7 @@ export async function deleteSeasonAction(tvShowId: number | string, seasonNumber
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to delete season' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -171,7 +171,7 @@ export async function bulkGenerateVidkingEpisodesAction(tvShowId: number | strin
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to bulk generate episodes' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -203,7 +203,7 @@ export async function createMovieAction(formData: FormData) {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to create movie' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -233,7 +233,7 @@ export async function createTvShowAction(formData: FormData) {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to create TV show' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -255,7 +255,7 @@ export async function importMovieFromTmdbAction(tmdbId: string | number) {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to import movie from TMDB' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -275,7 +275,7 @@ export async function importTvShowFromTmdbAction(tmdbId: string | number) {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to import TV show from TMDB' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -288,7 +288,7 @@ export async function searchTmdbAction(query: string, type: 'movie' | 'tv') {
       return { success: true, results: data.data?.results || [] };
     }
     return { success: false, results: [] };
-  } catch (err) {
+  } catch {
     return { success: false, results: [] };
   }
 }
@@ -301,7 +301,7 @@ export async function previewTmdbMovieAction(tmdbId: string | number) {
       return { success: true, data: data.data };
     }
     return { success: false, error: 'Failed to fetch movie preview from TMDB' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -314,7 +314,7 @@ export async function previewTmdbTvAction(tmdbId: string | number) {
       return { success: true, data: data.data };
     }
     return { success: false, error: 'Failed to fetch TV show preview from TMDB' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -346,7 +346,7 @@ export async function updateMovieAction(id: number | string, formData: FormData)
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to update movie' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -376,7 +376,7 @@ export async function updateTvShowAction(id: number | string, formData: FormData
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to update TV show' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -400,7 +400,7 @@ export async function updateGenreAction(id: number | string, formData: FormData)
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to update genre' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -426,7 +426,7 @@ export async function updateSeasonAction(tvShowId: number | string, seasonNumber
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to update season' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -453,7 +453,7 @@ export async function updateEpisodeAction(tvShowId: number | string, seasonNumbe
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to update episode' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
@@ -470,7 +470,7 @@ export async function deleteMediaAction(mediaId: number | string) {
 
     const data = await res.json();
     return { success: false, error: data.message || 'Failed to delete media' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }

@@ -1,33 +1,23 @@
 'use client';
 
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth, type User } from '@/providers/AuthProvider';
 import { updateSettingsAction } from '@/app/actions/auth';
 import { useActionState, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
   const { user, setUser } = useAuth();
-  const router = useRouter();
-  
-  const [state, formAction, isPending] = useActionState(updateSettingsAction, null);
-  
-  // Controlled inputs for initial value hydration from context
-  const [name, setName] = useState('');
-  const [language, setLanguage] = useState('en');
-  const [includeAdult, setIncludeAdult] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setLanguage(user.preferences?.language || 'en');
-      setIncludeAdult(user.preferences?.include_adult || false);
-    }
-  }, [user]);
+  const [state, formAction, isPending] = useActionState(updateSettingsAction, null);
+
+  // Controlled inputs; the auth provider supplies the initial user server-side
+  const [name, setName] = useState(user?.name ?? '');
+  const [language, setLanguage] = useState(user?.preferences?.language ?? 'en');
+  const [includeAdult, setIncludeAdult] = useState(user?.preferences?.include_adult ?? false);
 
   // Sync back to context on success
   useEffect(() => {
     if (state?.success && state.user) {
-      setUser(state.user);
+      setUser(state.user as User);
     }
   }, [state, setUser]);
 

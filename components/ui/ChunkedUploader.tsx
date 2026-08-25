@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { getAuthTokenAction } from '@/app/actions/upload';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from '@/lib/config';
 
 interface ChunkedUploaderProps {
   mediableId: number;
@@ -21,8 +22,6 @@ export function ChunkedUploader({ mediableId, mediableType, type, label = 'Uploa
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('');
   const [uploadId, setUploadId] = useState<string | null>(null);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -50,7 +49,7 @@ export function ChunkedUploader({ mediableId, mediableType, type, label = 'Uploa
       };
 
       // 1. Initiate Upload
-      const initRes = await fetch(`${API_URL}/admin/uploads/initiate`, {
+      const initRes = await fetch(`${API_BASE_URL}/admin/uploads/initiate`, {
         method: 'POST',
         headers: {
           ...headers,
@@ -89,7 +88,7 @@ export function ChunkedUploader({ mediableId, mediableType, type, label = 'Uploa
         formData.append('chunk_number', currentChunkNumber.toString());
         formData.append('chunk', chunk, file.name); // passing filename might be required by Laravel file validator
 
-        const chunkRes = await fetch(`${API_URL}/admin/uploads/${currentUploadId}/chunks`, {
+        const chunkRes = await fetch(`${API_BASE_URL}/admin/uploads/${currentUploadId}/chunks`, {
           method: 'POST',
           headers, // Note: No Content-Type, browser will set multipart/form-data
           body: formData
@@ -111,7 +110,7 @@ export function ChunkedUploader({ mediableId, mediableType, type, label = 'Uploa
       setMessage('Processing file... This may take a moment.');
       setStatus('processing');
 
-      const completeRes = await fetch(`${API_URL}/admin/uploads/${currentUploadId}/complete`, {
+      const completeRes = await fetch(`${API_BASE_URL}/admin/uploads/${currentUploadId}/complete`, {
         method: 'POST',
         headers: {
           ...headers,
@@ -129,10 +128,11 @@ export function ChunkedUploader({ mediableId, mediableType, type, label = 'Uploa
       if (onSuccess) onSuccess();
       router.refresh();
 
-    } catch (err: any) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('An unexpected error occurred during upload.');
       console.error(err);
       setStatus('error');
-      setMessage(err.message || 'An unexpected error occurred during upload.');
+      setMessage(error.message);
     }
   };
 
@@ -140,7 +140,7 @@ export function ChunkedUploader({ mediableId, mediableType, type, label = 'Uploa
     if (uploadId) {
        try {
          const token = await getAuthTokenAction();
-         await fetch(`${API_URL}/admin/uploads/${uploadId}`, {
+         await fetch(`${API_BASE_URL}/admin/uploads/${uploadId}`, {
            method: 'DELETE',
            headers: {
              'Accept': 'application/json',

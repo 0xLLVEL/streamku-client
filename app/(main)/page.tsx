@@ -3,7 +3,7 @@ import { PosterCard } from '@/components/ui/PosterCard';
 import { DraggableList } from '@/components/ui/DraggableList';
 import { HeroCarousel } from '@/components/ui/HeroCarousel';
 import { ContinueWatchingRow } from '@/components/ui/ContinueWatchingRow';
-import { BrowseRow, MediaItem } from '@/types';
+import { BrowseRow } from '@/types';
 
 async function getHistoryData() {
   try {
@@ -11,7 +11,7 @@ async function getHistoryData() {
     if (!res.ok) return [];
     const json = await res.json();
     return json.data;
-  } catch (err) {
+  } catch {
     return [];
   }
 }

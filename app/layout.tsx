@@ -25,7 +25,7 @@ async function getUser() {
       const json = await res.json();
       return json.data?.user || json.user || null;
     }
-  } catch (err) {
+  } catch {
     return null;
   }
   return null;

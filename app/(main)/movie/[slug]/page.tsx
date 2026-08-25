@@ -1,6 +1,5 @@
 import { fetchApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
 import { HeroTrailer } from '@/components/ui/HeroTrailer';
 import { DraggableList } from '@/components/ui/DraggableList';
 import { PlayAction } from '@/components/ui/PlayAction';
@@ -9,6 +8,7 @@ import Link from 'next/link';
 import { PosterCard } from '@/components/ui/PosterCard';
 import { WatchlistButton } from '@/components/ui/WatchlistButton';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
+import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
@@ -23,22 +23,6 @@ async function getRecommendations(slug: string): Promise<MediaItem[]> {
   if (!res.ok) return [];
   const json = await res.json();
   return json.data?.data || [];
-}
-
-async function getWatchlistState(id: any) {
-  const res = await fetchApi(`/watchlist`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const json = await res.json();
-  const watchlist = json.data.find((item: any) => item.media_id === id)
-  return watchlist != undefined ? watchlist.id : null;
-}
-
-async function getFavoriteState(id: any) {
-  const res = await fetchApi(`/favorites`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const json = await res.json();
-  const favorite = json.data.find((item: any) => item.media_id === id)
-  return favorite != undefined ? favorite.id : null;
 }
 
 export default async function MovieDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -151,8 +135,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         <div className="w-full px-8 md:px-16 lg:px-24 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 drop-shadow-md">Top Cast</h2>
           <DraggableList className="pb-4" innerClassName="space-x-6">
-            {movie.cast.slice(0, 15).map((actor, index) => (
-              <div key={index} className="snap-start flex-shrink-0 w-28 md:w-36 group">
+            {movie.cast.slice(0, 15).map((actor) => (
+              <div key={actor.id} className="snap-start flex-shrink-0 w-28 md:w-36 group">
                 <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
                   {actor.profile_path ? (
                     <img
@@ -177,7 +161,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
           <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">More Like This</h2>
           <DraggableList className="pb-4" innerClassName="space-x-3">
-            {recommendations.map((item, idx) => (
+            {recommendations.map((item) => (
               <div key={item.id} className="snap-start shrink-0">
                 <PosterCard item={item} />
               </div>

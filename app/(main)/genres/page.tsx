@@ -1,7 +1,8 @@
 import { fetchApi } from '@/lib/api';
 import Link from 'next/link';
+import type { Genre } from '@/types';
 
-async function getGenres() {
+async function getGenres(): Promise<Genre[]> {
   const res = await fetchApi('/genres', { next: { revalidate: 0 } });
   if (!res.ok) return [];
   const json = await res.json();
@@ -16,13 +17,13 @@ export default async function GenresPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-md">Genres</h1>
-          <p className="text-white/50 mt-2 font-medium">Find exactly what you're in the mood for.</p>
+          <p className="text-white/50 mt-2 font-medium">Find exactly what you&apos;re in the mood for.</p>
         </div>
       </div>
 
       {genres.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {genres.map((genre: any) => (
+          {genres.map((genre) => (
             <Link 
               key={genre.id} 
               href={`/genres/${genre.slug}`}

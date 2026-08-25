@@ -12,7 +12,10 @@ export interface Video {
   name: string;
   resolution?: string;
   language?: string;
-  metadata?: any;
+  metadata?: {
+    content_type?: string;
+    [key: string]: unknown;
+  } | null;
 }
 
 export interface Cast {

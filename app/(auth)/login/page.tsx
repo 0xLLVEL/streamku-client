@@ -8,10 +8,6 @@ export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const [showPassword, setShowPassword] = useState(false);
 
-  if (state?.success) {
-    window.location.href = '/';
-  }
-
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-black">
       {/* Full-screen Background Image with Heavy Overlay */}

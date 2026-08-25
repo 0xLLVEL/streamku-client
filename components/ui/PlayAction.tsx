@@ -3,13 +3,22 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { VideoPlayer } from '@/components/ui/VideoPlayer';
+import { API_BASE_URL, buildStreamUrl } from '@/lib/config';
+import { resolveStreamableVideo } from '@/lib/media';
+import { useIsClient } from '@/hooks/useIsClient';
+
+interface ExternalEmbedVideo {
+  site: string;
+  key: string;
+}
 
 interface PlayActionProps {
   mediaEndpoint: string;
   title: string;
   poster: string;
-  videos?: any[];
+  videos?: ExternalEmbedVideo[];
   type?: 'movie' | 'tv';
+  /** TMDB id of the parent title (reserved for episode embed keys). */
   tmdbId?: string | number;
   seasonNumber?: number;
   episodeNumber?: number;
@@ -26,7 +35,6 @@ export function PlayAction({
   poster,
   videos = [],
   type = 'movie',
-  tmdbId,
   seasonNumber,
   episodeNumber,
   label = "Play",
@@ -39,12 +47,7 @@ export function PlayAction({
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isClient = useIsClient();
 
   useEffect(() => {
     if (!isOpen || !embedUrl || !watchableId) return;
@@ -58,8 +61,8 @@ export function PlayAction({
         const dur = data.duration || data.totalTime;
         
         if (typeof time === 'number' && time > 0) {
-          const { fetchApi } = await import('@/lib/apiClient');
-          await fetchApi('history/sync', {
+          const { apiFetch } = await import('@/lib/apiClient');
+          await apiFetch('history/sync', {
             method: 'PATCH',
             body: JSON.stringify({
               watchable_type: type === 'movie' ? 'movie' : 'episode',
@@ -71,7 +74,7 @@ export function PlayAction({
             requireAuth: true,
           }).catch(e => {
             if (e.message.includes('not found')) {
-              fetchApi('history', {
+              apiFetch('history', {
                 method: 'POST',
                 body: JSON.stringify({
                   watchable_type: type === 'movie' ? 'movie' : 'episode',
@@ -86,7 +89,7 @@ export function PlayAction({
             }
           });
         }
-      } catch (e) {
+      } catch {
         // Ignore JSON parse errors for non-vidking messages
       }
     };
@@ -134,32 +137,24 @@ export function PlayAction({
     }
 
     setLoading(true);
-    setError(null);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-      const res = await fetch(`${baseUrl}${mediaEndpoint}`);
+      const res = await fetch(`${API_BASE_URL}${mediaEndpoint}`);
 
       if (!res.ok) throw new Error('Failed to load media');
 
       const json = await res.json();
-      const media = json.data;
-
-      let videoData = null;
-      if (media && media.video && media.video.length > 0) {
-        videoData = media.video.find((v: any) => v.metadata?.content_type === (type === 'movie' ? 'Movie' : 'Episode'))
-          || media.video.find((v: any) => v.is_primary)
-          || media.video[0];
-      }
+      const videoData = resolveStreamableVideo(
+        json.data,
+        type === 'movie' ? 'Movie' : 'Episode',
+      );
 
       if (videoData) {
-        setStreamUrl(`${baseUrl}/media/${videoData.id}/stream`);
+        setStreamUrl(buildStreamUrl(videoData.id));
         setIsOpen(true);
       } else {
-        setError('Media not available');
         alert('Video not available yet. Please upload it first.');
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert('Failed to load video.');
     } finally {
       setLoading(false);
@@ -185,7 +180,7 @@ export function PlayAction({
         )}
       </button>
 
-      {mounted && isOpen && (streamUrl || embedUrl) && createPortal(
+      {isClient && isOpen && (streamUrl || embedUrl) && createPortal(
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-in fade-in duration-300">
           {streamUrl ? (
             <VideoPlayer

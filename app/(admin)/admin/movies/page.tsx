@@ -1,14 +1,7 @@
-import { fetchApi } from '@/lib/api';
-import { MoviesClient } from './MoviesClient';
-
-async function getMovies() {
-  const res = await fetchApi('/admin/movies', { next: { revalidate: 0 } });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json || { data: [], last_page: 1, total: 0 };
-}
+import { fetchAdminPage } from '@/lib/api';
+import { MoviesClient, type MovieType } from './MoviesClient';
 
 export default async function AdminMoviesPage() {
-  const movies = await getMovies();
+  const movies = await fetchAdminPage<MovieType>('/admin/movies');
   return <MoviesClient initialData={movies} />;
 }

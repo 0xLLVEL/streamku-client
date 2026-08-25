@@ -8,13 +8,47 @@ import { VideoCreateForm } from './VideoCreateForm';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { buildStreamUrl } from '@/lib/config';
 
-export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId: number | string, seasonNumber: number | string, episode: any }) {
+export interface EpisodeMediaEntry {
+  id: number;
+  type?: string;
+  name?: string | null;
+  original_filename?: string | null;
+  created_at?: string | null;
+  quality?: { id: number; name?: string } | null;
+  metadata?: { label?: string } & Record<string, unknown>;
+}
+
+export interface EpisodeEmbedVideo {
+  id: number;
+  site: string;
+  key: string;
+  name?: string | null;
+}
+
+export interface EpisodeEditData {
+  id: number;
+  episode_number: number;
+  name?: string | null;
+  overview?: string | null;
+  still_path?: string | null;
+  air_date?: string | null;
+  runtime?: number | null;
+  season?: { tv_show?: { tmdb_id?: number | null } | null } | null;
+  media?: EpisodeMediaEntry[];
+  videos?: EpisodeEmbedVideo[];
+}
+
+export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId: number | string, seasonNumber: number | string, episode: EpisodeEditData }) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
-  const [activeVideo, setActiveVideo] = useState<any>(null);
-  const existingVideoQualityIds = episode.media?.filter((m: any) => m.type === 'video' && m.quality?.id).map((m: any) => Number(m.quality.id)) || [];
+  const [activeVideo, setActiveVideo] = useState<EpisodeMediaEntry | null>(null);
+  const existingVideoQualityIds =
+    episode.media
+      ?.filter((entry) => entry.type === 'video' && entry.quality?.id)
+      .map((entry) => Number(entry.quality?.id)) ?? [];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -110,7 +144,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                 <div className="col-span-2 space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" defaultValue={episode.name} />
+                    <Input id="name" name="name" defaultValue={episode.name ?? ''} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -124,7 +158,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="overview">Overview</Label>
-                    <Textarea id="overview" name="overview" defaultValue={episode.overview} rows={5} />
+                    <Textarea id="overview" name="overview" defaultValue={episode.overview ?? ''} rows={5} />
                   </div>
                 </div>
               </div>
@@ -136,16 +170,16 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
           {/* VIDEO SECTION */}
           <section className="animate-in fade-in duration-300">
             <h3 className="text-lg font-bold text-white mb-6">Uploaded Videos</h3>
-            {(episode.media?.filter((m: any) => m.type === 'video').length > 0 || episode.videos?.length > 0) ? (
+            {((episode.media?.filter((entry) => entry.type === 'video').length ?? 0) > 0 || (episode.videos?.length ?? 0) > 0) ? (
               <div className="flex flex-col gap-3 mb-8">
                 {/* Uploaded media */}
-                {episode.media?.filter((m: any) => m.type === 'video').map((video: any) => (
+                {episode.media?.filter((entry) => entry.type === 'video').map((video) => (
                   <div key={video.id} onClick={() => setActiveVideo(video)} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors cursor-pointer group">
                     <div className="w-48 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0">
                       {episode.still_path ? (
                         <img src={`https://image.tmdb.org/t/p/w300${episode.still_path}`} alt="Thumbnail" className="w-full h-full object-cover pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
                       ) : (
-                        <video src={`http://localhost:8000/api/v1/media/${video.id}/stream`} className="w-full h-full object-contain pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
+                        <video src={buildStreamUrl(video.id)} className="w-full h-full object-contain pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
                       )}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 group-hover:bg-red-600 group-hover:text-white transition-all shadow-lg border border-white/20 group-hover:border-red-500 group-hover:scale-110">
@@ -155,7 +189,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                     </div>
 
                     <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <p className="text-base text-red-500 font-bold truncate group-hover:text-red-400 transition-colors" title={video.metadata?.label || video.original_filename}>
+                      <p className="text-base text-red-500 font-bold truncate group-hover:text-red-400 transition-colors" title={(video.metadata?.label || video.original_filename) ?? undefined}>
                         {video.metadata?.label || video.original_filename}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
@@ -180,14 +214,14 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                 ))}
                 
                 {/* External streams (VidKing, Embed, etc.) */}
-                {episode.videos?.map((video: any) => (
+                {episode.videos?.map((video) => (
                   <div key={`ext-video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors group">
                     <div className="w-48 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
                       <span className="text-sm font-bold text-red-500 bg-red-500/10 px-3 py-1 rounded-md">{video.site}</span>
                     </div>
 
                     <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <p className="text-base text-red-500 font-bold truncate group-hover:text-red-400 transition-colors" title={video.name}>
+                      <p className="text-base text-red-500 font-bold truncate group-hover:text-red-400 transition-colors" title={video.name ?? undefined}>
                         {video.name}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
@@ -218,7 +252,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
             <VideoCreateForm 
               mediableType="episode" 
               mediableId={episode.id} 
-              parentTitle={episode.name} 
+              parentTitle={episode.name ?? ''}
               inline={true} 
               existingVideoQualityIds={existingVideoQualityIds} 
               parentTmdbId={episode.season?.tv_show?.tmdb_id ? `${episode.season.tv_show.tmdb_id}/${seasonNumber}/${episode.episode_number}` : undefined}
@@ -240,7 +274,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <video
-              src={`http://localhost:8000/api/v1/media/${activeVideo.id}/stream`}
+              src={buildStreamUrl(activeVideo.id)}
               className="w-full h-full"
               controls
               autoPlay

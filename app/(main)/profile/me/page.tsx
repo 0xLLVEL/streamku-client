@@ -1,41 +1,42 @@
 import { fetchApi } from '@/lib/api';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import type { MediaListItem, ProfileUser } from '../profile-types';
 
-async function getUser() {
+async function getUser(): Promise<ProfileUser | null> {
   try {
     const res = await fetchApi('/auth/me', { next: { revalidate: 0 } });
     if (res.ok) {
       const json = await res.json();
       return json.data?.user || json.user || null;
     }
-  } catch (err) {
+  } catch {
     return null;
   }
   return null;
 }
 
-async function getWatchlist() {
+async function getWatchlist(): Promise<MediaListItem[]> {
   try {
     const res = await fetchApi('/watchlist', { next: { revalidate: 0 } });
     if (res.ok) {
       const json = await res.json();
       return json.data?.data || json.data || [];
     }
-  } catch (err) {
+  } catch {
     return [];
   }
   return [];
 }
 
-async function getFavorites() {
+async function getFavorites(): Promise<MediaListItem[]> {
   try {
     const res = await fetchApi('/favorites', { next: { revalidate: 0 } });
     if (res.ok) {
       const json = await res.json();
       return json.data?.data || json.data || [];
     }
-  } catch (err) {
+  } catch {
     return [];
   }
   return [];
@@ -88,11 +89,11 @@ export default async function MePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">No favorites yet</h3>
-            <p className="text-white/50 max-w-md">{user.name} hasn't added any favorites.</p>
+            <p className="text-white/50 max-w-md">{user.name} hasn&apos;t added any favorites.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {favorites.map((item: any) => {
+            {favorites.map((item) => {
               const details = item.media_details;
               const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
               const poster = details?.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null;
@@ -143,14 +144,14 @@ export default async function MePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
             <h3 className="text-xl font-bold text-white mb-2">Your watchlist is empty</h3>
-            <p className="text-white/50 max-w-md">Looks like you haven't added any movies or TV shows to your watchlist yet. Start exploring to add some!</p>
+            <p className="text-white/50 max-w-md">Looks like you haven&apos;t added any movies or TV shows to your watchlist yet. Start exploring to add some!</p>
             <Link href="/" className="mt-6 px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold transition-colors">
               Explore Now
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {watchlist.map((item: any) => {
+            {watchlist.map((item) => {
               const details = item.media_details;
               const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
               const poster = details?.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null;

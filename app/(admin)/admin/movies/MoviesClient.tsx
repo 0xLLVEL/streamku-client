@@ -1,181 +1,74 @@
 'use client';
 
-import * as React from 'react';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { fetchApi } from '@/lib/apiClient';
-import { columns, MovieType } from './columns';
-import { DataTable } from '@/components/ui/data-table';
-import Link from 'next/link';
-import { BulkDeleteButton } from '@/components/admin/BulkDeleteButton';
+import { AdminResourceList, type AdminResourcePage } from '@/components/admin/AdminResourceList';
+import {
+  actionsColumn,
+  dateColumn,
+  genresColumn,
+  posterTitleColumn,
+  selectColumn,
+  viewsColumn,
+} from '@/components/admin/table-columns';
+import { tmdbImageUrl } from '@/lib/config';
+import type { ColumnDef } from '@tanstack/react-table';
 
-export function MoviesClient({ initialData }: { initialData: any }) {
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 20 });
-  const [sorting, setSorting] = React.useState<any[]>([]);
-  const [globalFilter, setGlobalFilter] = React.useState('');
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [filters, setFilters] = React.useState<Record<string, string>>({});
+export type MovieType = {
+  id: number;
+  tmdb_id: number | null;
+  title: string;
+  poster_path: string | null;
+  release_date: string | null;
+  views: number;
+  genres?: { name: string }[] | null;
+  created_at: string;
+};
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['admin-movies', pagination.pageIndex, pagination.pageSize, sorting, globalFilter, filters],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('page', (pagination.pageIndex + 1).toString());
-      params.append('per_page', pagination.pageSize.toString());
-      
-      if (globalFilter) {
-        params.append('search', globalFilter);
-      }
-      
-      if (sorting.length > 0) {
-        params.append('sort', sorting[0].id);
-        params.append('direction', sorting[0].desc ? 'desc' : 'asc');
-      }
-      
-      if (filters.genre) params.append('genre', filters.genre);
-      if (filters.year) params.append('year', filters.year);
-      if (filters.language) params.append('language', filters.language);
+const columns: ColumnDef<MovieType, unknown>[] = [
+  selectColumn<MovieType>(),
+  posterTitleColumn<MovieType>({
+    header: 'Movie',
+    imagePath: (movie) => tmdbImageUrl(movie.poster_path, 'w92'),
+    title: (movie) => movie.title,
+    subtitleId: (movie) => ({ tmdbId: movie.tmdb_id, id: movie.id }),
+  }),
+  genresColumn<MovieType>(),
+  dateColumn<MovieType>('release_date', 'Release Date', 'strong'),
+  viewsColumn<MovieType>(),
+  dateColumn<MovieType>('created_at', 'Added At'),
+  actionsColumn<MovieType>({
+    editHref: (id) => `/admin/movies/${id}`,
+    deleteType: 'movies',
+  }),
+];
 
-      const res = await fetchApi(`/admin/movies?${params.toString()}`);
-      if (!res.ok) return { data: [], last_page: 1, total: 0 };
-      const json = await res.json();
-      return json;
-    },
-    placeholderData: keepPreviousData,
-    initialData: Object.keys(filters).length === 0 && sorting.length === 0 && !globalFilter && pagination.pageIndex === 0 ? initialData : undefined,
-  });
-
-  const rows = Array.isArray(data?.data) ? data.data : [];
-  const pageCount = data?.last_page ?? -1;
-
-  const selectedIds = Object.keys(rowSelection)
-    .filter(index => rowSelection[index as keyof typeof rowSelection])
-    .map(index => rows[parseInt(index)]?.id)
-    .filter(Boolean);
-
-  const handleBulkDeleteSuccess = () => {
-    setRowSelection({});
-  };
-
+export function MoviesClient({ initialData }: { initialData?: AdminResourcePage<MovieType> }) {
   return (
-    <div className="animate-in fade-in duration-500 w-full text-white font-sans">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Movies</h1>
-        <div className="flex items-center gap-2">
-          {selectedIds.length > 0 && (
-            <BulkDeleteButton 
-              selectedIds={selectedIds} 
-              type="movies"
-              onSuccess={handleBulkDeleteSuccess} 
-            />
-          )}
-          <Link href="/admin/movies/create" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-            Add movie
-          </Link>
-        </div>
-      </div>
-
-      <DataTable 
-        columns={columns} 
-        data={rows} 
-        pageCount={pageCount}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        sorting={sorting}
-        onSortingChange={setSorting}
-        globalFilter={globalFilter}
-        onGlobalFilterChange={setGlobalFilter}
-        rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
-        toolbarAction={<FilterDropdown filters={filters} setFilters={setFilters} />}
-        isLoading={isLoading || isFetching}
-      />
-    </div>
-  );
-}
-
-function FilterDropdown({ filters, setFilters }: { filters: Record<string, string>, setFilters: React.Dispatch<React.SetStateAction<Record<string, string>>> }) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [genres, setGenres] = React.useState<{id: number, name: string}[]>([]);
-  const menuRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    fetchApi('/genres').then(res => res.json()).then(data => setGenres(data.data || data));
-  }, []);
-
-  React.useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  const years = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
-  const languages = ['en', 'id', 'ko', 'ja', 'es', 'fr'];
-
-  const count = Object.values(filters).filter(Boolean).length;
-
-  return (
-    <div className="relative" ref={menuRef}>
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="h-10 px-4 bg-[#0A0A0A] border border-white/5 rounded-md text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2"
-      >
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-        Filter {count > 0 && <span className="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">{count}</span>}
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-[#121212] border border-white/10 rounded-xl shadow-2xl p-4 z-50 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Genre</label>
-            <select 
-              className="bg-[#0A0A0A] border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filters.genre || ''}
-              onChange={e => setFilters(f => ({ ...f, genre: e.target.value }))}
-            >
-              <option value="">All Genres</option>
-              {genres.map(g => <option key={g.id} value={g.name}>{g.name}</option>)}
-            </select>
-          </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Year</label>
-            <select 
-              className="bg-[#0A0A0A] border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filters.year || ''}
-              onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}
-            >
-              <option value="">All Years</option>
-              {years.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Language</label>
-            <select 
-              className="bg-[#0A0A0A] border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:border-red-500"
-              value={filters.language || ''}
-              onChange={e => setFilters(f => ({ ...f, language: e.target.value }))}
-            >
-              <option value="">All Languages</option>
-              {languages.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
-            </select>
-          </div>
-
-          {count > 0 && (
-            <button 
-              onClick={() => setFilters({})}
-              className="mt-2 text-xs text-red-500 hover:text-red-400 font-medium py-1"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-      )}
-    </div>
+    <AdminResourceList<MovieType>
+      title="Movies"
+      queryKey="admin-movies"
+      endpoint="/admin/movies"
+      columns={columns}
+      createHref="/admin/movies/create"
+      createLabel="Add movie"
+      deleteType="movies"
+      initialData={initialData}
+      filters={[
+        { kind: 'genres', key: 'genre', label: 'Genre' },
+        { kind: 'number', key: 'year', label: 'Year', placeholder: 'e.g. 2024' },
+        {
+          kind: 'select',
+          key: 'language',
+          label: 'Language',
+          options: [
+            { value: 'en', label: 'English' },
+            { value: 'id', label: 'Indonesian' },
+            { value: 'ko', label: 'Korean' },
+            { value: 'ja', label: 'Japanese' },
+            { value: 'es', label: 'Spanish' },
+            { value: 'fr', label: 'French' },
+          ],
+        },
+      ]}
+    />
   );
 }

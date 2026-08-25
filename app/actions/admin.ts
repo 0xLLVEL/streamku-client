@@ -18,7 +18,7 @@ export async function importTmdbAction(tmdbId: number, type: 'movie' | 'tv') {
     } else {
       return { success: false, error: data.message || 'Failed to import content' };
     }
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred during import.' };
   }
 }

@@ -1,14 +1,7 @@
-import { fetchApi } from '@/lib/api';
-import { TvShowsClient } from './TvShowsClient';
-
-async function getTvShows() {
-  const res = await fetchApi('/admin/tv-shows', { next: { revalidate: 0 } });
-  if (!res.ok) return { data: [], last_page: 1, total: 0 };
-  const json = await res.json();
-  return json || { data: [], last_page: 1, total: 0 };
-}
+import { fetchAdminPage } from '@/lib/api';
+import { TvShowsClient, type TvShowType } from './TvShowsClient';
 
 export default async function AdminTvShowsPage() {
-  const tvShows = await getTvShows();
+  const tvShows = await fetchAdminPage<TvShowType>('/admin/tv-shows');
   return <TvShowsClient initialData={tvShows} />;
 }

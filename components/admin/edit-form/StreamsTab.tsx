@@ -1,0 +1,162 @@
+'use client';
+
+import { useState } from 'react';
+import { VideoCreateForm } from '@/components/admin/VideoCreateForm';
+import type { EmbedVideoEntry, UploadedMediaEntry } from './types';
+
+interface StreamsTabProps {
+  /** Present only when the title exists in the database. */
+  titleId: number | null;
+  titleName: string;
+  posterPath: string | null | undefined;
+  tmdbId: number | null | undefined;
+  media: UploadedMediaEntry[] | null | undefined;
+  videos: EmbedVideoEntry[] | null | undefined;
+  onDeleteEmbedVideo: (videoId: number | string) => void;
+}
+
+/** Uploaded files plus external embeds for a movie. */
+export function StreamsTab({
+  titleId,
+  titleName,
+  posterPath,
+  tmdbId,
+  media,
+  videos,
+  onDeleteEmbedVideo,
+}: StreamsTabProps) {
+  const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const mediaEntries = media ?? [];
+  const embedVideos = videos ?? [];
+
+  const existingVideoQualityIds =
+    mediaEntries
+      .filter((entry) => entry.type === 'video' && entry.quality?.id)
+      .map((entry) => Number(entry.quality?.id)) ?? [];
+
+  if (isAddingVideo && titleId) {
+    return (
+      <div className="max-w-[1600px] w-full animate-in fade-in duration-300">
+        <VideoCreateForm
+          mediableId={titleId}
+          mediableType="movie"
+          parentTitle={titleName || 'Unknown Title'}
+          parentPoster={posterPath ?? undefined}
+          parentTmdbId={tmdbId ?? undefined}
+          onClose={() => setIsAddingVideo(false)}
+          existingVideoQualityIds={existingVideoQualityIds}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-[1600px] w-full animate-in fade-in duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-white">
+          Streams ({mediaEntries.length + embedVideos.length})
+        </h2>
+        {titleId && (
+          <button
+            type="button"
+            onClick={() => setIsAddingVideo(true)}
+            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
+          >
+            Upload Stream
+          </button>
+        )}
+      </div>
+
+      {!titleId && (
+        <div className="mb-8 p-4 bg-white/5 border border-white/10 rounded-xl text-center">
+          <p className="text-sm text-white/50">Please save the movie first before uploading streams.</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4">
+        {mediaEntries.map((entry) => (
+          <StreamRow key={`media-${entry.id}`} thumbnail={<PlayPlaceholderIcon />}>
+            <p className="text-base text-white font-bold truncate">
+              {entry.metadata?.label ?? entry.name}
+            </p>
+            <span className="text-sm text-white/60 font-medium">Uploaded Media</span>
+          </StreamRow>
+        ))}
+
+        {embedVideos.map((video) => (
+          <StreamRow
+            key={`video-${video.id}`}
+            thumbnail={
+              <span className="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded">
+                {video.site}
+              </span>
+            }
+            action={
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDeleteEmbedVideo(video.id);
+                }}
+                className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
+                title="Delete Stream"
+              >
+                <TrashIcon />
+              </button>
+            }
+          >
+            <p className="text-base text-white font-bold truncate">{video.name}</p>
+            <span className="text-xs text-white/30 mt-1">ID: {video.key}</span>
+          </StreamRow>
+        ))}
+
+        {mediaEntries.length === 0 && embedVideos.length === 0 && (
+          <p className="text-white/50 col-span-full py-8 text-center bg-white/5 rounded-xl border border-white/5">
+            No streams available.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StreamRow({
+  thumbnail,
+  children,
+  action,
+}: {
+  thumbnail: React.ReactNode;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-lg p-4 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors">
+      <div className="w-32 aspect-video bg-black border border-white/5 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+        {thumbnail}
+      </div>
+      <div className="flex-1 flex flex-col justify-center min-w-0">{children}</div>
+      {action && <div className="flex items-center pr-2">{action}</div>}
+    </div>
+  );
+}
+
+function PlayPlaceholderIcon() {
+  return (
+    <svg className="w-8 h-8 text-white/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+      />
+    </svg>
+  );
+}

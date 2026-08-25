@@ -3,28 +3,26 @@
 import { useAuth } from '@/providers/AuthProvider';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { logoutAction } from '@/app/actions/auth';
+import { useIsClient } from '@/hooks/useIsClient';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
 
   useEffect(() => {
-    setMounted(true);
     if (!loading && (!user || !user.is_admin)) {
       router.replace('/');
     }
   }, [user, loading, router]);
 
-  if (!mounted || loading || !user || !user.is_admin) {
+  if (!isClient || loading || !user || !user.is_admin) {
     return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white">Authenticating...</div>;
   }
-  
-  console.log('AdminLayout rendering Dashboard', { loading, user, is_admin: user?.is_admin, isServer: typeof window === 'undefined' });
 
   const navSections = [
     {
@@ -70,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div key={section.title} className="flex flex-col gap-2">
               <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider px-3 mb-1">{section.title}</h3>
               <div className="flex flex-col gap-1">
-                {section.items.map((item: any) => {
+                {section.items.map((item) => {
                   const isActive = item.path === '/admin' ? pathname === '/admin' : pathname.startsWith(item.path);
                   return (
                     <div key={item.path} className="flex items-center group relative">
@@ -105,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User Profile */}
         <div className="p-4 border-t border-white/5 shrink-0">
-           <form action={async () => { await logoutAction(); }} className="w-full">
+           <form action={logoutAction} className="w-full">
             <button type="submit" className="flex items-center justify-between w-full px-3 py-3 rounded-lg bg-[#000000] text-gray-400 hover:text-white border border-white/5 hover:border-white/10 transition-colors text-[13px] font-medium group">
                <div className="flex items-center gap-3">
                  <div className="w-7 h-7 rounded bg-red-600/20 text-red-500 flex items-center justify-center text-sm font-bold">{user.name.charAt(0)}</div>

@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchApi } from '@/lib/apiClient';
+import { apiFetch } from '@/lib/apiClient';
 import { useTusUpload } from '@/hooks/useTusUpload';
-import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -52,11 +51,9 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
   const [embedUrl, setEmbedUrl] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
-  // VidKing state
+  // VidKing state (id & error are derived from the raw input)
   const [vidkingInput, setVidkingInput] = useState(parentTmdbId ? String(parentTmdbId) : '');
-  const [vidkingId, setVidkingId] = useState<string | null>(parentTmdbId ? String(parentTmdbId) : null);
 
-  const [vidkingError, setVidkingError] = useState('');
   const [isSavingEmbed, setIsSavingEmbed] = useState(false);
   const [embedSaveMessage, setEmbedSaveMessage] = useState('');
   const [embedSaveStatus, setEmbedSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -65,7 +62,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     onSuccess: () => {
       setVideoFile(null);
       if (qualities.length > 0) {
-        const availableQ = qualities.find((q: any) => !existingVideoQualityIds.includes(Number(q.id)));
+        const availableQ = qualities.find((q) => !existingVideoQualityIds.includes(Number(q.id)));
         if (availableQ) setQuality(availableQ.id.toString());
         else setQuality('');
       }
@@ -76,17 +73,23 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     }
   });
 
-  const [qualities, setQualities] = useState<any[]>([]);
+  interface QualityOption {
+    id: number | string;
+    name?: string;
+    label?: string;
+  }
+
+  const [qualities, setQualities] = useState<QualityOption[]>([]);
 
   useEffect(() => {
     const fetchQualities = async () => {
       try {
-        const res = await fetchApi('admin/qualities');
+        const res = await apiFetch('admin/qualities');
         const json = await res.json();
-        const qs = json.data || [];
+        const qs: QualityOption[] = json.data || [];
         setQualities(qs);
         if (qs.length > 0) {
-          const availableQ = qs.find((q: any) => !existingVideoQualityIds.includes(Number(q.id)));
+          const availableQ = qs.find((q) => !existingVideoQualityIds.includes(Number(q.id)));
           if (availableQ) setQuality(availableQ.id.toString());
           else setQuality(qs[0].id.toString());
         }
@@ -97,22 +100,12 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     fetchQualities();
   }, [existingVideoQualityIds]);
 
-  // Parse VidKing ID whenever input changes
-  useEffect(() => {
-    if (!vidkingInput.trim()) {
-      setVidkingId(null);
-      setVidkingError('');
-      return;
-    }
-    const id = parseVidKingId(vidkingInput);
-    if (id) {
-      setVidkingId(id);
-      setVidkingError('');
-    } else {
-      setVidkingId(null);
-      setVidkingError('Could not extract a VidKing video ID from this URL.');
-    }
-  }, [vidkingInput]);
+  // Parse VidKing ID from the current input
+  const vidkingId = useMemo(() => parseVidKingId(vidkingInput), [vidkingInput]);
+  const vidkingError =
+    vidkingInput.trim() && !vidkingId
+      ? 'Could not extract a VidKing video ID from this URL.'
+      : '';
 
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -145,7 +138,6 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
       setEmbedSaveStatus('success');
       setEmbedSaveMessage('Stream saved successfully!');
       setVidkingInput('');
-      setVidkingId(null);
       setTimeout(() => {
         if (onClose) onClose();
         router.refresh();

@@ -1,9 +1,27 @@
 'use server';
 
-import { fetchApi } from '@/lib/api';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { fetchApi } from '@/lib/api';
 
-export async function loginAction(prevState: any, formData: FormData) {
+export interface AuthFormState {
+  success?: boolean;
+  error?: string;
+}
+
+const TOKEN_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 60 * 60 * 24 * 30, // 30 days
+  path: '/',
+} as const;
+
+async function persistSession(token: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set('token', token, TOKEN_COOKIE_OPTIONS);
+}
+
+export async function loginAction(_prevstate: AuthFormState | null, formData: FormData): Promise<AuthFormState> {
   const email = formData.get('email');
   const password = formData.get('password');
 
@@ -19,21 +37,18 @@ export async function loginAction(prevState: any, formData: FormData) {
       return { error: data.message || 'Login failed' };
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set('token', data.data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/',
-    });
-
-    return { success: true };
-  } catch (err) {
+    await persistSession(data.data.token);
+  } catch {
     return { error: 'An unexpected error occurred.' };
   }
+
+  redirect('/');
 }
 
-export async function registerAction(prevState: any, formData: FormData) {
+export async function registerAction(
+  _prevstate: AuthFormState | null,
+  formData: FormData,
+): Promise<AuthFormState> {
   const name = formData.get('name');
   const email = formData.get('email');
   const password = formData.get('password');
@@ -51,27 +66,29 @@ export async function registerAction(prevState: any, formData: FormData) {
       return { error: data.message || 'Registration failed' };
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set('token', data.data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 30,
-      path: '/',
-    });
-
-    return { success: true };
-  } catch (err) {
+    await persistSession(data.data.token);
+  } catch {
     return { error: 'An unexpected error occurred.' };
   }
+
+  redirect('/');
 }
 
-export async function logoutAction() {
+/** Delete the session cookie and return to the login page. */
+export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete('token');
-  return { success: true };
+  redirect('/login');
 }
 
-export async function updateSettingsAction(prevState: any, formData: FormData) {
+export interface UpdateSettingsResult extends AuthFormState {
+  user?: unknown;
+}
+
+export async function updateSettingsAction(
+  _prevstate: UpdateSettingsResult | null,
+  formData: FormData,
+): Promise<UpdateSettingsResult> {
   const name = formData.get('name') as string;
   const language = formData.get('language') as string;
   const include_adult = formData.get('include_adult') === 'on';
@@ -81,7 +98,7 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
       method: 'PUT',
       body: JSON.stringify({
         name,
-        preferences: { language, include_adult }
+        preferences: { language, include_adult },
       }),
     });
 
@@ -92,7 +109,7 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
     }
 
     return { success: true, user: data.data.user };
-  } catch (err) {
+  } catch {
     return { error: 'An unexpected error occurred.' };
   }
 }

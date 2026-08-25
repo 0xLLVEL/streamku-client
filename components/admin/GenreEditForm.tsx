@@ -6,7 +6,12 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 
-export function GenreEditForm({ genre }: { genre: any }) {
+interface GenreEditData {
+  id: number;
+  name: string;
+}
+
+export function GenreEditForm({ genre }: { genre: GenreEditData }) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);

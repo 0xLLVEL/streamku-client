@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { PosterCard } from '@/components/ui/PosterCard';
 import { WatchlistButton } from '@/components/ui/WatchlistButton';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
+import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
 import { TvShow, MediaItem } from '@/types';
 
 async function getTvShow(slug: string): Promise<TvShow | null> {
@@ -25,22 +26,6 @@ async function getRecommendations(slug: string): Promise<MediaItem[]> {
   return json.data?.data || [];
 }
 
-async function getWatchlistState(id: any) {
-  const res = await fetchApi(`/watchlist`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const json = await res.json();
-  const watchlist = json.data.find((item: any) => item.media_id === id)
-  return watchlist != undefined ? watchlist.id : null;
-}
-
-async function getFavoriteState(id: any) {
-  const res = await fetchApi(`/favorites`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const json = await res.json();
-  const favorite = json.data.find((item: any) => item.media_id === id)
-  return favorite != undefined ? favorite.id : null;
-}
-
 export default async function TvShowDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const show = await getTvShow(slug);
@@ -52,8 +37,6 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
 
   const watchlist = await getWatchlistState(show?.id);
   const favorite = await getFavoriteState(show?.id);
-
-  const tmdbBaseUrl = 'https://image.tmdb.org/t/p/original';
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -222,7 +205,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
         <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
           <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">More Like This</h2>
           <DraggableList className="pb-4" innerClassName="space-x-3">
-            {recommendations.map((item, idx) => (
+            {recommendations.map((item) => (
               <div key={item.id} className="snap-start shrink-0">
                 <PosterCard item={item} />
               </div>

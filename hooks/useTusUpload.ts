@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
 import * as tus from 'tus-js-client';
 import { getAuthTokenAction } from '@/app/actions/upload';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import { API_BASE_URL } from '@/lib/config';
 
 export type UploadStatus = 'idle' | 'uploading' | 'paused' | 'processing' | 'completed' | 'error';
 
@@ -35,7 +34,7 @@ export function useTusUpload({ endpoint = '/admin/tus', onSuccess, onError }: Us
       if (!token) throw new Error('Authentication required');
 
       const upload = new tus.Upload(file, {
-        endpoint: `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`,
+        endpoint: `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`,
         chunkSize: 50 * 1024 * 1024, // 50MB chunks
         retryDelays: [0, 3000, 5000, 10000, 20000],
         headers: {
@@ -75,11 +74,12 @@ export function useTusUpload({ endpoint = '/admin/tus', onSuccess, onError }: Us
       uploadRef.current = upload;
       upload.start();
 
-    } catch (err: any) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('An unexpected error occurred during upload.');
       console.error(err);
       setStatus('error');
-      setMessage(err.message || 'An unexpected error occurred during upload.');
-      if (onError) onError(err);
+      setMessage(error.message);
+      if (onError) onError(error);
     }
   };
 

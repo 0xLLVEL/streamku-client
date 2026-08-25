@@ -1,14 +1,7 @@
-import { fetchApi } from '@/lib/api';
-import { GenresClient } from './GenresClient';
-
-async function getGenres() {
-  const res = await fetchApi('/admin/genres?per_page=20', { next: { revalidate: 0 } });
-  if (!res.ok) return { data: [], last_page: 1, total: 0 };
-  const json = await res.json();
-  return json || { data: [], last_page: 1, total: 0 };
-}
+import { fetchAdminPage } from '@/lib/api';
+import { GenresClient, type GenreType } from './GenresClient';
 
 export default async function AdminGenresPage() {
-  const genres = await getGenres();
+  const genres = await fetchAdminPage<GenreType>('/admin/genres');
   return <GenresClient initialData={genres} />;
 }

@@ -1,7 +1,8 @@
 import { fetchApi } from '@/lib/api';
 import { PosterCard } from '@/components/ui/PosterCard';
+import type { Movie } from '@/types';
 
-async function getMovies() {
+async function getMovies(): Promise<Movie[]> {
   const res = await fetchApi('/movies', { next: { revalidate: 0 } });
   if (!res.ok) return [];
   const json = await res.json();
@@ -22,7 +23,7 @@ export default async function MoviesPage() {
 
       {movies.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {movies.map((movie: any) => (
+          {movies.map((movie) => (
             <PosterCard key={movie.id} item={movie} />
           ))}
         </div>

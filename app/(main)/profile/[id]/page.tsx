@@ -1,15 +1,22 @@
 import { fetchApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { MediaListItem, ProfileUser } from '../profile-types';
 
-async function getUserProfile(id: string) {
+interface ProfileData {
+  user: ProfileUser;
+  favorites: MediaListItem[];
+  watchlist: MediaListItem[];
+}
+
+async function getUserProfile(id: string): Promise<ProfileData | null> {
     try {
         const res = await fetchApi(`/users/${id}/profile`, { next: { revalidate: 0 } });
         if (res.ok) {
             const json = await res.json();
             return json.data;
         }
-    } catch (err) {
+    } catch {
         return null;
     }
     return null;
@@ -23,7 +30,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         notFound();
     }
 
-    const { user, favorites, watchlist } = profileData;
+    const { user, favorites } = profileData;
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] pt-28 px-4 md:px-12 lg:px-24 pb-24">
@@ -54,11 +61,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                         </svg>
                         <h3 className="text-xl font-bold text-white mb-2">No favorites yet</h3>
-                        <p className="text-white/50 max-w-md">{user.name} hasn't added any favorites.</p>
+                        <p className="text-white/50 max-w-md">{user.name} hasn&apos;t added any favorites.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                        {favorites.map((item: any) => {
+                        {favorites.map((item) => {
                             const details = item.media_details;
                             const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
                             const poster = details?.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null;

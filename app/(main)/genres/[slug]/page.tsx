@@ -1,12 +1,18 @@
 import { fetchApi } from '@/lib/api';
 import { PosterCard } from '@/components/ui/PosterCard';
 import { notFound } from 'next/navigation';
+import type { MediaItem } from '@/types';
 
-async function getGenreDetails(slug: string) {
+interface GenreDetails {
+  genre: { name: string };
+  movies: MediaItem[];
+  tv_shows: MediaItem[];
+}
+
+async function getGenreDetails(slug: string): Promise<GenreDetails | null> {
   const res = await fetchApi(`/genres/${slug}`, { next: { revalidate: 0 } });
   if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error('Failed to fetch genre details');
+    return null;
   }
   const json = await res.json();
   return json.data;
@@ -43,7 +49,7 @@ export default async function GenreDetailsPage({ params }: { params: Promise<{ s
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-white/20 pl-4">Movies</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {movies.map((movie: any) => (
+            {movies.map((movie) => (
               <PosterCard key={movie.id} item={movie} />
             ))}
           </div>
@@ -54,7 +60,7 @@ export default async function GenreDetailsPage({ params }: { params: Promise<{ s
         <div>
           <h2 className="text-2xl font-bold text-white mb-6 border-l-4 border-white/20 pl-4">TV Series</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {tv_shows.map((show: any) => (
+            {tv_shows.map((show) => (
               <PosterCard key={show.id} item={show} />
             ))}
           </div>

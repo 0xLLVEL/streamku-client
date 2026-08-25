@@ -1,6 +1,5 @@
 import { fetchApi } from '@/lib/api';
 import { MovieEditForm } from '@/components/admin/MovieEditForm';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export default async function EditMoviePage({ params }: { params: Promise<{ id: string }> }) {

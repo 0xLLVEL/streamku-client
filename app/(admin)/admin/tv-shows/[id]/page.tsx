@@ -1,6 +1,5 @@
 import { fetchApi } from '@/lib/api';
 import { TvShowEditForm } from '@/components/admin/TvShowEditForm';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export default async function EditTvShowPage({ params }: { params: Promise<{ id: string }> }) {

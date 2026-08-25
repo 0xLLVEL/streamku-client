@@ -2,17 +2,11 @@
 
 import { useActionState, useState } from 'react';
 import { registerAction } from '@/app/actions/auth';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
   const [showPassword, setShowPassword] = useState(false);
-
-  if (state?.success) {
-    window.location.href = '/';
-  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-black">

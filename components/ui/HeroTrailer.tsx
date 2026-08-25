@@ -8,33 +8,59 @@ interface HeroTrailerProps {
   trailerUrl?: string | null;
 }
 
+interface YTPlayer {
+  playVideo(): void;
+  destroy(): void;
+}
+
+interface YTPlayerEvent {
+  target: YTPlayer;
+  data: number;
+}
+
+interface YTNamespace {
+  Player: new (
+    elementId: string,
+    options: {
+      videoId: string;
+      playerVars: Record<string, number | string>;
+      events: {
+        onReady?: (event: YTPlayerEvent) => void;
+        onStateChange?: (event: YTPlayerEvent) => void;
+      };
+    },
+  ) => YTPlayer;
+  PlayerState: { PLAYING: number; ENDED: number };
+}
+
 declare global {
   interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
+    YT?: YTNamespace;
+    onYouTubeIframeAPIReady?: () => void;
   }
+}
+
+/** Extract the YouTube video id from a watch URL. */
+function extractTrailerKey(trailerUrl: string | null | undefined): string | null {
+  if (!trailerUrl) return null;
+  return trailerUrl.match(/[?&]v=([^&]+)/)?.[1] ?? null;
 }
 
 export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProps) {
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [apiReady, setApiReady] = useState(false);
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
   const tmdbBaseUrl = 'https://image.tmdb.org/t/p/original';
-  
-  // Extract YouTube ID from URL
-  let trailerKey = null;
-  if (trailerUrl) {
-    const match = trailerUrl.match(/[?&]v=([^&]+)/);
-    if (match) trailerKey = match[1];
-  }
 
-  // Load YouTube Iframe API
+  const trailerKey = extractTrailerKey(trailerUrl);
+
+  // Load the YouTube Iframe API once
   useEffect(() => {
     if (!trailerKey) return;
 
-    // If already loaded
     if (window.YT && window.YT.Player) {
-      setApiReady(true);
+      // Already available: defer so we don't setState synchronously in the effect
+      queueMicrotask(() => setApiReady(true));
       return;
     }
 
@@ -43,24 +69,20 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
-    window.onYouTubeIframeAPIReady = () => {
-      setApiReady(true);
-    };
-    
+    window.onYouTubeIframeAPIReady = () => setApiReady(true);
+
     return () => {
       window.onYouTubeIframeAPIReady = () => {};
     };
   }, [trailerKey]);
 
-  // Initialize Player
+  // Initialize the player after the API is ready
   useEffect(() => {
-    if (!apiReady || !trailerKey) return;
-
-    let timer: NodeJS.Timeout;
+    if (!apiReady || !trailerKey || !window.YT) return;
 
     // Start 4-second cooldown before initializing player
-    timer = setTimeout(() => {
-      playerRef.current = new window.YT.Player('youtube-player', {
+    const timer = setTimeout(() => {
+      playerRef.current = new window.YT!.Player('youtube-player', {
         videoId: trailerKey,
         playerVars: {
           autoplay: 1,
@@ -74,26 +96,24 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
           iv_load_policy: 3,
         },
         events: {
-          onReady: (event: any) => {
-            event.target.playVideo();
-          },
-          onStateChange: (event: any) => {
+          onReady: (event) => event.target.playVideo(),
+          onStateChange: (event) => {
             // When video is actually playing, fade it in!
-            if (event.data === window.YT.PlayerState.PLAYING) {
+            if (event.data === window.YT!.PlayerState.PLAYING) {
               setVideoPlaying(true);
             }
             // When video ends, fade it out
-            if (event.data === window.YT.PlayerState.ENDED) {
+            if (event.data === window.YT!.PlayerState.ENDED) {
               setVideoPlaying(false);
             }
-          }
-        }
+          },
+        },
       });
     }, 4000);
 
     return () => {
       clearTimeout(timer);
-      if (playerRef.current && playerRef.current.destroy) {
+      if (playerRef.current?.destroy) {
         playerRef.current.destroy();
       }
     };
@@ -102,15 +122,15 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
       {/* Static Backdrop (Always behind) */}
-      <img 
-        src={`${tmdbBaseUrl}${backdropPath}`} 
-        alt={title} 
+      <img
+        src={`${tmdbBaseUrl}${backdropPath}`}
+        alt={title}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${videoPlaying ? 'opacity-0' : 'opacity-100'}`}
       />
-      
+
       {/* Video Player Container */}
       {trailerKey && (
-        <div 
+        <div
           className={`absolute inset-0 bg-black transition-opacity duration-[2000ms] ease-in-out pointer-events-none ${videoPlaying ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="w-full h-[140%] -top-[20%] absolute pointer-events-none">
@@ -118,7 +138,7 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
           </div>
         </div>
       )}
-      
+
       {/* Gradients to blend it into the page and keep text readable */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent z-10 pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/90 via-[#0a0a0a]/40 to-transparent z-10 pointer-events-none" />

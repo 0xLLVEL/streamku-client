@@ -1,15 +1,21 @@
 import { getAuthTokenAction } from '@/app/actions/upload';
+import { API_BASE_URL } from '@/lib/config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-interface FetchApiOptions extends RequestInit {
+export interface ApiFetchOptions extends RequestInit {
+  /** When true (default) a Bearer token is required and attached. */
   requireAuth?: boolean;
 }
 
-export async function fetchApi(endpoint: string, options: FetchApiOptions = {}) {
+/**
+ * Client-side fetch helper for the Laravel API.
+ * Resolves the auth token through a server action (httpOnly cookie).
+ *
+ * For server components use {@link ./api.fetchApi} instead.
+ */
+export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}): Promise<Response> {
   const { requireAuth = true, headers: customHeaders, ...rest } = options;
   const headers = new Headers(customHeaders);
-  
+
   if (!headers.has('Accept')) {
     headers.set('Accept', 'application/json');
   }
@@ -23,23 +29,17 @@ export async function fetchApi(endpoint: string, options: FetchApiOptions = {}) 
     }
   }
 
-  const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-  
-  const response = await fetch(url, {
-    ...rest,
-    headers,
-  });
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
-  if (!response.ok) {
-    let errorMessage = 'An error occurred';
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.message || errorMessage;
-    } catch {
-      errorMessage = response.statusText;
-    }
-    throw new Error(errorMessage);
+  return fetch(`${API_BASE_URL}${path}`, { ...rest, headers });
+}
+
+/** Extract a human-readable error message from an API error response. */
+export async function extractApiErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = await response.json();
+    return typeof data?.message === 'string' ? data.message : response.statusText;
+  } catch {
+    return response.statusText;
   }
-
-  return response;
 }

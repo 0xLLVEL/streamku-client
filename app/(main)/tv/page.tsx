@@ -1,7 +1,8 @@
 import { fetchApi } from '@/lib/api';
 import { PosterCard } from '@/components/ui/PosterCard';
+import type { TvShow } from '@/types';
 
-async function getTvShows() {
+async function getTvShows(): Promise<TvShow[]> {
   const res = await fetchApi('/tv-shows', { next: { revalidate: 0 } });
   if (!res.ok) return [];
   const json = await res.json();
@@ -22,7 +23,7 @@ export default async function TvShowsPage() {
 
       {shows.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {shows.map((show: any) => (
+          {shows.map((show) => (
             <PosterCard key={show.id} item={show} />
           ))}
         </div>

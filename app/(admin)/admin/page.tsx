@@ -1,6 +1,35 @@
 import { fetchApi } from '@/lib/api';
 
-async function getAnalytics() {
+interface AnalyticsOverview {
+  total_users: number;
+  total_movies: number;
+  total_tv_shows: number;
+  total_watch_hours: number;
+  top_countries?: { country: string; views: number }[] | null;
+}
+
+interface TopTitleRow {
+  watchable_id: number;
+  views: number;
+  watchable?: {
+    title?: string | null;
+    poster_path?: string | null;
+    season?: { tvShow?: { name?: string | null; poster_path?: string | null } | null } | null;
+  } | null;
+}
+
+interface EngagementPoint {
+  date: string;
+  watches: number;
+}
+
+interface AdminAnalytics {
+  overview: AnalyticsOverview | null;
+  topTitles: { top_movies: TopTitleRow[]; top_episodes: TopTitleRow[] } | null;
+  engagement: { chart_data: EngagementPoint[] } | null;
+}
+
+async function getAnalytics(): Promise<AdminAnalytics> {
   const [overviewRes, topTitlesRes, engagementRes] = await Promise.all([
     fetchApi('/admin/analytics/overview', { next: { revalidate: 0 } }),
     fetchApi('/admin/analytics/top-titles', { next: { revalidate: 0 } }),
@@ -32,8 +61,8 @@ export default async function AdminDashboardPage() {
   const cardBase = "bg-[#0A0A0A] border border-white/5 rounded flex flex-col";
 
   // Calculate chart max for Y-axis scaling
-  const maxWatches = Math.max(1, ...chart_data.map((d: any) => d.watches));
-  const points = chart_data.map((d: any, idx: number) => {
+  const maxWatches = Math.max(1, ...chart_data.map((d) => d.watches));
+  const points = chart_data.map((d, idx) => {
     const x = (idx / (chart_data.length - 1)) * 1000;
     const y = 300 - ((d.watches / maxWatches) * 200); // Leaves 100px padding at top
     return `${x},${y}`;
@@ -109,7 +138,7 @@ export default async function AdminDashboardPage() {
         <div className={`${cardBase} lg:col-span-2 p-6 min-h-[400px]`}>
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-white font-semibold text-sm">Plays</h3>
-            <span className="text-white/40 text-xs">{chart_data.reduce((acc: number, cur: any) => acc + cur.watches, 0).toLocaleString()} total plays (30 days)</span>
+            <span className="text-white/40 text-xs">{chart_data.reduce((acc: number, cur: EngagementPoint) => acc + cur.watches, 0).toLocaleString()} total plays (30 days)</span>
           </div>
 
           <div className="flex-1 relative w-full h-[280px]">
@@ -137,7 +166,7 @@ export default async function AdminDashboardPage() {
                   {/* Line */}
                   <polyline points={points} fill="none" stroke="#DC2626" strokeWidth="3" />
                   {/* Points */}
-                  {chart_data.map((d: any, idx: number) => {
+                  {chart_data.map((d, idx) => {
                      const x = (idx / (chart_data.length - 1)) * 1000;
                      const y = 300 - ((d.watches / maxWatches) * 200);
                      return (
@@ -179,7 +208,7 @@ export default async function AdminDashboardPage() {
           {/* Actual data below chart */}
           {top_countries && top_countries.length > 0 && (
             <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
-              {top_countries.map((item: any, idx: number) => (
+              {top_countries.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-xs">
                   <span className="text-gray-400">{item.country}</span>
                   <span className="text-white/90 font-semibold">{item.views.toLocaleString()}</span>
@@ -198,7 +227,7 @@ export default async function AdminDashboardPage() {
         <div className={`${cardBase} p-5 min-h-[250px]`}>
           <h3 className="text-white font-semibold text-sm mb-4">Most played series</h3>
           <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5 overflow-hidden">
-            {top_episodes && top_episodes.length > 0 ? top_episodes.slice(0, 5).map((row: any, idx: number) => {
+            {top_episodes && top_episodes.length > 0 ? top_episodes.slice(0, 5).map((row, idx) => {
               const tvShow = row.watchable?.season?.tvShow;
               const title = tvShow?.name || 'Unknown Show';
               const poster = tvShow?.poster_path;
@@ -230,7 +259,7 @@ export default async function AdminDashboardPage() {
         <div className={`${cardBase} p-5 min-h-[250px]`}>
           <h3 className="text-white font-semibold text-sm mb-4">Most played movies</h3>
           <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5 overflow-hidden">
-             {top_movies && top_movies.length > 0 ? top_movies.slice(0, 5).map((row: any, idx: number) => {
+             {top_movies && top_movies.length > 0 ? top_movies.slice(0, 5).map((row, idx) => {
               return (
                 <div key={idx} className="flex items-center justify-between py-2.5 px-4 hover:bg-white/[0.02] transition-colors group">
                   <div className="flex items-center gap-3 flex-1 min-w-0">

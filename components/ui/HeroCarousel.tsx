@@ -92,7 +92,7 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
                     ) : null}
                     {item.genres && item.genres.length > 0 && (
                       <span className="text-white/60">
-                        {item.genres.slice(0, 3).map((g: any, idx: number, arr: any[]) => (
+                        {item.genres.slice(0, 3).map((g, idx, arr) => (
                           <span key={g.id}>
                             <Link href={`/genres/${g.slug}`} className="hover:text-white transition-colors cursor-pointer">
                               {g.name}

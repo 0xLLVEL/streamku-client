@@ -11,6 +11,7 @@ import {
   SortingState,
   PaginationState,
   RowSelectionState,
+  RowData,
   getPaginationRowModel,
 } from "@tanstack/react-table"
 
@@ -22,6 +23,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
+declare module "@tanstack/react-table" {
+  // Allow per-column meta with a known shape across all tables in the app.
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string
+  }
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -130,7 +138,7 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className={(header.column.columnDef.meta as any)?.className}>
+                    <TableHead key={header.id} className={header.column.columnDef.meta?.className}>
                       {header.isPlaceholder
                         ? null
                         : (
@@ -164,7 +172,7 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={(cell.column.columnDef.meta as any)?.className}>
+                    <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

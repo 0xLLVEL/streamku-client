@@ -25,9 +25,12 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  /** True once playback idle-timeout has fired; controls stay visible otherwise. */
+  const [autoHidden, setAutoHidden] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const initialTimeSet = useRef(false);
+
+  const showControls = !autoHidden || !isPlaying || isHovering;
 
   // Sync progress
   useEffect(() => {
@@ -40,8 +43,8 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
       
       if (time > 0) {
         try {
-          const { fetchApi } = await import('@/lib/apiClient');
-          await fetchApi('history/sync', {
+          const { apiFetch } = await import('@/lib/apiClient');
+          await apiFetch('history/sync', {
             method: 'PATCH',
             body: JSON.stringify({
               watchable_type: watchableType,
@@ -53,7 +56,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
             requireAuth: true,
           }).catch(e => {
             if (e.message.includes('not found')) {
-              fetchApi('history', {
+              apiFetch('history', {
                 method: 'POST',
                 body: JSON.stringify({
                   watchable_type: watchableType,
@@ -76,14 +79,11 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
     return () => clearInterval(interval);
   }, [isPlaying, watchableId, watchableType]);
 
-  // Auto-hide controls
+  // Auto-hide controls while playing and not hovered
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (isPlaying && !isHovering) {
-      timeout = setTimeout(() => setShowControls(false), 2500);
-    } else {
-      setShowControls(true);
-    }
+    if (!isPlaying || isHovering) return;
+
+    const timeout = setTimeout(() => setAutoHidden(true), 2500);
     return () => clearTimeout(timeout);
   }, [isPlaying, isHovering]);
 
@@ -183,7 +183,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
     <div 
       ref={containerRef}
       className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden group"
-      onMouseMove={() => setShowControls(true)}
+      onMouseMove={() => setAutoHidden(false)}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
