@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { VideoPlayer } from '@/components/ui/VideoPlayer';
+import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { fetchApi } from '@/lib/api';
 import { buildStreamUrl } from '@/lib/config';
 import { resolveStreamableVideo, type StreamableVideo } from '@/lib/media';

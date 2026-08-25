@@ -1,5 +1,5 @@
 import { fetchApi } from '@/lib/api';
-import { PosterCard } from '@/components/ui/PosterCard';
+import { PosterCard } from '@/components/media/PosterCard';
 import type { TvShow } from '@/types';
 
 async function getTvShows(): Promise<TvShow[]> {

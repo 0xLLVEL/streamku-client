@@ -1,8 +1,8 @@
 import { fetchApi } from '@/lib/api';
-import { PosterCard } from '@/components/ui/PosterCard';
-import { DraggableList } from '@/components/ui/DraggableList';
-import { HeroCarousel } from '@/components/ui/HeroCarousel';
-import { ContinueWatchingRow } from '@/components/ui/ContinueWatchingRow';
+import { PosterCard } from '@/components/media/PosterCard';
+import { DraggableList } from '@/components/media/DraggableList';
+import { HeroCarousel } from '@/components/media/HeroCarousel';
+import { ContinueWatchingRow } from '@/components/media/ContinueWatchingRow';
 import { BrowseRow } from '@/types';
 
 async function getHistoryData() {

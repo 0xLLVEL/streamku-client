@@ -14,14 +14,14 @@ import {
 import {
   EditFormShell,
   TabPanel,
-} from '@/components/admin/edit-form/EditFormShell';
-import { PrimaryFactsTab, type TitleFieldConfig } from '@/components/admin/edit-form/PrimaryFactsTab';
-import { ImagesTab } from '@/components/admin/edit-form/ImagesTab';
-import { StreamsTab } from '@/components/admin/edit-form/StreamsTab';
-import { CastTab, UnderConstructionPanel } from '@/components/admin/edit-form/CastTab';
-import { ImagePreviewModal } from '@/components/admin/edit-form/ImagePreviewModal';
-import { useTitleSave } from '@/components/admin/edit-form/useTitleSave';
-import type { FormMessage, TitleDisplayData } from '@/components/admin/edit-form/types';
+} from './EditFormShell';
+import { PrimaryFactsTab, type TitleFieldConfig } from './PrimaryFactsTab';
+import { ImagesTab } from './ImagesTab';
+import { StreamsTab } from './StreamsTab';
+import { CastTab, UnderConstructionPanel } from './CastTab';
+import { ImagePreviewModal } from './ImagePreviewModal';
+import { useTitleSave } from './useTitleSave';
+import type { FormMessage, TitleDisplayData } from './types';
 
 const MOVIE_FIELDS: TitleFieldConfig = {
   titleName: 'title',

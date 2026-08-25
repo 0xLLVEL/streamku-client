@@ -1,4 +1,4 @@
-import { TvShowEditForm } from '@/components/admin/TvShowEditForm';
+import { TvShowEditForm } from '@/components/admin/title-editor/TvShowEditForm';
 
 export default function CreateTvShowPage() {
   return (

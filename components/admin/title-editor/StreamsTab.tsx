@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { VideoCreateForm } from '@/components/admin/VideoCreateForm';
+import { VideoCreateForm } from '@/components/admin/forms/VideoCreateForm';
 import type { EmbedVideoEntry, UploadedMediaEntry } from './types';
 
 interface StreamsTabProps {

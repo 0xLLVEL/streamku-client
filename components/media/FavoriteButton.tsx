@@ -5,7 +5,7 @@ import {
   CheckIcon,
   SpinnerIcon,
   StatefulToggleButton,
-} from '@/components/ui/StatefulToggleButton';
+} from '@/components/media/StatefulToggleButton';
 
 interface FavoriteButtonProps {
   favoritableId: number;

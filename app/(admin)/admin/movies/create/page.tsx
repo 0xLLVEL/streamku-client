@@ -1,4 +1,4 @@
-import { MovieEditForm } from '@/components/admin/MovieEditForm';
+import { MovieEditForm } from '@/components/admin/title-editor/MovieEditForm';
 
 export default function CreateMoviePage() {
   return (

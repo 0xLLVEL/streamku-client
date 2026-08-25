@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 /** Shared placeholder for poster-grid pages (movies, tv shows, genres). */
 export function PosterGridLoading() {

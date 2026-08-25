@@ -1,5 +1,5 @@
 import { fetchApi } from '@/lib/api';
-import { SeasonEditForm, type SeasonEditData } from '@/components/admin/SeasonEditForm';
+import { SeasonEditForm, type SeasonEditData } from '@/components/admin/forms/SeasonEditForm';
 import { notFound } from 'next/navigation';
 
 async function getSeason(id: string, seasonNumber: string): Promise<SeasonEditData | null> {

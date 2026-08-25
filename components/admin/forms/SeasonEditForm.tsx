@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { updateSeasonAction, bulkGenerateVidkingEpisodesAction } from '@/app/actions/admin-content';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
 
 export interface SeasonEditEpisode {
   id: number;

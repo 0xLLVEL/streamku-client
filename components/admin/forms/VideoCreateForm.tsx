@@ -4,10 +4,10 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiClient';
 import { useTusUpload } from '@/hooks/useTusUpload';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProgressBar } from '@/components/ui/ProgressBar';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
+import { ProgressBar } from './ProgressBar';
 import { createEmbedVideoAction } from '@/app/actions/admin-content';
 
 interface VideoCreateFormProps {

@@ -10,9 +10,9 @@ import type {
   SortingState,
 } from '@tanstack/react-table';
 import { apiFetch } from '@/lib/apiClient';
-import { DataTable } from '@/components/ui/data-table';
-import { BulkDeleteButton } from '@/components/admin/BulkDeleteButton';
-import { ListFilterDropdown, type ListFilterField } from '@/components/admin/ListFilterDropdown';
+import { DataTable } from '@/components/ui/DataTable';
+import { BulkDeleteButton } from './BulkDeleteButton';
+import { ListFilterDropdown, type ListFilterField } from './ListFilterDropdown';
 
 export type AdminResourceType = 'movies' | 'tv-shows' | 'genres' | 'cast';
 

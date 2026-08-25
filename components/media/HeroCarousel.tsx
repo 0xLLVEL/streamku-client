@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { MediaItem } from '@/types';
 
 export function HeroCarousel({ items }: { items: MediaItem[] }) {
-  console.log(items)
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {

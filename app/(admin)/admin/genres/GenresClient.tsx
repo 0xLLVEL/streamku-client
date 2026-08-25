@@ -1,7 +1,7 @@
 'use client';
 
-import { AdminResourceList, type AdminResourcePage } from '@/components/admin/AdminResourceList';
-import { actionsColumn, selectColumn } from '@/components/admin/table-columns';
+import { AdminResourceList, type AdminResourcePage } from '@/components/admin/lists/AdminResourceList';
+import { actionsColumn, selectColumn } from '@/components/admin/lists/table-columns';
 import type { ColumnDef } from '@tanstack/react-table';
 
 export type GenreType = {

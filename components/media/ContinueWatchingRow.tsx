@@ -1,7 +1,7 @@
 'use client';
 
-import { PlayAction } from '@/components/ui/PlayAction';
-import { DraggableList } from '@/components/ui/DraggableList';
+import { PlayAction } from '@/components/media/PlayAction';
+import { DraggableList } from '@/components/media/DraggableList';
 
 interface HistoryItem {
   id: number;

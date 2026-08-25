@@ -22,7 +22,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/Table"
 
 declare module "@tanstack/react-table" {
   // Allow per-column meta with a known shape across all tables in the app.

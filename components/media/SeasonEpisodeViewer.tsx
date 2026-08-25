@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { VideoPlayer } from '@/components/ui/VideoPlayer';
+import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { API_BASE_URL, buildStreamUrl } from '@/lib/config';
 import { resolveStreamableVideo } from '@/lib/media';
 import { useIsClient } from '@/hooks/useIsClient';

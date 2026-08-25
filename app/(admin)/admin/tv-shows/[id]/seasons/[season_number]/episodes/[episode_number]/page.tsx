@@ -1,5 +1,5 @@
 import { fetchApi } from '@/lib/api';
-import { EpisodeEditForm, type EpisodeEditData } from '@/components/admin/EpisodeEditForm';
+import { EpisodeEditForm, type EpisodeEditData } from '@/components/admin/forms/EpisodeEditForm';
 import { notFound } from 'next/navigation';
 
 async function getEpisode(

@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminResourceList, type AdminResourcePage } from '@/components/admin/AdminResourceList';
+import { AdminResourceList, type AdminResourcePage } from '@/components/admin/lists/AdminResourceList';
 import {
   actionsColumn,
   dateColumn,
@@ -8,7 +8,7 @@ import {
   posterTitleColumn,
   selectColumn,
   viewsColumn,
-} from '@/components/admin/table-columns';
+} from '@/components/admin/lists/table-columns';
 import { tmdbImageUrl } from '@/lib/config';
 import type { ColumnDef } from '@tanstack/react-table';
 

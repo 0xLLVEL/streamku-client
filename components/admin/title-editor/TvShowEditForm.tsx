@@ -14,14 +14,14 @@ import {
 import {
   EditFormShell,
   TabPanel,
-} from '@/components/admin/edit-form/EditFormShell';
-import { PrimaryFactsTab, type TitleFieldConfig } from '@/components/admin/edit-form/PrimaryFactsTab';
-import { ImagesTab } from '@/components/admin/edit-form/ImagesTab';
-import { SeasonsTab } from '@/components/admin/edit-form/SeasonsTab';
-import { CastTab, UnderConstructionPanel } from '@/components/admin/edit-form/CastTab';
-import { ImagePreviewModal } from '@/components/admin/edit-form/ImagePreviewModal';
-import { useTitleSave } from '@/components/admin/edit-form/useTitleSave';
-import type { FormMessage, TitleDisplayData } from '@/components/admin/edit-form/types';
+} from './EditFormShell';
+import { PrimaryFactsTab, type TitleFieldConfig } from './PrimaryFactsTab';
+import { ImagesTab } from './ImagesTab';
+import { SeasonsTab } from './SeasonsTab';
+import { CastTab, UnderConstructionPanel } from './CastTab';
+import { ImagePreviewModal } from './ImagePreviewModal';
+import { useTitleSave } from './useTitleSave';
+import type { FormMessage, TitleDisplayData } from './types';
 
 const TV_SHOW_FIELDS: TitleFieldConfig = {
   titleName: 'name',

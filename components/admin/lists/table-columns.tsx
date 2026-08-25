@@ -2,9 +2,9 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
-import { DeleteButton } from '@/components/admin/DeleteButton';
-import { Checkbox } from '@/components/ui/checkbox';
-import type { AdminResourceType } from '@/components/admin/AdminResourceList';
+import { DeleteButton } from './DeleteButton';
+import { Checkbox } from '@/components/ui/Checkbox';
+import type { AdminResourceType } from './AdminResourceList';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { updateGenreAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/components/ui/Label';
 
 interface GenreEditData {
   id: number;

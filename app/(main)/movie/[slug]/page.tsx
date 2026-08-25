@@ -1,13 +1,13 @@
 import { fetchApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
-import { HeroTrailer } from '@/components/ui/HeroTrailer';
-import { DraggableList } from '@/components/ui/DraggableList';
-import { PlayAction } from '@/components/ui/PlayAction';
+import { HeroTrailer } from '@/components/media/HeroTrailer';
+import { DraggableList } from '@/components/media/DraggableList';
+import { PlayAction } from '@/components/media/PlayAction';
 import Link from 'next/link';
 
-import { PosterCard } from '@/components/ui/PosterCard';
-import { WatchlistButton } from '@/components/ui/WatchlistButton';
-import { FavoriteButton } from '@/components/ui/FavoriteButton';
+import { PosterCard } from '@/components/media/PosterCard';
+import { WatchlistButton } from '@/components/media/WatchlistButton';
+import { FavoriteButton } from '@/components/media/FavoriteButton';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
 import { Movie, MediaItem } from '@/types';
 
