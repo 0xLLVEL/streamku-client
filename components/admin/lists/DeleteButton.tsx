@@ -33,7 +33,7 @@ export function DeleteButton({ id, type }: DeleteButtonProps) {
     <button 
       onClick={handleDelete}
       disabled={isDeleting}
-      className="text-red-500/60 hover:text-red-500 px-3 py-1.5 rounded border border-transparent hover:border-red-500/20 hover:bg-red-500/10 transition-all text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      className="text-red-400/70 hover:text-red-400 px-3 py-1.5 rounded-md border border-transparent hover:border-red-500/20 hover:bg-red-500/10 transition-colors duration-200 text-xs font-medium cursor-pointer focus-ring disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
     >
       {isDeleting ? 'Deleting...' : 'Delete'}
     </button>

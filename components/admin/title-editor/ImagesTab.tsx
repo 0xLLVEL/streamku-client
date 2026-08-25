@@ -1,5 +1,6 @@
 'use client';
 
+import { tmdbImageUrl } from '@/lib/config';
 import type { TitleImageSet } from './types';
 
 interface ImagesTabProps {
@@ -20,7 +21,7 @@ export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDelet
   const posters = images?.posters ?? [];
 
   return (
-    <div className="max-w-6xl space-y-12 animate-in fade-in duration-300">
+    <div className="max-w-6xl space-y-12 motion-safe:animate-in fade-in duration-300">
       <ImageSection
         title="Backdrops"
         count={backdrops.length || (backdropPath ? 1 : 0)}
@@ -95,7 +96,7 @@ function ImageSection({
         </h2>
         <button
           type="button"
-          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
+          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 flex items-center gap-1.5 border border-white/10 cursor-pointer focus-ring"
         >
           <AddIcon />
           {addLabel}
@@ -109,13 +110,22 @@ function ImageSection({
           {items.map((item, index) => (
             <div
               key={`${item.filePath}-${index}`}
-              className={`${aspectClass} bg-[#050505] rounded-xl border border-white/5 overflow-hidden relative group/preview cursor-pointer`}
-              onClick={() => onPreview(`https://image.tmdb.org/t/p/original${item.filePath}`)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Preview ${title.toLowerCase()}`}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onPreview(tmdbImageUrl(item.filePath, 'original') ?? '');
+                }
+              }}
+              className={`${aspectClass} bg-black/30 rounded-xl border border-white/10 overflow-hidden relative group/preview cursor-pointer focus-ring`}
+              onClick={() => onPreview(tmdbImageUrl(item.filePath, 'original') ?? '')}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`https://image.tmdb.org/t/p/${thumbSize}${item.filePath}`}
-                className="w-full h-full object-cover group-hover/preview:scale-105 transition-transform duration-500"
+                src={tmdbImageUrl(item.filePath, thumbSize) ?? undefined}
+                className="w-full h-full object-cover group-hover/preview:scale-[1.03] transition-transform duration-300"
                 alt={title}
               />
               <button
@@ -124,8 +134,9 @@ function ImageSection({
                   event.stopPropagation();
                   onDeleteImage(item.id);
                 }}
-                className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 transition-all shadow-lg backdrop-blur-sm z-10"
+                className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 focus-visible:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm z-10 cursor-pointer"
                 title="Delete image"
+                aria-label={`Delete ${title.toLowerCase()} image`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={DELETE_ICON_PATH} />

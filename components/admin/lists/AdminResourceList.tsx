@@ -11,6 +11,8 @@ import type {
 } from '@tanstack/react-table';
 import { apiFetch } from '@/lib/apiClient';
 import { DataTable } from '@/components/ui/DataTable';
+import { AdminPageHeader } from '@/components/admin/ui';
+import { buttonVariants } from '@/components/ui/Button';
 import { BulkDeleteButton } from './BulkDeleteButton';
 import { ListFilterDropdown, type ListFilterField } from './ListFilterDropdown';
 
@@ -97,26 +99,28 @@ export function AdminResourceList<TData extends { id: number }>({
     .filter((id): id is NonNullable<typeof id> => id != null);
 
   return (
-    <div className="animate-in fade-in duration-500 w-full text-white font-sans">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <div className="flex items-center gap-2">
-          {selectedIds.length > 0 && (
-            <BulkDeleteButton
-              selectedIds={selectedIds}
-              type={deleteType}
-              onSuccess={() => setRowSelection({})}
-            />
-          )}
-          <Link
-            href={createHref}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-2"
-          >
-            <PlusIcon />
-            {createLabel}
-          </Link>
-        </div>
-      </div>
+    <div className="motion-safe:animate-in fade-in duration-500 w-full text-white font-sans">
+      <AdminPageHeader
+        title={title}
+        actions={
+          <>
+            {selectedIds.length > 0 && (
+              <BulkDeleteButton
+                selectedIds={selectedIds}
+                type={deleteType}
+                onSuccess={() => setRowSelection({})}
+              />
+            )}
+            <Link
+              href={createHref}
+              className={buttonVariants({ variant: 'brand', size: 'sm' })}
+            >
+              <PlusIcon />
+              {createLabel}
+            </Link>
+          </>
+        }
+      />
 
       <DataTable
         columns={columns}

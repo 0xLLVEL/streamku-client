@@ -9,12 +9,13 @@ interface ImagePreviewModalProps {
 export function ImagePreviewModal({ src, onClose }: ImagePreviewModalProps) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8 motion-safe:animate-in fade-in duration-200"
       onClick={onClose}
     >
       <button
         type="button"
-        className="absolute top-6 right-6 text-white/50 hover:text-white bg-black/50 p-2 rounded-full backdrop-blur-md transition-colors"
+        aria-label="Close preview"
+        className="absolute top-6 right-6 text-white/50 hover:text-white bg-black/50 p-2 rounded-full backdrop-blur-md transition-colors duration-200 cursor-pointer focus-ring"
         onClick={(event) => {
           event.stopPropagation();
           onClose();

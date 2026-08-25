@@ -381,6 +381,30 @@ export async function updateTvShowAction(id: number | string, formData: FormData
   }
 }
 
+export async function createGenreAction(formData: FormData) {
+  try {
+    const payload = {
+      name: formData.get('name'),
+    };
+
+    const res = await fetchApi('/admin/genres', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      revalidatePath('/admin/genres');
+      return { success: true as const, id: data?.data?.id ?? data?.id ?? null };
+    }
+
+    const data = await res.json();
+    return { success: false as const, error: data.message || 'Failed to create genre' };
+  } catch {
+    return { success: false as const, error: 'An unexpected error occurred.' };
+  }
+}
+
 export async function updateGenreAction(id: number | string, formData: FormData) {
   try {
     const payload = {

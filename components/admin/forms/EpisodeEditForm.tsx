@@ -8,7 +8,9 @@ import { VideoCreateForm } from './VideoCreateForm';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
-import { buildStreamUrl } from '@/lib/config';
+import { Button } from '@/components/ui/Button';
+import { SectionCard } from '@/components/admin/ui';
+import { buildStreamUrl, tmdbImageUrl } from '@/lib/config';
 
 export interface EpisodeMediaEntry {
   id: number;
@@ -102,10 +104,10 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
   return (
     <div className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
       {/* Sticky Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">
+      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
         <div className="flex items-center gap-4">
-          <Link href={`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`} className="text-white/40 hover:text-white transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          <Link href={`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           </Link>
           <h1 className="text-2xl font-medium text-white tracking-tight">Edit Episode {episode.episode_number}: &ldquo;{episode.name}&rdquo;</h1>
         </div>
@@ -116,9 +118,9 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
               {message.text}
             </span>
           )}
-          <button type="submit" form="episode-form" disabled={isSaving} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded font-medium text-sm transition-all disabled:opacity-50">
+          <Button type="submit" form="episode-form" variant="brand" size="sm" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -126,15 +128,16 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
         <div className="max-w-6xl mx-auto space-y-12">
 
           {/* OVERVIEW SECTION */}
-          <section className="animate-in fade-in duration-300">
-            <h2 className="text-lg font-bold text-white mb-6">Episode Details</h2>
+          <section className="motion-safe:animate-in fade-in duration-300">
+            <SectionCard title="Episode Details">
             <form id="episode-form" onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-3 gap-6">
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Still Image</label>
-                  <div className="aspect-video bg-white/5 rounded-lg border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
+                  <div className="aspect-video bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
                     {episode.still_path ? (
-                      <img src={`https://image.tmdb.org/t/p/w500${episode.still_path}`} alt="Still" className="absolute inset-0 w-full h-full object-cover" />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={tmdbImageUrl(episode.still_path, 'w500') ?? undefined} alt="Still" className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                       <span className="text-white/20 text-sm">No Photo</span>
                     )}
@@ -163,23 +166,25 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                 </div>
               </div>
             </form>
+            </SectionCard>
           </section>
 
           <hr className="border-white/5" />
 
           {/* VIDEO SECTION */}
-          <section className="animate-in fade-in duration-300">
-            <h3 className="text-lg font-bold text-white mb-6">Uploaded Videos</h3>
+          <section className="motion-safe:animate-in fade-in duration-300">
+            <SectionCard title="Uploaded Videos" description="Files and embeds attached to this episode">
             {((episode.media?.filter((entry) => entry.type === 'video').length ?? 0) > 0 || (episode.videos?.length ?? 0) > 0) ? (
               <div className="flex flex-col gap-3 mb-8">
                 {/* Uploaded media */}
                 {episode.media?.filter((entry) => entry.type === 'video').map((video) => (
-                  <div key={video.id} onClick={() => setActiveVideo(video)} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors cursor-pointer group">
-                    <div className="w-48 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0">
+                  <div key={video.id} onClick={() => setActiveVideo(video)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setActiveVideo(video); }} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors duration-200 cursor-pointer group focus-ring">
+                    <div className="w-48 aspect-video bg-black/30 border border-white/10 rounded-md overflow-hidden relative flex-shrink-0">
                       {episode.still_path ? (
-                        <img src={`https://image.tmdb.org/t/p/w300${episode.still_path}`} alt="Thumbnail" className="w-full h-full object-cover pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={tmdbImageUrl(episode.still_path, 'w300') ?? undefined} alt="Thumbnail" className="w-full h-full object-cover pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
                       ) : (
-                        <video src={buildStreamUrl(video.id)} className="w-full h-full object-contain pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity" />
+                        <video src={buildStreamUrl(video.id)} className="w-full h-full object-contain pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
                       )}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 group-hover:bg-red-600 group-hover:text-white transition-all shadow-lg border border-white/20 group-hover:border-red-500 group-hover:scale-110">
@@ -204,8 +209,9 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                       <button
                         type="button"
                         onClick={(e) => handleDeleteVideo(e, video.id)}
-                        className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
+                        className="text-white/30 hover:text-red-400 hover:bg-white/5 p-2 rounded-full transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:text-red-400"
                         title="Delete Video"
+                        aria-label="Delete video"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                       </button>
@@ -215,9 +221,9 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                 
                 {/* External streams (VidKing, Embed, etc.) */}
                 {episode.videos?.map((video) => (
-                  <div key={`ext-video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors group">
-                    <div className="w-48 aspect-video bg-[#050505] border border-white/5 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
-                      <span className="text-sm font-bold text-red-500 bg-red-500/10 px-3 py-1 rounded-md">{video.site}</span>
+                  <div key={`ext-video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors duration-200 group">
+                    <div className="w-48 aspect-video bg-black/30 border border-white/10 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                      <span className="text-sm font-bold text-red-400 bg-red-600/10 px-3 py-1 rounded-md">{video.site}</span>
                     </div>
 
                     <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -235,8 +241,9 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                       <button
                         type="button"
                         onClick={(e) => handleDeleteEmbedVideo(e, video.id)}
-                        className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
+                        className="text-white/30 hover:text-red-400 hover:bg-white/5 p-2 rounded-full transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:text-red-400"
                         title="Delete Stream"
+                        aria-label={`Delete stream ${video.name ?? video.key}`}
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                       </button>
@@ -247,16 +254,18 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
             ) : (
               <p className="text-sm text-white/50 mb-8">No streams available.</p>
             )}
+            </SectionCard>
 
-            <h3 className="text-lg font-bold text-white mb-6">Upload New Video</h3>
-            <VideoCreateForm 
-              mediableType="episode" 
-              mediableId={episode.id} 
+            <SectionCard title="Upload New Video" className="mt-8">
+            <VideoCreateForm
+              mediableType="episode"
+              mediableId={episode.id}
               parentTitle={episode.name ?? ''}
-              inline={true} 
-              existingVideoQualityIds={existingVideoQualityIds} 
+              inline={true}
+              existingVideoQualityIds={existingVideoQualityIds}
               parentTmdbId={episode.season?.tv_show?.tmdb_id ? `${episode.season.tv_show.tmdb_id}/${seasonNumber}/${episode.episode_number}` : undefined}
             />
+            </SectionCard>
           </section>
 
         </div>
@@ -264,12 +273,13 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
 
       {/* Video Player Modal */}
       {activeVideo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-10 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-lg overflow-hidden border border-white/10 shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-10 motion-safe:animate-in fade-in duration-200">
+          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-xl overflow-hidden border border-white/10 shadow-2xl">
             <button
               type="button"
               onClick={() => setActiveVideo(null)}
-              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 transition-colors backdrop-blur-sm shadow-md"
+              aria-label="Close player"
+              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/80 text-white rounded-full p-2 transition-colors duration-200 backdrop-blur-sm shadow-md cursor-pointer focus-ring"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>

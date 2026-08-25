@@ -1,5 +1,6 @@
 'use client';
 
+import { tmdbImageUrl } from '@/lib/config';
 import type { TmdbCastMember } from './types';
 
 interface CastTabProps {
@@ -10,28 +11,28 @@ interface CastTabProps {
 export function CastTab({ cast }: CastTabProps) {
   const members = cast ?? [];
   return (
-    <div className="max-w-6xl animate-in fade-in duration-300">
+    <div className="max-w-6xl motion-safe:animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-white">Cast ({members.length})</h2>
         <button
           type="button"
-          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
+          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 flex items-center gap-1.5 border border-white/10 cursor-pointer focus-ring"
         >
           Add Cast Member
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-xl border border-white/5 bg-[#050505] overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-xl border border-white/10 bg-black/30 overflow-hidden">
         {members.map((person) => (
           <div
             key={person.id}
-            className="flex items-center gap-3 py-2.5 px-4 hover:bg-white/[0.02] transition-colors border-b border-white/5 border-r border-white/5 group"
+            className="flex items-center gap-3 py-2.5 px-4 border-b border-r border-white/5 group"
           >
             <div className="w-9 h-9 shrink-0 bg-[#1e1e24] rounded-full overflow-hidden">
               {person.profile_path ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                  src={tmdbImageUrl(person.profile_path, 'w185') ?? undefined}
                   className="w-full h-full object-cover"
                   alt={person.name}
                 />
@@ -49,8 +50,8 @@ export function CastTab({ cast }: CastTabProps) {
                 {person.character}
               </p>
             </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
-              <button type="button" className="text-white/30 hover:text-red-400 p-1">
+            <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 flex items-center">
+              <button type="button" aria-label={`Remove ${person.name}`} className="text-white/30 hover:text-red-400 p-1 cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:text-red-400">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path
                     strokeLinecap="round"
@@ -75,7 +76,7 @@ export function CastTab({ cast }: CastTabProps) {
 /** Shared "under construction" body for Reviews / Comments tabs. */
 export function UnderConstructionPanel({ label }: { label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-white/30 animate-in fade-in duration-300">
+    <div className="flex flex-col items-center justify-center h-full text-white/30 motion-safe:animate-in fade-in duration-300">
       <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
         <path
           strokeLinecap="round"

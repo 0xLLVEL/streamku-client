@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { tmdbImageUrl } from '@/lib/config';
 import type { SeasonEntry } from './types';
 
 interface SeasonsTabProps {
@@ -20,20 +21,20 @@ export function SeasonsTab({
 }: SeasonsTabProps) {
   const items = seasons ?? [];
   return (
-    <div className="max-w-4xl space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-4xl space-y-8 motion-safe:animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">Seasons ({items.length})</h2>
         {tvShowId && (
           <Link
             href={`/admin/tv-shows/${tvShowId}/seasons/create`}
-            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
+            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 flex items-center gap-1.5 border border-white/10 cursor-pointer focus-ring"
           >
             Add Season
           </Link>
         )}
       </div>
 
-      <div className="bg-[#050505] rounded-xl border border-white/5 overflow-hidden divide-y divide-white/5">
+      <div className="bg-black/30 rounded-xl border border-white/10 overflow-hidden divide-y divide-white/5">
         {items.map((season) => {
           const content = (
             <>
@@ -41,7 +42,7 @@ export function SeasonsTab({
                 {season.poster_path ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={`https://image.tmdb.org/t/p/w300${season.poster_path}`}
+                    src={tmdbImageUrl(season.poster_path, 'w300') ?? undefined}
                     className="w-full h-full object-cover"
                     alt={season.name}
                   />
@@ -75,8 +76,9 @@ export function SeasonsTab({
                       onDeleteSeason(season.season_number);
                     }}
                     disabled={deletingSeasonNumber === season.season_number}
-                    className="p-1.5 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded transition-all z-10 disabled:opacity-50"
+                    className="p-1.5 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors duration-200 z-10 disabled:opacity-50 cursor-pointer focus-visible:outline-none focus-visible:text-red-400"
                     title="Delete season"
+                    aria-label={`Delete ${season.name}`}
                   >
                     {deletingSeasonNumber === season.season_number ? (
                       <SpinnerIcon />
@@ -94,7 +96,7 @@ export function SeasonsTab({
             <Link
               href={`/admin/tv-shows/${tvShowId}/seasons/${season.season_number}`}
               key={season.id}
-              className="flex items-center gap-4 py-3 px-4 hover:bg-white/[0.02] transition-colors group"
+              className="flex items-center gap-4 py-3 px-4 hover:bg-white/[0.03] transition-colors duration-200 group focus-ring"
             >
               {content}
             </Link>

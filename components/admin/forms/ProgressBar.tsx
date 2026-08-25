@@ -36,13 +36,13 @@ export function ProgressBar({ progress, status, message, onPause, onResume }: Pr
           )}
           
           {status === 'uploading' && onPause && (
-            <button type="button" onClick={onPause} className="ml-2 hover:text-white transition-colors bg-white/10 px-2 py-0.5 rounded" title="Pause Upload">
-              <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <button type="button" onClick={onPause} aria-label="Pause upload" title="Pause Upload" className="ml-2 hover:text-white transition-colors duration-200 bg-white/10 px-2 py-0.5 rounded-md cursor-pointer focus-ring">
+              <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
           )}
           {status === 'paused' && onResume && (
-            <button type="button" onClick={onResume} className="ml-2 hover:text-white transition-colors bg-white/10 px-2 py-0.5 rounded" title="Resume Upload">
-              <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <button type="button" onClick={onResume} aria-label="Resume upload" title="Resume Upload" className="ml-2 hover:text-white transition-colors duration-200 bg-white/10 px-2 py-0.5 rounded-md cursor-pointer focus-ring">
+              <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M8 5v14l11-7z"/></svg>
             </button>
           )}
         </div>

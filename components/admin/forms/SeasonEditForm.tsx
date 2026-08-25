@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
+import { Button } from '@/components/ui/Button';
+import { SectionCard } from '@/components/admin/ui';
+import { tmdbImageUrl } from '@/lib/config';
 
 export interface SeasonEditEpisode {
   id: number;
@@ -84,10 +87,10 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
       {/* Sticky Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">
+      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
         <div className="flex items-center gap-4">
-          <Link href={`/admin/tv-shows/${tvShowId}`} className="text-white/40 hover:text-white transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          <Link href={`/admin/tv-shows/${tvShowId}`} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           </Link>
           <h1 className="text-2xl font-medium text-white tracking-tight">Edit &ldquo;{season.name}&rdquo;</h1>
         </div>
@@ -98,24 +101,25 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
               {message.text}
             </span>
           )}
-          <button type="submit" disabled={isSaving} className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded font-medium text-sm transition-all disabled:opacity-50">
+          <Button type="submit" variant="brand" size="sm" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save'}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <div className="w-64 border-r border-white/10 overflow-y-auto bg-transparent py-6">
-          <nav className="flex flex-col px-4 space-y-2">
+          <nav className="flex flex-col px-4 space-y-1.5" aria-label="Editor sections">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`text-left px-4 py-2 rounded-md transition-colors duration-150 text-[13px] font-medium ${activeTab === tab.id
-                  ? 'bg-red-500/10 text-red-500 shadow-sm'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                aria-current={activeTab === tab.id ? 'true' : undefined}
+                className={`text-left px-4 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${activeTab === tab.id
+                  ? 'bg-red-600/15 text-red-400'
+                  : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
                   }`}
               >
                 {tab.label}
@@ -129,14 +133,15 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
 
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
-            <div className="max-w-4xl space-y-8 animate-in fade-in duration-300">
-
-              <div className="grid grid-cols-3 gap-6">
+            <div className="max-w-4xl space-y-8 motion-safe:animate-in fade-in duration-300">
+              <SectionCard title="Season details">
+                <div className="grid grid-cols-3 gap-6">
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
-                  <div className="aspect-[2/3] bg-white/5 rounded-lg border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
+                  <div className="aspect-[2/3] bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
                     {season.poster_path ? (
-                      <img src={`https://image.tmdb.org/t/p/w500${season.poster_path}`} alt="Poster" className="absolute inset-0 w-full h-full object-cover" />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={tmdbImageUrl(season.poster_path, 'w500') ?? undefined} alt="Poster" className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                       <span className="text-white/20 text-sm">No Poster</span>
                     )}
@@ -157,13 +162,14 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                     <Textarea id="overview" name="overview" defaultValue={season.overview ?? ''} rows={5} />
                   </div>
                 </div>
-              </div>
+                </div>
+              </SectionCard>
             </div>
           )}
 
           {/* EPISODES TAB */}
           {activeTab === 'episodes' && (
-            <div className="max-w-6xl animate-in fade-in duration-300">
+            <div className="max-w-6xl motion-safe:animate-in fade-in duration-300">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Episodes ({season.episodes?.length || 0})</h2>
                 <div className="flex items-center gap-3">
@@ -176,13 +182,9 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                     onChange={(e) => setTotalEpisodes(e.target.value)}
                     className="w-20 h-8 text-sm"
                   />
-                  <button
-                    onClick={handleBulkGenerate}
-                    disabled={isGenerating}
-                    className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded font-medium text-xs transition-colors disabled:opacity-50"
-                  >
+                  <Button variant="brand" size="xs" onClick={handleBulkGenerate} disabled={isGenerating}>
                     {isGenerating ? 'Generating...' : 'Bulk Generate VidKing'}
-                  </button>
+                  </Button>
                   {generateMessage && (
                     <span className={`text-xs ml-2 ${generateMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
                       {generateMessage.text}
@@ -190,12 +192,13 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                   )}
                 </div>
               </div>
-              <div className="flex flex-col rounded-xl border border-white/5 bg-[#050505] divide-y divide-white/5">
+              <div className="flex flex-col rounded-xl border border-white/10 bg-black/30 divide-y divide-white/5">
                 {season.episodes?.map((episode) => (
                   <div key={episode.id} className="flex items-center gap-6 py-5 px-6 hover:bg-white/[0.03] transition-colors group">
-                    <div className="w-36 md:w-48 shrink-0 bg-[#1e1e24] relative aspect-video rounded-md overflow-hidden shadow-md border border-white/5">
+                    <div className="w-36 md:w-48 shrink-0 bg-[#1e1e24] relative aspect-video rounded-md overflow-hidden shadow-md border border-white/10">
                       {episode.still_path ? (
-                        <img src={`https://image.tmdb.org/t/p/w500${episode.still_path}`} className="w-full h-full object-cover" alt={episode.name ?? undefined} />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={tmdbImageUrl(episode.still_path, 'w500') ?? undefined} className="w-full h-full object-cover" alt={episode.name ?? undefined} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">No Photo</div>
                       )}
@@ -213,8 +216,8 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                         {(episode.runtime ?? 0) > 0 && <span className="text-xs text-white/30">{episode.runtime ?? 0} min</span>}
                       </div>
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 pl-4 transition-opacity flex items-center gap-2">
-                      <Link href={`/admin/tv-shows/${tvShowId}/seasons/${season.season_number}/episodes/${episode.episode_number}`} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all shadow-sm" title="Edit Episode">
+                    <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pl-4 transition-opacity duration-200 flex items-center gap-2">
+                      <Link href={`/admin/tv-shows/${tvShowId}/seasons/${season.season_number}/episodes/${episode.episode_number}`} aria-label={`Edit episode ${episode.episode_number}`} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors duration-200 shadow-sm cursor-pointer focus-ring" title="Edit Episode">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                       </Link>
                     </div>

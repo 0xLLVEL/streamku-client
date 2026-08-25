@@ -3,9 +3,29 @@
 import { useAuth } from '@/providers/AuthProvider';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { logoutAction } from '@/app/actions/auth';
 import { useIsClient } from '@/hooks/useIsClient';
+
+function pageTitle(pathname: string): string {
+  if (pathname === '/admin') return 'Dashboard';
+  if (pathname === '/admin/content') return 'Titles';
+  if (pathname === '/admin/content/create') return 'Add Title';
+  if (pathname === '/admin/cast') return 'Cast';
+  if (pathname.startsWith('/admin/cast/')) return 'Edit Cast';
+  if (pathname === '/admin/genres') return 'Genres';
+  if (pathname.startsWith('/admin/genres/')) return 'Edit Genre';
+  if (pathname.startsWith('/admin/movies/create')) return 'Create Movie';
+  if (pathname.startsWith('/admin/movies/')) return 'Edit Movie';
+  if (pathname.startsWith('/admin/tv-shows/create')) return 'Create TV Show';
+  if (pathname.startsWith('/admin/tv-shows/')) return 'Edit TV Show';
+  return 'Admin';
+}
+
+/** Full-height editor shells (EditFormShell) render their own chrome. */
+function isImmersiveRoute(pathname: string): boolean {
+  return pathname.startsWith('/admin/movies/') || pathname.startsWith('/admin/tv-shows/');
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -21,109 +41,285 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [user, loading, router]);
 
   if (!isClient || loading || !user || !user.is_admin) {
-    return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white">Authenticating...</div>;
+    return <div className="min-h-screen bg-[#060607] flex items-center justify-center text-white">Authenticating...</div>;
   }
 
-  const navSections = [
-    {
-      title: 'Content',
-      items: [
-        { name: 'Dashboard', path: '/admin', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> },
-        { name: 'Movies', path: '/admin/movies', addPath: '/admin/movies/create', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path></svg> },
-        { name: 'TV Shows', path: '/admin/tv-shows', addPath: '/admin/tv-shows/create', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> },
-        { name: 'Cast', path: '/admin/cast', addPath: '/admin/cast/create', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> },
-        { name: 'Genres', path: '/admin/genres', addPath: '/admin/genres/create', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg> },
-        { name: 'Videos', path: '/admin/videos', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> },
-        { name: 'Reviews', path: '/admin/reviews', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg> },
-        { name: 'Comments', path: '/admin/comments', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg> },
-      ]
-    },
-    {
-      title: 'System',
-      items: [
-        { name: 'Settings', path: '/admin/settings', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> },
-      ]
-    }
+  const immersive = isImmersiveRoute(pathname);
+
+  return (
+    <div className="min-h-screen flex bg-[#060607] text-white font-sans overflow-hidden">
+
+      {/* Sidebar */}
+      <Sidebar pathname={pathname} userName={user.name} />
+
+      {/* Main column */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {!immersive && <TopBar title={pageTitle(pathname)} />}
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="p-8 w-full">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Sidebar ------------------------------ */
+
+function Sidebar({ pathname, userName }: { pathname: string; userName: string }) {
+  const [contentOpen, setContentOpen] = useState(true);
+  const contentActive =
+    pathname.startsWith('/admin/content') ||
+    pathname.startsWith('/admin/movies') ||
+    pathname.startsWith('/admin/tv-shows') ||
+    pathname.startsWith('/admin/cast') ||
+    pathname.startsWith('/admin/genres');
+  const isDashboard = pathname === '/admin';
+
+  const contentItems = [
+    { name: 'Titles', path: '/admin/content', exact: true },
+    { name: 'Cast', path: '/admin/cast' },
+    { name: 'Genres', path: '/admin/genres' },
   ];
 
   return (
-    <div className="min-h-screen flex bg-[#0A0A0A] text-white font-sans overflow-hidden">
-      
-      {/* Single Unified Sidebar */}
-      <aside className="w-64 bg-[#0A0A0A] border-r border-white/5 flex flex-col shrink-0 relative z-30 h-screen overflow-y-auto custom-scrollbar">
-        {/* Logo Header */}
-        <div className="h-20 flex items-center px-6 shrink-0 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-              S
-            </div>
-            <span className="font-bold text-lg tracking-wide text-white">Streamku</span>
-            <span className="bg-red-500/20 text-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2">ADMIN</span>
-          </Link>
-        </div>
+    <aside className="w-64 bg-[#0C0C0E] border-r border-white/10 flex flex-col shrink-0 relative z-30 h-screen overflow-y-auto custom-scrollbar">
+      {/* Logo Header */}
+      <div className="h-20 flex items-center px-6 shrink-0 border-b border-white/5">
+        <Link href="/" className="flex items-center gap-3 cursor-pointer rounded-lg" aria-label="Back to site">
+          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-[0_4px_14px_0_rgba(220,38,38,0.35)]">
+            S
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-[15px] tracking-wide text-white">Streamku</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/30">Admin Panel</span>
+          </div>
+        </Link>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-8">
-          {navSections.map((section) => (
-            <div key={section.title} className="flex flex-col gap-2">
-              <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider px-3 mb-1">{section.title}</h3>
-              <div className="flex flex-col gap-1">
-                {section.items.map((item) => {
-                  const isActive = item.path === '/admin' ? pathname === '/admin' : pathname.startsWith(item.path);
-                  return (
-                    <div key={item.path} className="flex items-center group relative">
-                      <Link
-                        href={item.path}
-                        className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 text-[13px] font-medium ${isActive
-                            ? 'bg-red-500/10 text-red-500 shadow-sm'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                          }`}
-                      >
-                        <span className={`${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-gray-300'}`}>
-                          {item.icon}
-                        </span>
-                        {item.name}
-                      </Link>
-                      {item.addPath && (
-                        <Link 
-                          href={item.addPath}
-                          className={`absolute right-2 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100 ${isActive ? 'text-red-500 hover:bg-red-500/20 opacity-100' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                          title={`Add ${item.name}`}
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                        </Link>
-                      )}
-                    </div>
-                  );
-                })}
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 flex flex-col gap-1" aria-label="Admin navigation">
+        <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] px-3 mb-2">Main Menu</h3>
+
+        <SidebarLink href="/admin" active={isDashboard} icon={<LayoutIcon />}>
+          Dashboard
+        </SidebarLink>
+
+        {/* Collapsible Content group */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setContentOpen((open) => !open)}
+            aria-expanded={contentOpen}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${
+              contentActive && !isDashboard ? 'bg-red-600/15 text-red-400' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
+            }`}
+          >
+            <span className={`${contentActive && !isDashboard ? 'text-red-400' : 'text-white/40'} transition-colors duration-200`}>
+              <FilmIcon />
+            </span>
+            <span className="flex-1 text-left">Content</span>
+            <ChevronIcon className={`w-3.5 h-3.5 transition-transform duration-200 ${contentOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {contentOpen && (
+            <div className="mt-1 ml-4 pl-4 border-l border-white/5 flex flex-col gap-0.5">
+              {contentItems.map((item) => {
+                const active = item.exact ? pathname === item.path : pathname.startsWith(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    aria-current={active ? 'page' : undefined}
+                    className={`relative block px-3 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${
+                      active
+                        ? 'text-red-400'
+                        : 'text-white/50 hover:text-white hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    {active && (
+                      <span
+                        aria-hidden
+                        className="absolute -left-[17px] top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-red-500"
+                      />
+                    )}
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* User Profile */}
+      <div className="p-4 border-t border-white/5 shrink-0">
+        <form action={logoutAction} className="w-full">
+          <button
+            type="submit"
+            className="group flex items-center justify-between w-full px-3 py-3 rounded-lg bg-black/30 text-white/60 hover:text-white hover:bg-black/50 border border-white/5 hover:border-white/10 transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded bg-red-600/15 text-red-400 flex items-center justify-center text-sm font-bold">{userName.charAt(0)}</div>
+              <div className="flex flex-col items-start">
+                <span className="truncate max-w-[100px] text-white">{userName}</span>
+                <span className="text-[10px] text-white/40">Admin</span>
               </div>
             </div>
-          ))}
-        </nav>
+            <LogoutIcon />
+          </button>
+        </form>
+      </div>
+    </aside>
+  );
+}
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-white/5 shrink-0">
-           <form action={logoutAction} className="w-full">
-            <button type="submit" className="flex items-center justify-between w-full px-3 py-3 rounded-lg bg-[#000000] text-gray-400 hover:text-white border border-white/5 hover:border-white/10 transition-colors text-[13px] font-medium group">
-               <div className="flex items-center gap-3">
-                 <div className="w-7 h-7 rounded bg-red-600/20 text-red-500 flex items-center justify-center text-sm font-bold">{user.name.charAt(0)}</div>
-                 <div className="flex flex-col items-start">
-                   <span className="truncate max-w-[100px] text-white">{user.name}</span>
-                   <span className="text-[10px] text-gray-500">Admin</span>
-                 </div>
-               </div>
-               <svg className="w-4 h-4 text-gray-600 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            </button>
-          </form>
-        </div>
-      </aside>
+function SidebarLink({
+  href,
+  active,
+  icon,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${
+        active ? 'bg-red-600/15 text-red-400' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
+      }`}
+    >
+      <span className={`${active ? 'text-red-400' : 'text-white/40'} transition-colors duration-200`}>{icon}</span>
+      {children}
+    </Link>
+  );
+}
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto relative h-screen bg-[#000000]">
-        <div className="p-8 w-full">
-          {children}
+/* ------------------------------ Top bar ------------------------------ */
+
+function TopBar({ title }: { title: string }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [query, setQuery] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = query.trim();
+    router.push(trimmed ? `/admin/content?search=${encodeURIComponent(trimmed)}` : '/admin/content');
+  };
+
+  return (
+    <header className="h-16 shrink-0 flex items-center justify-between gap-4 px-8 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-20">
+      <h2 className="text-sm font-semibold text-white truncate">{title}</h2>
+
+      <div className="flex items-center gap-3">
+        {/* Global search — lands on the merged content list */}
+        <form onSubmit={handleSearch} className="relative w-72 hidden md:block" role="search">
+          <svg className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search titles..."
+            aria-label="Search titles"
+            className="w-full h-9 bg-black/30 border border-white/10 rounded-lg pl-10 pr-3 text-sm text-white placeholder:text-white/30 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/60 focus:border-red-500/50"
+          />
+        </form>
+
+        {/* Profile chip */}
+        <div className="relative" ref={profileRef}>
+          <button
+            type="button"
+            onClick={() => setProfileOpen((open) => !open)}
+            aria-expanded={profileOpen}
+            aria-haspopup="menu"
+            className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer focus-ring"
+          >
+            <span className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {user?.name?.charAt(0) ?? 'A'}
+            </span>
+            <span className="flex flex-col items-start leading-tight">
+              <span className="text-[13px] font-semibold text-white">{user?.name}</span>
+              <span className="text-[10px] text-white/40">Admin</span>
+            </span>
+            <ChevronIcon className="w-3.5 h-3.5 text-white/40" />
+          </button>
+
+          {profileOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-full mt-2 w-48 bg-[#101014] border border-white/10 rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.9)] overflow-hidden z-50"
+            >
+              <div className="px-4 py-3 border-b border-white/5">
+                <p className="text-[13px] font-semibold text-white truncate">{user?.name}</p>
+                <p className="text-[11px] text-white/40 truncate">{user?.email}</p>
+              </div>
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  role="menuitem"
+                  className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer focus-ring"
+                >
+                  Sign out
+                </button>
+              </form>
+            </div>
+          )}
         </div>
-      </main>
-    </div>
+      </div>
+    </header>
+  );
+}
+
+/* ------------------------------ Icons ------------------------------ */
+
+function LayoutIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+    </svg>
+  );
+}
+
+function FilmIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg className="w-4 h-4 text-white/30 transition-colors duration-200 group-hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
   );
 }

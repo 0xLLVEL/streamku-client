@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import { updateGenreAction } from '@/app/actions/admin-content';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Button, buttonVariants } from '@/components/ui/Button';
+import { SectionCard } from '@/components/admin/ui';
 
 interface GenreEditData {
   id: number;
@@ -43,18 +46,20 @@ export function GenreEditForm({ genre }: { genre: GenreEditData }) {
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium text-white/60 uppercase tracking-wider block">Genre Name</Label>
-        <Input id="name" name="name" defaultValue={genre.name} />
-      </div>
+      <SectionCard title="Genre">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-medium text-white/60 uppercase tracking-wider block">Genre Name</Label>
+          <Input id="name" name="name" defaultValue={genre.name} />
+        </div>
+      </SectionCard>
 
       <div className="pt-6 border-t border-white/5 flex justify-end gap-4">
-        <button type="button" onClick={() => router.push('/admin/genres')} className="px-6 py-3 rounded-xl border border-white/10 text-white/70 hover:text-white hover:bg-white/5 transition-all font-bold uppercase tracking-wider text-sm">
+        <Link href="/admin/genres" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           Cancel
-        </button>
-        <button type="submit" disabled={isSaving} className="bg-white text-black hover:bg-gray-200 px-8 py-3 rounded-xl font-black uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-2 text-sm shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+        </Link>
+        <Button type="submit" variant="brand" size="sm" disabled={isSaving}>
           {isSaving ? 'Saving...' : 'Save Changes'}
-        </button>
+        </Button>
       </div>
     </form>
   );

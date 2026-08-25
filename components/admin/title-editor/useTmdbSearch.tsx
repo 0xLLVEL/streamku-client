@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { tmdbImageUrl } from '@/lib/config';
 
 export interface TmdbSearchResult {
   id: number;
@@ -109,7 +110,7 @@ export function useTmdbSearch({ searchAction }: UseTmdbSearchOptions) {
           width: anchorRect.width,
           zIndex: 9999,
         }}
-        className="bg-[#0a0a0a] border border-red-500/20 rounded-xl shadow-[0_8px_30px_rgb(220,38,38,0.15)] overflow-hidden"
+        className="bg-[#18181C] border border-white/10 rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.9)] overflow-hidden"
       >
         {isSearching ? (
           <div className="p-4 text-sm text-white/50 text-center">Searching...</div>
@@ -124,17 +125,17 @@ export function useTmdbSearch({ searchAction }: UseTmdbSearchOptions) {
                       reset();
                       onSelect(String(result.id));
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 flex items-center gap-3 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-white/[0.06] border-b border-white/5 last:border-0 flex items-center gap-3 transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:bg-white/[0.06]"
                   >
                   {result.poster_path ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={`https://image.tmdb.org/t/p/w92${result.poster_path}`}
+                      src={tmdbImageUrl(result.poster_path, 'w92') ?? undefined}
                       alt=""
-                      className="w-8 h-12 object-cover rounded"
+                      className="w-8 h-12 object-cover rounded-md"
                     />
                   ) : (
-                    <div className="w-8 h-12 bg-white/10 rounded flex items-center justify-center text-[10px] text-white/30">
+                    <div className="w-8 h-12 bg-white/10 rounded-md flex items-center justify-center text-[10px] text-white/30">
                       No img
                     </div>
                   )}

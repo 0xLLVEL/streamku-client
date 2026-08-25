@@ -1,7 +1,5 @@
-import { fetchAdminPage } from '@/lib/api';
-import { TvShowsClient, type TvShowType } from './TvShowsClient';
+import { redirect } from 'next/navigation';
 
-export default async function AdminTvShowsPage() {
-  const tvShows = await fetchAdminPage<TvShowType>('/admin/tv-shows');
-  return <TvShowsClient initialData={tvShows} />;
+export default function AdminTvShowsPage() {
+  redirect('/admin/content');
 }

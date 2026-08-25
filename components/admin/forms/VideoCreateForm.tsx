@@ -6,6 +6,8 @@ import { apiFetch } from '@/lib/apiClient';
 import { useTusUpload } from '@/hooks/useTusUpload';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
+import { Button } from '@/components/ui/Button';
+import { tmdbImageUrl } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { ProgressBar } from './ProgressBar';
 import { createEmbedVideoAction } from '@/app/actions/admin-content';
@@ -181,25 +183,21 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     (sourceType === 'VidKing' && !vidkingId);
 
   return (
-    <div className={`flex flex-col relative ${inline ? 'bg-transparent' : 'bg-[#121212] rounded-2xl overflow-hidden border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300 z-50'}`}>
+    <div className={`flex flex-col relative ${inline ? 'bg-transparent' : 'bg-[#121212] rounded-2xl overflow-hidden border border-white/10 shadow-2xl motion-safe:animate-in zoom-in-95 duration-300 z-50'}`}>
 
       {!inline && (
-        <div className="flex items-center justify-between px-8 py-6 border-b border-white/5 bg-[#121212]">
-          <button onClick={onClose} className="flex items-center gap-3 text-2xl font-semibold text-white hover:text-red-500 transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <div className="flex items-center justify-between px-8 py-6 border-b border-white/10 bg-[#121212]">
+          <button onClick={onClose} aria-label="Close" className="flex items-center gap-3 text-2xl font-semibold text-white hover:text-red-400 transition-colors duration-200 cursor-pointer focus-ring rounded-md">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             New video
           </button>
           <div className="flex items-center gap-4">
             {status === 'error' && <span className="text-sm text-red-400 font-medium">{message}</span>}
             {embedSaveStatus === 'error' && <span className="text-sm text-red-400 font-medium">{embedSaveMessage}</span>}
             {embedSaveStatus === 'success' && <span className="text-sm text-green-400 font-medium">{embedSaveMessage}</span>}
-            <button
-              onClick={handleSave}
-              disabled={isSaveDisabled}
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-md text-sm font-semibold transition-colors border border-white/5 disabled:opacity-50"
-            >
+            <Button variant="brand" size="sm" onClick={handleSave} disabled={isSaveDisabled}>
               {isSavingEmbed ? 'Saving...' : 'Save'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -210,7 +208,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
 
           {/* Preview Area */}
           {sourceType === 'VidKing' && vidkingId ? (
-            <div className="aspect-video bg-[#050505] rounded-xl overflow-hidden shadow-lg border border-white/5 relative">
+            <div className="aspect-video bg-black/30 rounded-xl overflow-hidden shadow-lg border border-white/5 relative">
               <iframe
                 src={`https://www.vidking.net/embed/${mediableType === 'movie' ? 'movie' : 'tv'}/${vidkingId}${(mediableType !== 'movie' && !vidkingId.includes('/')) ? '/1/1' : ''}`}
                 className="w-full h-full"
@@ -224,7 +222,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               </div>
             </div>
           ) : (
-            <div className="aspect-video bg-[#050505] rounded-xl flex items-center justify-center relative overflow-hidden shadow-lg border border-white/5">
+            <div className="aspect-video bg-black/30 rounded-xl flex items-center justify-center relative overflow-hidden shadow-lg border border-white/5">
               {videoFile ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                   <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
@@ -237,7 +235,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                   <p className="text-sm">Enter a VidKing URL to preview</p>
                 </div>
               ) : (
-                <button className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+                <button aria-label="Play preview" className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors duration-200 cursor-pointer focus-ring">
                   <svg className="w-8 h-8 text-white/40 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
                 </button>
               )}
@@ -249,7 +247,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h3 className="text-white font-bold text-lg">Captions</h3>
-              <button className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-2 transition-colors border border-white/5">
+              <button className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors duration-200 border border-white/10 cursor-pointer focus-ring">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                 Add caption
               </button>
@@ -268,7 +266,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
               <div className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
                 <div className="w-6 h-8 bg-white/10 rounded overflow-hidden shrink-0 flex items-center justify-center">
-                  {parentPoster ? <img src={`https://image.tmdb.org/t/p/w200${parentPoster}`} alt="" className="w-full h-full object-cover" /> : <svg className="w-3 h-3 text-white/20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"></path></svg>}
+                  {parentPoster ? <img src={tmdbImageUrl(parentPoster, 'w92') ?? undefined} alt="" className="w-full h-full object-cover" /> : <svg className="w-3 h-3 text-white/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M4 4h16v16H4z"></path></svg>}
                 </div>
                 <span className="text-white text-sm truncate">{parentTitle}</span>
               </div>
@@ -282,7 +280,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                 <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 md:text-sm">
                   <SelectValue placeholder="Select season" />
                 </SelectTrigger>
-                <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                <SelectContent className="bg-[#18181C] border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
                   <SelectItem value="1" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Season 1</SelectItem>
                 </SelectContent>
               </Select>
@@ -307,7 +305,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 md:text-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+              <SelectContent className="bg-[#18181C] border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
                 <SelectItem value="Upload" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
                   <span className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -346,7 +344,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                     value={vidkingInput}
                     onChange={(e) => setVidkingInput(e.target.value)}
                     placeholder="https://vidking.net/embed/abc123  or  abc123"
-                    className={`w-full bg-[#0a0a0a] border ${vidkingError ? 'border-red-500/50' : vidkingId ? 'border-green-500/40' : 'border-white/10'} rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-red-600 transition-all placeholder:text-white/20`}
+                    className={`w-full bg-black/40 border ${vidkingError ? 'border-red-500/50' : vidkingId ? 'border-green-500/40' : 'border-white/10'} rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/60 transition-colors duration-200 placeholder:text-white/30`}
                   />
                   {vidkingId && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -389,7 +387,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                 <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 md:text-sm">
                   <SelectValue placeholder="Select quality" />
                 </SelectTrigger>
-                <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+                <SelectContent className="bg-[#18181C] border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
                   {qualities.filter(q => !existingVideoQualityIds.includes(Number(q.id))).map(q => (
                     <SelectItem key={q.id} value={q.id.toString()} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
                       {q.name} ({q.label})
@@ -406,7 +404,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 md:text-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+              <SelectContent className="bg-[#18181C] border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
                 <SelectItem value="English" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">English</SelectItem>
                 <SelectItem value="Indonesian" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">Indonesian</SelectItem>
               </SelectContent>
@@ -418,13 +416,9 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               {status === 'error' && <span className="text-sm text-red-400 font-medium">{message}</span>}
               {embedSaveStatus === 'error' && <span className="text-sm text-red-400 font-medium">{embedSaveMessage}</span>}
               {embedSaveStatus === 'success' && <span className="text-sm text-green-400 font-medium">{embedSaveMessage}</span>}
-              <button
-                onClick={handleSave}
-                disabled={isSaveDisabled}
-                className="w-full bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-md text-sm font-semibold transition-all disabled:opacity-50 border border-white/5"
-              >
+              <Button variant="brand" className="w-full" onClick={handleSave} disabled={isSaveDisabled}>
                 {isSavingEmbed ? 'Saving...' : sourceType === 'VidKing' ? 'Save VidKing Stream' : 'Upload Video'}
-              </button>
+              </Button>
             </div>
           )}
         </div>

@@ -20,6 +20,11 @@ body {
   .liquid-glass-heavy {
     @apply bg-black/40 backdrop-blur-[60px] border border-white/10 shadow-[0_8px_32px_0_rgb(0_0_0_/_50%)] shadow-inner shadow-white/5;
   }
+
+  /* Shared admin focus treatment (keyboard navigation). */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:border-red-500/50;
+  }
 }
 
 @keyframes progress {

@@ -36,7 +36,7 @@ export function StreamsTab({
 
   if (isAddingVideo && titleId) {
     return (
-      <div className="max-w-[1600px] w-full animate-in fade-in duration-300">
+      <div className="max-w-[1600px] w-full motion-safe:animate-in fade-in duration-300">
         <VideoCreateForm
           mediableId={titleId}
           mediableType="movie"
@@ -51,7 +51,7 @@ export function StreamsTab({
   }
 
   return (
-    <div className="max-w-[1600px] w-full animate-in fade-in duration-300">
+    <div className="max-w-[1600px] w-full motion-safe:animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-white">
           Streams ({mediaEntries.length + embedVideos.length})
@@ -60,7 +60,7 @@ export function StreamsTab({
           <button
             type="button"
             onClick={() => setIsAddingVideo(true)}
-            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/5"
+            className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 flex items-center gap-1.5 border border-white/10 cursor-pointer focus-ring"
           >
             Upload Stream
           </button>
@@ -98,8 +98,9 @@ export function StreamsTab({
                   event.stopPropagation();
                   onDeleteEmbedVideo(video.id);
                 }}
-                className="text-white/30 hover:text-red-500 hover:bg-white/5 p-2 rounded-full transition-colors focus:outline-none"
+                className="text-white/30 hover:text-red-400 hover:bg-white/5 p-2 rounded-full transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:text-red-400"
                 title="Delete Stream"
+                aria-label={`Delete stream ${video.name ?? video.key}`}
               >
                 <TrashIcon />
               </button>
@@ -111,7 +112,7 @@ export function StreamsTab({
         ))}
 
         {mediaEntries.length === 0 && embedVideos.length === 0 && (
-          <p className="text-white/50 col-span-full py-8 text-center bg-white/5 rounded-xl border border-white/5">
+          <p className="text-white/50 col-span-full py-8 text-center bg-white/5 rounded-xl border border-white/10">
             No streams available.
           </p>
         )}

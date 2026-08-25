@@ -4,6 +4,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { DeleteButton } from './DeleteButton';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { tmdbImageUrl } from '@/lib/config';
 import type { AdminResourceType } from './AdminResourceList';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
@@ -59,10 +60,10 @@ export function posterTitleColumn<TData>({
     meta: { className: 'w-full' },
     cell: ({ row }) => {
       const item = row.original;
-      const src = imagePath(item);
+      const src = tmdbImageUrl(imagePath(item), 'w92');
       return (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#1E1E2D] border border-white/10 flex items-center justify-center text-[11px] font-bold text-gray-400 shrink-0 overflow-hidden">
+          <div className="w-9 h-9 rounded-full bg-[#1E1E2D] border border-white/10 flex items-center justify-center text-[11px] font-bold text-white/50 shrink-0 overflow-hidden">
             {src ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={src} className="w-full h-full object-cover" alt="" />
@@ -72,7 +73,7 @@ export function posterTitleColumn<TData>({
           </div>
           <div className="flex flex-col justify-center gap-0.5">
             <div className="font-medium text-[13px] text-white leading-tight">{title(item)}</div>
-            <div className="text-[11px] text-gray-500 leading-tight">
+            <div className="text-[11px] text-white/40 leading-tight">
               {(() => {
                 const { tmdbId, id } = subtitleId(item);
                 return tmdbId ? `tmdb-${tmdbId}` : `id-${id}`;
@@ -85,7 +86,7 @@ export function posterTitleColumn<TData>({
   };
 }
 
-const GENRE_CHIP_CLASS = 'bg-white/5 text-gray-300 px-2 py-0.5 rounded text-[11px] font-medium';
+const GENRE_CHIP_CLASS = 'bg-white/5 text-white/70 border border-white/5 px-2 py-0.5 rounded-md text-[11px] font-medium';
 
 export interface HasGenres {
   genres?: { name: string }[] | null;
@@ -110,7 +111,7 @@ export function genresColumn<TData extends HasGenres>(): ColumnDef<TData, unknow
             </span>
           ))}
           {genres.length > 2 && (
-            <span className="text-gray-500 text-[11px] font-medium py-0.5">+{genres.length - 2}</span>
+            <span className="text-white/40 text-[11px] font-medium py-0.5">+{genres.length - 2}</span>
           )}
         </div>
       );
@@ -131,7 +132,7 @@ export function dateColumn<TData>(
     cell: ({ row }) => (
       <div className={variant === 'strong'
         ? 'text-white/80 font-medium text-[12px]'
-        : 'text-gray-400 text-[12px]'}
+        : 'text-white/50 text-[12px]'}
       >
         {formatTableDate(row.getValue(field))}
       </div>
@@ -146,7 +147,7 @@ export function viewsColumn<TData>(): ColumnDef<TData, unknown> {
     meta: { className: 'whitespace-nowrap' },
     cell: ({ row }) => {
       const views = Number(row.getValue('views') ?? 0);
-      return <div className="text-gray-400 text-[12px]">{views > 0 ? views.toLocaleString() : '-'}</div>;
+      return <div className="text-white/50 text-[12px]">{views > 0 ? views.toLocaleString() : '-'}</div>;
     },
   };
 }
@@ -165,10 +166,10 @@ export function actionsColumn<TData extends { id: number }>({
     id: 'actions',
     enableSorting: false,
     cell: ({ row }) => (
-      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
         <Link
           href={editHref(row.original.id)}
-          className="text-white/50 hover:text-white px-2.5 py-1 rounded border border-white/5 hover:bg-white/10 transition-colors text-[11px] font-medium"
+          className="text-white/60 hover:text-white px-2.5 py-1 rounded-md border border-white/10 hover:bg-white/10 transition-colors duration-200 text-[11px] font-medium cursor-pointer focus-ring"
         >
           Edit
         </Link>

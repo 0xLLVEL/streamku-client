@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import type { EditFormShellProps } from './types';
 
 /**
@@ -32,9 +33,9 @@ export function EditFormShell({
       }}
       className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative"
     >
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#050505]/80 backdrop-blur-md z-10 sticky top-0">
+      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
         <div className="flex items-center gap-4">
-          <Link href={backHref} className="text-white/40 hover:text-white transition-colors">
+          <Link href={backHref} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md">
             <BackIcon />
           </Link>
           <h1 className="text-2xl font-medium text-white tracking-tight">{heading}</h1>
@@ -43,7 +44,7 @@ export function EditFormShell({
               href={viewHref}
               target="_blank"
               rel="noreferrer"
-              className="text-white/30 hover:text-white transition-colors ml-2"
+              className="text-white/30 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md ml-2"
               title="View on site"
             >
               <ExternalLinkIcon />
@@ -60,27 +61,24 @@ export function EditFormShell({
               {message.text}
             </span>
           )}
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded font-medium text-sm transition-all disabled:opacity-50"
-          >
+          <Button type="submit" variant="brand" size="sm" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save'}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <nav className="w-64 border-r border-white/10 overflow-y-auto bg-transparent py-6 flex flex-col px-4 space-y-2">
+        <nav className="w-64 border-r border-white/10 overflow-y-auto bg-transparent py-6 flex flex-col px-4 space-y-1.5" aria-label="Editor sections">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`text-left px-4 py-2 rounded-md transition-colors duration-150 text-[13px] font-medium ${
+              aria-current={activeTab === tab.id ? 'true' : undefined}
+              className={`text-left px-4 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${
                 activeTab === tab.id
-                  ? 'bg-red-500/10 text-red-500 shadow-sm'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  ? 'bg-red-600/15 text-red-400'
+                  : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
               }`}
             >
               {tab.label}

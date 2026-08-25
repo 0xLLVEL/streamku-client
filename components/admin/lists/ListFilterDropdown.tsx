@@ -50,7 +50,7 @@ function setFieldIn(
 }
 
 const SELECT_CLASS =
-  'bg-black border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500';
+  'bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/60 focus:border-red-500/50 cursor-pointer';
 
 /** Popover that lets users narrow an admin table by structured filters. */
 export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdownProps) {
@@ -90,7 +90,7 @@ export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdo
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex items-center gap-2 px-3 py-2 bg-[#0A0A0A] border border-white/5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+        className="flex items-center gap-2 px-3.5 py-2.5 bg-[#101014] border border-white/10 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer focus-ring"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
           <path
@@ -109,14 +109,14 @@ export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdo
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-[#121212] border border-white/10 rounded-xl shadow-2xl p-4 z-50 flex flex-col gap-4">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-[#101014] border border-white/10 rounded-xl shadow-[0_16px_48px_-12px_rgba(0,0,0,0.9)] p-4 z-50 flex flex-col gap-4">
           <div className="flex justify-between items-center mb-1">
             <h3 className="text-sm font-semibold text-white">Filters</h3>
             {activeCount > 0 && (
               <button
                 type="button"
                 onClick={() => onChange({})}
-                className="text-xs text-red-500 hover:text-red-400 font-medium"
+                className="text-xs text-red-400 hover:text-red-300 font-medium cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:text-red-300"
               >
                 Clear all
               </button>
@@ -125,7 +125,7 @@ export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdo
 
           {fields.map((field) => (
             <div key={field.key} className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-white/50 uppercase tracking-wider">
                 {field.label}
               </label>
 

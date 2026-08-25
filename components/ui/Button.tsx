@@ -10,6 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        brand:
+          "text-white bg-red-600 hover:bg-red-500 border border-red-400/20 shadow-[0_4px_14px_0_rgba(220,38,38,0.35)] hover:shadow-[0_6px_20px_rgba(220,38,38,0.45)]",
         primary: "text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-[0_4px_14px_0_rgba(99,102,241,0.39)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.5)] border border-white/20",
         glass: "liquid-glass text-white hover:bg-white/10 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]",
         outline:
