@@ -102,19 +102,19 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
   };
 
   return (
-    <div className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
+    <div className="flex flex-col h-[100vh] -m-4 sm:-m-6 lg:-m-8 overflow-hidden relative">
       {/* Sticky Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
-        <div className="flex items-center gap-4">
-          <Link href={`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md">
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <Link href={`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}`} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md shrink-0">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           </Link>
-          <h1 className="text-2xl font-medium text-white tracking-tight">Edit Episode {episode.episode_number}: &ldquo;{episode.name}&rdquo;</h1>
+          <h1 className="text-lg sm:text-2xl font-medium text-white tracking-tight truncate">Edit Episode {episode.episode_number}: &ldquo;{episode.name}&rdquo;</h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           {message && (
-            <span className={`text-sm font-medium ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+            <span className={`hidden sm:inline text-sm font-medium ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
               {message.text}
             </span>
           )}
@@ -124,14 +124,14 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 bg-transparent">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-transparent">
         <div className="max-w-6xl mx-auto space-y-12">
 
           {/* OVERVIEW SECTION */}
           <section className="motion-safe:animate-in fade-in duration-300">
             <SectionCard title="Episode Details">
             <form id="episode-form" onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Still Image</label>
                   <div className="aspect-video bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
@@ -149,7 +149,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" name="name" defaultValue={episode.name ?? ''} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="air_date">Air Date</Label>
                       <Input type="date" id="air_date" name="air_date" defaultValue={episode.air_date ? episode.air_date.split('T')[0] : ''} className="[color-scheme:dark]" />
@@ -178,8 +178,8 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
               <div className="flex flex-col gap-3 mb-8">
                 {/* Uploaded media */}
                 {episode.media?.filter((entry) => entry.type === 'video').map((video) => (
-                  <div key={video.id} onClick={() => setActiveVideo(video)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setActiveVideo(video); }} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors duration-200 cursor-pointer group focus-ring">
-                    <div className="w-48 aspect-video bg-black/30 border border-white/10 rounded-md overflow-hidden relative flex-shrink-0">
+                  <div key={video.id} onClick={() => setActiveVideo(video)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setActiveVideo(video); }} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:bg-white/10 transition-colors duration-200 cursor-pointer group focus-ring">
+                    <div className="w-full sm:w-48 aspect-video bg-black/30 border border-white/10 rounded-md overflow-hidden relative flex-shrink-0">
                       {episode.still_path ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={tmdbImageUrl(episode.still_path, 'w300') ?? undefined} alt="Thumbnail" className="w-full h-full object-cover pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
@@ -221,8 +221,8 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                 
                 {/* External streams (VidKing, Embed, etc.) */}
                 {episode.videos?.map((video) => (
-                  <div key={`ext-video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-row items-center gap-4 hover:bg-white/10 transition-colors duration-200 group">
-                    <div className="w-48 aspect-video bg-black/30 border border-white/10 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                  <div key={`ext-video-${video.id}`} className="bg-white/5 border border-white/10 rounded-lg p-3 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:bg-white/10 transition-colors duration-200 group">
+                    <div className="w-full sm:w-48 aspect-video bg-black/30 border border-white/10 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center">
                       <span className="text-sm font-bold text-red-400 bg-red-600/10 px-3 py-1 rounded-md">{video.site}</span>
                     </div>
 

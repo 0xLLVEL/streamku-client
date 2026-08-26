@@ -31,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isClient = useIsClient();
 
@@ -39,6 +40,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.replace('/');
     }
   }, [user, loading, router]);
+
+  // Close the mobile drawer on navigation.
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (!isClient || loading || !user || !user.is_admin) {
     return <div className="min-h-screen bg-[#060607] flex items-center justify-center text-white">Authenticating...</div>;
@@ -49,14 +55,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen flex bg-[#060607] text-white font-sans overflow-hidden">
 
+      {/* Mobile drawer backdrop */}
+      {sidebarOpen && (
+        <div
+          aria-hidden
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+        />
+      )}
+
       {/* Sidebar */}
-      <Sidebar pathname={pathname} userName={user.name} />
+      <Sidebar pathname={pathname} userName={user.name} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main column */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {!immersive && <TopBar title={pageTitle(pathname)} />}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        {!immersive && <TopBar title={pageTitle(pathname)} onMenuClick={() => setSidebarOpen(true)} />}
         <main className="flex-1 overflow-y-auto relative">
-          <div className="p-8 w-full">
+          <div className="p-4 sm:p-6 lg:p-8 w-full">
             {children}
           </div>
         </main>
@@ -67,7 +82,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 /* ------------------------------ Sidebar ------------------------------ */
 
-function Sidebar({ pathname, userName }: { pathname: string; userName: string }) {
+function Sidebar({
+  pathname,
+  userName,
+  open,
+  onClose,
+}: {
+  pathname: string;
+  userName: string;
+  open: boolean;
+  onClose: () => void;
+}) {
   const [contentOpen, setContentOpen] = useState(true);
   const contentActive =
     pathname.startsWith('/admin/content') ||
@@ -84,7 +109,11 @@ function Sidebar({ pathname, userName }: { pathname: string; userName: string })
   ];
 
   return (
-    <aside className="w-64 bg-[#0C0C0E] border-r border-white/10 flex flex-col shrink-0 relative z-30 h-screen overflow-y-auto custom-scrollbar">
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0C0C0E] border-r border-white/10 flex flex-col h-screen overflow-y-auto custom-scrollbar transition-transform duration-200 lg:static lg:translate-x-0 ${
+        open ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
       {/* Logo Header */}
       <div className="h-20 flex items-center px-6 shrink-0 border-b border-white/5">
         <Link href="/" className="flex items-center gap-3 cursor-pointer rounded-lg" aria-label="Back to site">
@@ -202,7 +231,7 @@ function SidebarLink({
 
 /* ------------------------------ Top bar ------------------------------ */
 
-function TopBar({ title }: { title: string }) {
+function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void }) {
   const router = useRouter();
   const { user } = useAuth();
   const [query, setQuery] = useState('');
@@ -226,12 +255,23 @@ function TopBar({ title }: { title: string }) {
   };
 
   return (
-    <header className="h-16 shrink-0 flex items-center justify-between gap-4 px-8 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-20">
-      <h2 className="text-sm font-semibold text-white truncate">{title}</h2>
+    <header className="h-16 shrink-0 flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-20">
+      <div className="flex items-center gap-2 min-w-0">
+        {/* Mobile menu */}
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open navigation menu"
+          className="lg:hidden p-2 -ml-2 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer focus-ring"
+        >
+          <MenuIcon />
+        </button>
+        <h2 className="text-sm font-semibold text-white truncate">{title}</h2>
+      </div>
 
-      <div className="flex items-center gap-3">
-        {/* Global search — lands on the merged content list */}
-        <form onSubmit={handleSearch} className="relative w-72 hidden md:block" role="search">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Global search — lands on the titles list */}
+        <form onSubmit={handleSearch} className="relative w-48 sm:w-64 lg:w-72 hidden md:block" role="search">
           <svg className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -252,16 +292,16 @@ function TopBar({ title }: { title: string }) {
             onClick={() => setProfileOpen((open) => !open)}
             aria-expanded={profileOpen}
             aria-haspopup="menu"
-            className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer focus-ring"
+            className="flex items-center gap-2.5 pl-1.5 pr-2 sm:pr-2.5 py-1.5 rounded-lg hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer focus-ring"
           >
             <span className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
               {user?.name?.charAt(0) ?? 'A'}
             </span>
-            <span className="flex flex-col items-start leading-tight">
-              <span className="text-[13px] font-semibold text-white">{user?.name}</span>
+            <span className="hidden sm:flex flex-col items-start leading-tight">
+              <span className="text-[13px] font-semibold text-white max-w-[140px] truncate">{user?.name}</span>
               <span className="text-[10px] text-white/40">Admin</span>
             </span>
-            <ChevronIcon className="w-3.5 h-3.5 text-white/40" />
+            <ChevronIcon className="w-3.5 h-3.5 text-white/40 hidden sm:block" />
           </button>
 
           {profileOpen && (
@@ -304,6 +344,14 @@ function FilmIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   );
 }

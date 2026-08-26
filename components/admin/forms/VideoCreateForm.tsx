@@ -186,12 +186,12 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     <div className={`flex flex-col relative ${inline ? 'bg-transparent' : 'bg-[#121212] rounded-2xl overflow-hidden border border-white/10 shadow-2xl motion-safe:animate-in zoom-in-95 duration-300 z-50'}`}>
 
       {!inline && (
-        <div className="flex items-center justify-between px-8 py-6 border-b border-white/10 bg-[#121212]">
-          <button onClick={onClose} aria-label="Close" className="flex items-center gap-3 text-2xl font-semibold text-white hover:text-red-400 transition-colors duration-200 cursor-pointer focus-ring rounded-md">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            New video
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-6 border-b border-white/10 bg-[#121212]">
+          <button onClick={onClose} aria-label="Close" className="flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl font-semibold text-white hover:text-red-400 transition-colors duration-200 cursor-pointer focus-ring rounded-md min-w-0">
+            <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span className="truncate">New video</span>
           </button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             {status === 'error' && <span className="text-sm text-red-400 font-medium">{message}</span>}
             {embedSaveStatus === 'error' && <span className="text-sm text-red-400 font-medium">{embedSaveMessage}</span>}
             {embedSaveStatus === 'success' && <span className="text-sm text-green-400 font-medium">{embedSaveMessage}</span>}
@@ -202,7 +202,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         </div>
       )}
 
-      <div className={`flex flex-col lg:flex-row gap-8 ${inline ? '' : 'p-8'} max-w-[1600px] w-full mx-auto`}>
+      <div className={`flex flex-col lg:flex-row gap-6 sm:gap-8 ${inline ? '' : 'p-4 sm:p-8'} max-w-[1600px] w-full mx-auto`}>
         {/* Left Column */}
         <div className="flex-1 flex flex-col gap-8 min-w-0">
 

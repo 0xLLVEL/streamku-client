@@ -31,20 +31,20 @@ export function EditFormShell({
         event.preventDefault();
         onSubmit(new FormData(event.currentTarget));
       }}
-      className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative"
+      className="flex flex-col h-[100vh] -m-4 sm:-m-6 lg:-m-8 overflow-hidden relative"
     >
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
-        <div className="flex items-center gap-4">
-          <Link href={backHref} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md">
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <Link href={backHref} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md shrink-0">
             <BackIcon />
           </Link>
-          <h1 className="text-2xl font-medium text-white tracking-tight">{heading}</h1>
+          <h1 className="text-lg sm:text-2xl font-medium text-white tracking-tight truncate">{heading}</h1>
           {viewHref && (
             <a
               href={viewHref}
               target="_blank"
               rel="noreferrer"
-              className="text-white/30 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md ml-2"
+              className="text-white/30 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md shrink-0"
               title="View on site"
             >
               <ExternalLinkIcon />
@@ -52,10 +52,10 @@ export function EditFormShell({
           )}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           {message && (
             <span
-              className={`text-sm font-medium ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}
+              className={`hidden sm:inline text-sm font-medium ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}
               role="status"
             >
               {message.text}
@@ -67,15 +67,15 @@ export function EditFormShell({
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <nav className="w-64 border-r border-white/10 overflow-y-auto bg-transparent py-6 flex flex-col px-4 space-y-1.5" aria-label="Editor sections">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        <nav className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-white/10 overflow-x-auto lg:overflow-y-auto bg-transparent py-3 lg:py-6 px-4 lg:px-4 flex lg:flex-col gap-1.5 shrink-0 custom-scrollbar" aria-label="Editor sections">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
               aria-current={activeTab === tab.id ? 'true' : undefined}
-              className={`text-left px-4 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${
+              className={`whitespace-nowrap text-left px-4 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${
                 activeTab === tab.id
                   ? 'bg-red-600/15 text-red-400'
                   : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
@@ -86,7 +86,7 @@ export function EditFormShell({
           ))}
         </nav>
 
-        <div key={contentKey} className="flex-1 overflow-y-auto p-8 bg-transparent">
+        <div key={contentKey} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-transparent min-w-0">
           {children}
         </div>
       </div>

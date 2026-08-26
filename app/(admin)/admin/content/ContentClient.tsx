@@ -232,7 +232,7 @@ export function ContentClient({ initialRows, initialPageCount, initialSearch = '
         isLoading={isLoading || isFetching}
         enableSorting={typeFilter !== 'all'}
         toolbarAction={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Type segmented control */}
             <div className="flex bg-black/30 border border-white/10 rounded-lg p-0.5" role="group" aria-label="Filter by type">
               {TYPE_FILTERS.map((option) => (

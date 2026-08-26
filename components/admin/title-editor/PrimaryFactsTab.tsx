@@ -75,7 +75,7 @@ export function PrimaryFactsTab({
       )}
 
       <SectionCard title="Artwork">
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="col-span-1">
             <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
             <div className="aspect-[2/3] bg-white/5 rounded-xl border border-white/10 shadow-sm flex items-center justify-center relative group overflow-hidden">
@@ -188,7 +188,7 @@ export function PrimaryFactsTab({
       </SectionCard>
 
       <SectionCard title="Metadata">
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor={fields.metric.name}>{fields.metric.label}</Label>
           <Input

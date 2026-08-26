@@ -85,19 +85,19 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-6 md:-m-8 overflow-hidden relative">
+    <form onSubmit={handleSubmit} className="flex flex-col h-[100vh] -m-4 sm:-m-6 lg:-m-8 overflow-hidden relative">
       {/* Sticky Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
-        <div className="flex items-center gap-4">
-          <Link href={`/admin/tv-shows/${tvShowId}`} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md">
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 border-b border-white/10 bg-[#0C0C0E]/90 backdrop-blur-md z-10 sticky top-0">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <Link href={`/admin/tv-shows/${tvShowId}`} aria-label="Go back" className="text-white/40 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md shrink-0">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           </Link>
-          <h1 className="text-2xl font-medium text-white tracking-tight">Edit &ldquo;{season.name}&rdquo;</h1>
+          <h1 className="text-lg sm:text-2xl font-medium text-white tracking-tight truncate">Edit &ldquo;{season.name}&rdquo;</h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           {message && (
-            <span className={`text-sm font-medium ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+            <span className={`hidden sm:inline text-sm font-medium ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
               {message.text}
             </span>
           )}
@@ -107,17 +107,17 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <div className="w-64 border-r border-white/10 overflow-y-auto bg-transparent py-6">
-          <nav className="flex flex-col px-4 space-y-1.5" aria-label="Editor sections">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        {/* Tab strip (horizontal on mobile) */}
+        <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-white/10 overflow-x-auto lg:overflow-y-auto bg-transparent py-3 lg:py-6 shrink-0">
+          <nav className="flex lg:flex-col px-4 gap-1.5" aria-label="Editor sections">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 aria-current={activeTab === tab.id ? 'true' : undefined}
-                className={`text-left px-4 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${activeTab === tab.id
+                className={`whitespace-nowrap text-left px-4 py-2 rounded-lg transition-colors duration-200 text-[13px] font-medium cursor-pointer focus-ring ${activeTab === tab.id
                   ? 'bg-red-600/15 text-red-400'
                   : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
                   }`}
@@ -129,13 +129,13 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
         </div>
 
         {/* Main Form Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-transparent">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-transparent min-w-0">
 
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="max-w-4xl space-y-8 motion-safe:animate-in fade-in duration-300">
               <SectionCard title="Season details">
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
                   <div className="aspect-[2/3] bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
@@ -170,9 +170,9 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
           {/* EPISODES TAB */}
           {activeTab === 'episodes' && (
             <div className="max-w-6xl motion-safe:animate-in fade-in duration-300">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-6">
                 <h2 className="text-xl font-bold text-white">Episodes ({season.episodes?.length || 0})</h2>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className="text-xs text-white/50">Auto-generate up to:</span>
                   <Input
                     type="number"
@@ -194,7 +194,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
               </div>
               <div className="flex flex-col rounded-xl border border-white/10 bg-black/30 divide-y divide-white/5">
                 {season.episodes?.map((episode) => (
-                  <div key={episode.id} className="flex items-center gap-6 py-5 px-6 hover:bg-white/[0.03] transition-colors group">
+                  <div key={episode.id} className="flex items-center gap-3 sm:gap-6 py-3 sm:py-5 px-4 sm:px-6 hover:bg-white/[0.03] transition-colors group">
                     <div className="w-36 md:w-48 shrink-0 bg-[#1e1e24] relative aspect-video rounded-md overflow-hidden shadow-md border border-white/10">
                       {episode.still_path ? (
                         // eslint-disable-next-line @next/next/no-img-element
