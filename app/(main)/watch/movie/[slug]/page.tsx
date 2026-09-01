@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { fetchApi } from '@/lib/api';
-import { buildStreamUrl } from '@/lib/config';
+import { buildStreamUrl, tmdbImageUrl } from '@/lib/config';
 import { resolveStreamableVideo, type StreamableVideo } from '@/lib/media';
 
 interface MovieSummary {
@@ -41,8 +41,8 @@ export default async function WatchMoviePage({ params }: { params: Promise<{ slu
   const videoData = resolveStreamableVideo(media, 'Movie');
   const streamUrl = videoData ? buildStreamUrl(videoData.id) : null;
   const posterUrl = movie.backdrop_path
-    ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-    : `https://image.tmdb.org/t/p/w1280${movie.poster_path}`;
+    ? (tmdbImageUrl(movie.backdrop_path, 'original') ?? '')
+    : (tmdbImageUrl(movie.poster_path, 'w1280') ?? '');
 
   if (!streamUrl) {
     return (

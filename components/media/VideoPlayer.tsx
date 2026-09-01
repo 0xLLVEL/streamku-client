@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { syncWatchProgress } from '@/lib/watchHistory';
 
 interface VideoPlayerProps {
   src: string;
@@ -36,43 +37,18 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
   useEffect(() => {
     if (!watchableId || !isPlaying) return;
     
-    const interval = setInterval(async () => {
+    const interval = setInterval(() => {
       if (!videoRef.current) return;
       const time = videoRef.current.currentTime;
       const dur = videoRef.current.duration;
       
       if (time > 0) {
-        try {
-          const { apiFetch } = await import('@/lib/apiClient');
-          await apiFetch('history/sync', {
-            method: 'PATCH',
-            body: JSON.stringify({
-              watchable_type: watchableType,
-              watchable_id: watchableId,
-              progress_seconds: Math.floor(time),
-              completed: dur && time > 0 && time >= Math.max(dur - 60, dur * 0.9) ? true : false,
-            }),
-            headers: { 'Content-Type': 'application/json' },
-            requireAuth: true,
-          }).catch(e => {
-            if (e.message.includes('not found')) {
-              apiFetch('history', {
-                method: 'POST',
-                body: JSON.stringify({
-                  watchable_type: watchableType,
-                  watchable_id: watchableId,
-                  progress_seconds: Math.floor(time),
-                  duration_seconds: Math.floor(dur || 0),
-                  completed: dur && time > 0 && time >= Math.max(dur - 60, dur * 0.9) ? true : false,
-                }),
-                headers: { 'Content-Type': 'application/json' },
-                requireAuth: true,
-              }).catch(console.error);
-            }
-          });
-        } catch (e) {
-          console.error(e);
-        }
+        syncWatchProgress({
+          watchableType,
+          watchableId,
+          progressSeconds: time,
+          durationSeconds: dur,
+        });
       }
     }, 5000); // every 5 seconds
 

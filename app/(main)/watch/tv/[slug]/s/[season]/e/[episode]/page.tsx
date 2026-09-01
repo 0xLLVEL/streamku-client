@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { fetchApi } from '@/lib/api';
-import { buildStreamUrl } from '@/lib/config';
+import { buildStreamUrl, tmdbImageUrl } from '@/lib/config';
 import { resolveStreamableVideo, type StreamableVideo } from '@/lib/media';
 
 interface TvShowSummary {
@@ -52,8 +52,8 @@ export default async function WatchTvShowPage({
   const videoData = resolveStreamableVideo(media);
   const streamUrl = videoData ? buildStreamUrl(videoData.id) : null;
   const posterUrl = tvShow.backdrop_path
-    ? `https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`
-    : `https://image.tmdb.org/t/p/w1280${tvShow.poster_path}`;
+    ? (tmdbImageUrl(tvShow.backdrop_path, 'original') ?? '')
+    : (tmdbImageUrl(tvShow.poster_path, 'w1280') ?? '');
 
   if (!streamUrl) {
     return (

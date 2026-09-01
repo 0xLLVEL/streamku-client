@@ -74,6 +74,12 @@ export async function registerAction(
   redirect('/');
 }
 
+/** Read the auth token from the httpOnly cookie. Used by client-side fetchers. */
+export async function getAuthTokenAction(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get('token')?.value;
+}
+
 /** Delete the session cookie and return to the login page. */
 export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();

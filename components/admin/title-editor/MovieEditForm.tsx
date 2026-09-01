@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   createMovieAction,
-  deleteEmbedVideoAction,
   importMovieFromTmdbAction,
   previewTmdbMovieAction,
   searchTmdbAction,
   updateMovieAction,
-} from '@/app/actions/admin-content';
+} from '@/app/actions/admin-content-media';
+import { deleteEmbedVideoAction } from '@/app/actions/admin-content-embeds';
 import {
   EditFormShell,
   TabPanel,

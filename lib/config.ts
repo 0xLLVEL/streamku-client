@@ -34,3 +34,17 @@ export function tmdbImageUrl(
 export function buildStreamUrl(mediaId: number | string): string {
   return `${API_BASE_URL}/media/${mediaId}/stream`;
 }
+
+export const VIDKING_BASE_URL = 'https://www.vidking.net';
+
+/** Build a VidKing embed URL. TV keys that already carry season/episode are used as-is. */
+export function buildVidKingEmbedUrl(
+  key: string,
+  type: 'movie' | 'tv',
+  season?: number | string,
+  episode?: number | string,
+): string {
+  if (type === 'movie') return `${VIDKING_BASE_URL}/embed/movie/${key}`;
+  if (key.includes('/')) return `${VIDKING_BASE_URL}/embed/tv/${key}`;
+  return `${VIDKING_BASE_URL}/embed/tv/${key}/${season ?? 1}/${episode ?? 1}`;
+}

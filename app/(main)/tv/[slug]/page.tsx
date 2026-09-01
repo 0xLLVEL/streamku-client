@@ -10,6 +10,7 @@ import { PosterCard } from '@/components/media/PosterCard';
 import { WatchlistButton } from '@/components/media/WatchlistButton';
 import { FavoriteButton } from '@/components/media/FavoriteButton';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
+import { tmdbImageUrl } from '@/lib/config';
 import { TvShow, MediaItem } from '@/types';
 
 async function getTvShow(slug: string): Promise<TvShow | null> {
@@ -107,7 +108,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
                     <PlayAction
                       mediaEndpoint={`/tv-shows/${show.slug}/seasons/${continueEpisode.season_number || 1}/episodes/${continueEpisode.episode_number}/media`}
                       title={`${show.name} - S${continueEpisode.season_number || 1} E${continueEpisode.episode_number}`}
-                      poster={`https://image.tmdb.org/t/p/w1280${show.backdrop_path}`}
+                      poster={tmdbImageUrl(show.backdrop_path, 'w1280') ?? ''}
                       videos={continueEpisode.videos}
                       type="tv"
                       tmdbId={show.tmdb_id}
@@ -160,7 +161,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
             {/* Right Side: Poster Card */}
             <div className="w-64 shrink-0 hidden lg:block liquid-glass p-2 rounded-[2rem] rotate-[2deg] hover:rotate-0 transition-transform duration-500 shadow-2xl ml-8">
               <img
-                src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                src={tmdbImageUrl(show.poster_path, 'w500') ?? ''}
                 alt={show.name}
                 className="w-full rounded-3xl shadow-inner"
               />
@@ -180,7 +181,7 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
                 <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
                   {actor.profile_path ? (
                     <img
-                      src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`}
+                      src={tmdbImageUrl(actor.profile_path, 'w185') ?? ''}
                       alt={actor.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />

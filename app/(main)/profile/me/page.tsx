@@ -1,6 +1,7 @@
 import { fetchApi } from '@/lib/api';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { tmdbImageUrl } from '@/lib/config';
 import type { MediaListItem, ProfileUser } from '../profile-types';
 
 async function getUser(): Promise<ProfileUser | null> {
@@ -96,7 +97,7 @@ export default async function MePage() {
             {favorites.map((item) => {
               const details = item.media_details;
               const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-              const poster = details?.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null;
+              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w500') : null;
 
               return (
                 <div key={item.id} className="relative group cursor-pointer">
@@ -154,7 +155,7 @@ export default async function MePage() {
             {watchlist.map((item) => {
               const details = item.media_details;
               const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-              const poster = details?.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : null;
+              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w500') : null;
 
               return (
                 <div key={item.id} className="relative group cursor-pointer">

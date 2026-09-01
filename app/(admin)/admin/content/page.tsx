@@ -33,7 +33,7 @@ function normalizeMovie(row: MovieApiRow): ContentRow {
     poster_path: row.poster_path,
     release_date: row.release_date,
     views: row.views,
-    genres: row.genres,
+    genres: row.genres ?? null,
     created_at: row.created_at,
   };
 }
@@ -47,7 +47,7 @@ function normalizeTv(row: TvApiRow): ContentRow {
     poster_path: row.poster_path,
     release_date: row.first_air_date,
     views: row.views,
-    genres: row.genres,
+    genres: row.genres ?? null,
     created_at: row.created_at,
   };
 }

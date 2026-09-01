@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import * as tus from 'tus-js-client';
-import { getAuthTokenAction } from '@/app/actions/upload';
+import { getAuthTokenAction } from '@/app/actions/auth';
 import { API_BASE_URL } from '@/lib/config';
 
 export type UploadStatus = 'idle' | 'uploading' | 'paused' | 'processing' | 'completed' | 'error';

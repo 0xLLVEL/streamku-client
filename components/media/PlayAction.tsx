@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
-import { API_BASE_URL, buildStreamUrl } from '@/lib/config';
+import { API_BASE_URL, buildStreamUrl, buildVidKingEmbedUrl } from '@/lib/config';
 import { resolveStreamableVideo } from '@/lib/media';
+import { syncWatchProgress } from '@/lib/watchHistory';
 import { useIsClient } from '@/hooks/useIsClient';
 
 interface ExternalEmbedVideo {
@@ -56,37 +57,15 @@ export function PlayAction({
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         // Vidking sends { event: 'timeupdate', currentTime: number, duration: number } or similar
-        // Adjust this if Vidking uses different property names
         const time = data.time || data.currentTime || data.progress;
         const dur = data.duration || data.totalTime;
         
         if (typeof time === 'number' && time > 0) {
-          const { apiFetch } = await import('@/lib/apiClient');
-          await apiFetch('history/sync', {
-            method: 'PATCH',
-            body: JSON.stringify({
-              watchable_type: type === 'movie' ? 'movie' : 'episode',
-              watchable_id: watchableId,
-              progress_seconds: Math.floor(time),
-              completed: dur && time >= dur - 60 ? true : false,
-            }),
-            headers: { 'Content-Type': 'application/json' },
-            requireAuth: true,
-          }).catch(e => {
-            if (e.message.includes('not found')) {
-              apiFetch('history', {
-                method: 'POST',
-                body: JSON.stringify({
-                  watchable_type: type === 'movie' ? 'movie' : 'episode',
-                  watchable_id: watchableId,
-                  progress_seconds: Math.floor(time),
-                  duration_seconds: Math.floor(dur || 0),
-                  completed: dur && time >= dur - 60 ? true : false,
-                }),
-                headers: { 'Content-Type': 'application/json' },
-                requireAuth: true,
-              }).catch(console.error);
-            }
+          await syncWatchProgress({
+            watchableType: type === 'movie' ? 'movie' : 'episode',
+            watchableId,
+            progressSeconds: time,
+            durationSeconds: dur,
           });
         }
       } catch {
@@ -109,19 +88,7 @@ export function PlayAction({
     if (videos && videos.length > 0) {
       const extVideo = videos[0]; // pick first external stream
       if (extVideo.site === 'VidKing') {
-        // Construct VidKing URL
-        let vUrl = '';
-        if (type === 'movie') {
-          vUrl = `https://www.vidking.net/embed/movie/${extVideo.key}`;
-        } else if (type === 'tv') {
-          // If the key already has slashes (e.g. 12345/1/1), use it directly, else append season/episode
-          if (extVideo.key.includes('/')) {
-            vUrl = `https://www.vidking.net/embed/tv/${extVideo.key}`;
-          } else {
-            vUrl = `https://www.vidking.net/embed/tv/${extVideo.key}/${seasonNumber || 1}/${episodeNumber || 1}`;
-          }
-        }
-        setEmbedUrl(vUrl);
+        setEmbedUrl(buildVidKingEmbedUrl(extVideo.key, type, seasonNumber, episodeNumber));
         setIsOpen(true);
         return;
       } else if (extVideo.site === 'Embed') {

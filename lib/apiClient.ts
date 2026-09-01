@@ -1,4 +1,4 @@
-import { getAuthTokenAction } from '@/app/actions/upload';
+import { getAuthTokenAction } from '@/app/actions/auth';
 import { API_BASE_URL } from '@/lib/config';
 
 export interface ApiFetchOptions extends RequestInit {

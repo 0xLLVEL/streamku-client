@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
-import { API_BASE_URL, buildStreamUrl } from '@/lib/config';
+import { API_BASE_URL, buildStreamUrl, buildVidKingEmbedUrl, tmdbImageUrl } from '@/lib/config';
 import { resolveStreamableVideo } from '@/lib/media';
+import { syncWatchProgress } from '@/lib/watchHistory';
 import { useIsClient } from '@/hooks/useIsClient';
 
 import { Season, Episode } from '@/types';
@@ -70,7 +71,7 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
             <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 aspect-[2/3]">
               {season.poster_path ? (
                 <img 
-                  src={`https://image.tmdb.org/t/p/w300${season.poster_path}`} 
+                  src={tmdbImageUrl(season.poster_path, 'w300') ?? ''} 
                   alt={season.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -119,32 +120,11 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
         const dur = data.duration || data.totalTime;
         
         if (typeof time === 'number' && time > 0) {
-          const { apiFetch } = await import('@/lib/apiClient');
-          await apiFetch('history/sync', {
-            method: 'PATCH',
-            body: JSON.stringify({
-              watchable_type: 'episode',
-              watchable_id: episode.id,
-              progress_seconds: Math.floor(time),
-              completed: dur && time >= dur - 60 ? true : false,
-            }),
-            headers: { 'Content-Type': 'application/json' },
-            requireAuth: true,
-          }).catch(e => {
-            if (e.message.includes('not found')) {
-              apiFetch('history', {
-                method: 'POST',
-                body: JSON.stringify({
-                  watchable_type: 'episode',
-                  watchable_id: episode.id,
-                  progress_seconds: Math.floor(time),
-                  duration_seconds: Math.floor(dur || 0),
-                  completed: dur && time >= dur - 60 ? true : false,
-                }),
-                headers: { 'Content-Type': 'application/json' },
-                requireAuth: true,
-              }).catch(console.error);
-            }
+          await syncWatchProgress({
+            watchableType: 'episode',
+            watchableId: episode.id,
+            progressSeconds: time,
+            durationSeconds: dur,
           });
         }
       } catch {
@@ -165,13 +145,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
     if (episode.videos && episode.videos.length > 0) {
       const extVideo = episode.videos[0];
       if (extVideo.site === 'VidKing') {
-        let vUrl = '';
-        if (extVideo.key.includes('/')) {
-          vUrl = `https://www.vidking.net/embed/tv/${extVideo.key}`;
-        } else {
-          vUrl = `https://www.vidking.net/embed/tv/${extVideo.key}/${episode.season_number}/${episode.episode_number}`;
-        }
-        setEmbedUrl(vUrl);
+        setEmbedUrl(buildVidKingEmbedUrl(extVideo.key, 'tv', episode.season_number, episode.episode_number));
         setIsOpen(true);
         return;
       } else {
@@ -222,7 +196,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
         )}
         <div className="w-full aspect-video bg-black/50 relative">
           {episode.still_path ? (
-            <img src={`https://image.tmdb.org/t/p/w500${episode.still_path}`} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <img src={tmdbImageUrl(episode.still_path, 'w500') ?? ''} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs text-white/30">No Image</div>
           )}
@@ -272,7 +246,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
              <VideoPlayer 
                src={streamUrl} 
                title={`Episode ${episode.episode_number}: ${episode.name}`}
-               poster={`https://image.tmdb.org/t/p/w1280${episode.still_path}`} 
+               poster={tmdbImageUrl(episode.still_path, 'w1280') ?? ''} 
                onBack={() => setIsOpen(false)} 
                watchableId={episode.id}
                watchableType="episode"

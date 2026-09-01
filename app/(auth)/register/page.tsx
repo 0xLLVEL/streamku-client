@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { registerAction } from '@/app/actions/auth';
 import Link from 'next/link';
+import { tmdbImageUrl } from '@/lib/config';
 
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
@@ -13,7 +14,7 @@ export default function RegisterPage() {
       {/* Full-screen Background Image with Heavy Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg" 
+          src={tmdbImageUrl('/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg', 'original') ?? ''} 
           alt="Background" 
           className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
         />

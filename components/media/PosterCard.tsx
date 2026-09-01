@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { MediaItem } from '@/types';
+import { tmdbImageUrl } from '@/lib/config';
 
 interface PosterCardProps {
   item: MediaItem;
@@ -11,14 +12,13 @@ export function PosterCard({ item, priority = false }: PosterCardProps) {
   const isMovie = !!item.title;
   const displayTitle = item.title || item.name;
   const href = isMovie ? `/movie/${item.slug}` : `/tv/${item.slug}`;
-  const tmdbBaseUrl = 'https://image.tmdb.org/t/p/w500';
 
   return (
     <Link href={href} className="group flex flex-col w-[140px] md:w-[180px] flex-shrink-0 transition-all duration-300">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1e1e24] border border-white/5 shadow-sm group-hover:border-white/20 transition-all">
         {item.poster_path ? (
           <img
-            src={`${tmdbBaseUrl}${item.poster_path}`}
+            src={tmdbImageUrl(item.poster_path, 'w500') ?? undefined}
             alt={displayTitle}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading={priority ? "eager" : "lazy"}

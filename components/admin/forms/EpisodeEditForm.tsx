@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateEpisodeAction, deleteMediaAction, deleteEmbedVideoAction } from '@/app/actions/admin-content';
+import { updateEpisodeAction, deleteMediaAction, deleteEmbedVideoAction } from '@/app/actions/admin-content-embeds';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { VideoCreateForm } from './VideoCreateForm';

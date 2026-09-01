@@ -7,10 +7,10 @@ import { useTusUpload } from '@/hooks/useTusUpload';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
-import { tmdbImageUrl } from '@/lib/config';
+import { buildVidKingEmbedUrl, tmdbImageUrl } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { ProgressBar } from './ProgressBar';
-import { createEmbedVideoAction } from '@/app/actions/admin-content';
+import { createEmbedVideoAction } from '@/app/actions/admin-content-embeds';
 
 interface VideoCreateFormProps {
   mediableId: number;
@@ -214,7 +214,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           {sourceType === 'VidKing' && vidkingId ? (
             <div className="aspect-video bg-black/30 rounded-xl overflow-hidden shadow-lg border border-white/5 relative">
               <iframe
-                src={`https://www.vidking.net/embed/${mediableType === 'movie' ? 'movie' : 'tv'}/${vidkingId}${(mediableType !== 'movie' && !vidkingId.includes('/')) ? '/1/1' : ''}`}
+                src={buildVidKingEmbedUrl(vidkingId, mediableType === 'movie' ? 'movie' : 'tv')}
                 className="w-full h-full"
                 allowFullScreen
                 allow="autoplay; fullscreen"

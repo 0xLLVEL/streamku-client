@@ -26,7 +26,7 @@ Frontend only. All data comes from a separate Laravel API at `NEXT_PUBLIC_API_UR
 - Backend calls go through two helpers, pick the right one:
   - Server components → `fetchApi` / `fetchAdminPage` from `lib/api.ts` (reads `token` cookie via `next/headers`)
   - Client components → `apiFetch` from `lib/apiClient.ts` (token resolved via the `getAuthTokenAction` server action because the cookie is httpOnly)
-- Server actions live in `app/actions/` (`auth.ts`, `admin.ts`, `admin-content.ts`, `upload.ts`). Note `getAuthTokenAction` lives in `actions/upload.ts`, not near `lib/apiClient.ts`.
+- Server actions live in `app/actions/` (`auth.ts`, `admin.ts`, `admin-content.ts` + `admin-content-media.ts` + `admin-content-embeds.ts`). Note `getAuthTokenAction` lives in `auth.ts`, not near `lib/apiClient.ts`.
 - The root layout (`app/layout.tsx`) is an async server component: it fetches `/auth/me` and hydrates `AuthProvider` with `initialUser`. Auth-flow changes must account for both the server-side seed and client state.
 - `fetchApi` forces `cache: 'no-store'` in development unless the caller passes an explicit `next`/`cache` option — don't be surprised by dev/prod caching differences.
 - Auth is a Laravel Bearer token in an httpOnly cookie named `token`. Never touch it directly from client code — always through the helpers above.

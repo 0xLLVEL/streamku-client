@@ -27,10 +27,12 @@ export interface AdminResourcePage<TData> {
 export interface AdminResourceListProps<TData> {
   /** Heading shown above the table. */
   title: string;
+  /** Extra line under the heading. */
+  description?: string;
   /** TanStack Query cache key prefix, e.g. `admin-movies`. */
   queryKey: string;
-  /** API endpoint returning a paginated payload, e.g. `/admin/movies`. */
-  endpoint: string;
+  /** API endpoint returning a paginated payload, e.g. `/admin/movies`. Ignored when `fetchPage` is used. */
+  endpoint?: string;
   columns: ColumnDef<TData, unknown>[];
   createHref: string;
   createLabel: string;
@@ -39,6 +41,16 @@ export interface AdminResourceListProps<TData> {
   initialData?: AdminResourcePage<TData>;
   /** Optional structured filters rendered in the toolbar dropdown. */
   filters?: ListFilterField[];
+  /** Seed for the search box (e.g. from a top-bar `?search=`). */
+  initialSearch?: string;
+  /** Override the default fetching logic; receives the same query params. */
+  fetchPage?: (params: URLSearchParams) => Promise<AdminResourcePage<TData>>;
+  /** Extra toolbar content rendered before the filter dropdown. */
+  toolbarAction?: React.ReactNode;
+  /** Disable column sorting entirely (e.g. client-merged data). */
+  enableSorting?: boolean;
+  /** Replace the single-type bulk delete (e.g. mixed-kind selections). */
+  renderBulkActions?: (selected: TData[], resetSelection: () => void) => React.ReactNode;
 }
 
 const DEFAULT_PAGINATION: PaginationState = { pageIndex: 0, pageSize: 20 };
@@ -55,6 +67,7 @@ function extractRows<TData>(payload: AdminResourcePage<TData> | undefined): TDat
  */
 export function AdminResourceList<TData extends { id: number }>({
   title,
+  description,
   queryKey,
   endpoint,
   columns,
@@ -63,16 +76,23 @@ export function AdminResourceList<TData extends { id: number }>({
   deleteType,
   initialData,
   filters = [],
+  initialSearch = '',
+  fetchPage,
+  toolbarAction,
+  enableSorting,
+  renderBulkActions,
 }: AdminResourceListProps<TData>) {
   const [pagination, setPagination] = React.useState(DEFAULT_PAGINATION);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [globalFilter, setGlobalFilter] = React.useState(initialSearch);
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [filterValues, setFilterValues] = React.useState<Record<string, string>>({});
 
+  const resetSelection = () => setRowSelection({});
+
   const hasDefaultState =
     sorting.length === 0 &&
-    globalFilter === '' &&
+    globalFilter === initialSearch &&
     Object.keys(filterValues).length === 0 &&
     pagination.pageIndex === 0;
 
@@ -80,6 +100,9 @@ export function AdminResourceList<TData extends { id: number }>({
     queryKey: [queryKey, pagination.pageIndex, pagination.pageSize, sorting, globalFilter, filterValues],
     queryFn: async (): Promise<AdminResourcePage<TData>> => {
       const params = buildQueryParams(pagination, sorting, globalFilter, filterValues);
+      if (fetchPage) {
+        return fetchPage(params);
+      }
       const res = await apiFetch(`${endpoint}?${params.toString()}`);
       if (!res.ok) {
         return { data: [], last_page: 1, total: 0 };
@@ -93,24 +116,28 @@ export function AdminResourceList<TData extends { id: number }>({
   const rows = extractRows<TData>(data);
   const pageCount = data?.last_page ?? -1;
 
-  const selectedIds = Object.entries(rowSelection)
+  const selectedRows = Object.entries(rowSelection)
     .filter(([, selected]) => selected)
-    .map(([index]) => rows[Number(index)]?.id)
-    .filter((id): id is NonNullable<typeof id> => id != null);
+    .map(([index]) => rows[Number(index)])
+    .filter((row): row is TData => Boolean(row));
+  const selectedIds = selectedRows.map((row) => row.id);
 
   return (
     <div className="motion-safe:animate-in fade-in duration-500 w-full text-white font-sans">
       <AdminPageHeader
         title={title}
+        description={description}
         actions={
           <>
-            {selectedIds.length > 0 && (
-              <BulkDeleteButton
-                selectedIds={selectedIds}
-                type={deleteType}
-                onSuccess={() => setRowSelection({})}
-              />
-            )}
+            {renderBulkActions
+              ? renderBulkActions(selectedRows, resetSelection)
+              : selectedIds.length > 0 && (
+                  <BulkDeleteButton
+                    selectedIds={selectedIds}
+                    type={deleteType}
+                    onSuccess={resetSelection}
+                  />
+                )}
             <Link
               href={createHref}
               className={buttonVariants({ variant: 'brand', size: 'sm' })}
@@ -135,11 +162,17 @@ export function AdminResourceList<TData extends { id: number }>({
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         toolbarAction={
-          filters.length > 0 ? (
-            <ListFilterDropdown fields={filters} value={filterValues} onChange={setFilterValues} />
+          toolbarAction || filters.length > 0 ? (
+            <>
+              {toolbarAction}
+              {filters.length > 0 && (
+                <ListFilterDropdown fields={filters} value={filterValues} onChange={setFilterValues} />
+              )}
+            </>
           ) : undefined
         }
         isLoading={isLoading || isFetching}
+        enableSorting={enableSorting}
       />
     </div>
   );

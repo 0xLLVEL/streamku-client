@@ -9,6 +9,7 @@ import { PosterCard } from '@/components/media/PosterCard';
 import { WatchlistButton } from '@/components/media/WatchlistButton';
 import { FavoriteButton } from '@/components/media/FavoriteButton';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
+import { tmdbImageUrl } from '@/lib/config';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
@@ -76,7 +77,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                 <PlayAction
                   mediaEndpoint={`/movies/${movie.slug}/media`}
                   title={movie.title ?? ''}
-                  poster={`https://image.tmdb.org/t/p/w1280${movie.poster_path ?? ''}`}
+                  poster={tmdbImageUrl(movie.poster_path, 'w1280') ?? ''}
                   videos={movie.videos}
                   type="movie"
                   tmdbId={movie.tmdb_id}
@@ -121,7 +122,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
             {/* Right Side: Poster Card */}
             <div className="w-64 shrink-0 hidden lg:block liquid-glass p-2 rounded-[2rem] rotate-[2deg] hover:rotate-0 transition-transform duration-500 shadow-2xl ml-8">
               <img
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                src={tmdbImageUrl(movie.poster_path, 'w500') ?? ''}
                 alt={movie.title}
                 className="w-full rounded-3xl shadow-inner"
               />
@@ -140,7 +141,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                 <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
                   {actor.profile_path ? (
                     <img
-                      src={`https://image.tmdb.org/t/p/w200${actor.profile_path}`}
+                      src={tmdbImageUrl(actor.profile_path, 'w185') ?? ''}
                       alt={actor.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
                     />

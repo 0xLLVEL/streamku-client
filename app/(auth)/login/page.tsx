@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { loginAction } from '@/app/actions/auth';
 import Link from 'next/link';
+import { tmdbImageUrl } from '@/lib/config';
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
@@ -13,7 +14,7 @@ export default function LoginPage() {
       {/* Full-screen Background Image with Heavy Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://image.tmdb.org/t/p/original/9l1eZiJHmhr5jIlthMdJN5WYoff.jpg" 
+          src={tmdbImageUrl('/9l1eZiJHmhr5jIlthMdJN5WYoff.jpg', 'original') ?? ''} 
           alt="Background" 
           className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
         />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateSeasonAction, bulkGenerateVidkingEpisodesAction } from '@/app/actions/admin-content';
+import { updateSeasonAction, bulkGenerateVidkingEpisodesAction } from '@/app/actions/admin-content-embeds';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';

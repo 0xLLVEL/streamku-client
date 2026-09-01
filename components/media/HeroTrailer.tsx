@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { tmdbImageUrl } from '@/lib/config';
 
 interface HeroTrailerProps {
   backdropPath: string | null;
@@ -50,7 +51,6 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [apiReady, setApiReady] = useState(false);
   const playerRef = useRef<YTPlayer | null>(null);
-  const tmdbBaseUrl = 'https://image.tmdb.org/t/p/original';
 
   const trailerKey = extractTrailerKey(trailerUrl);
 
@@ -123,7 +123,7 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
     <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
       {/* Static Backdrop (Always behind) */}
       <img
-        src={`${tmdbBaseUrl}${backdropPath}`}
+        src={tmdbImageUrl(backdropPath, 'original') ?? ''}
         alt={title}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${videoPlaying ? 'opacity-0' : 'opacity-100'}`}
       />
