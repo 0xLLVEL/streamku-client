@@ -41,7 +41,7 @@ export default async function WatchMoviePage({ params }: { params: Promise<{ slu
   const videoData = resolveStreamableVideo(media, 'Movie');
   const streamUrl = videoData ? buildStreamUrl(videoData.id) : null;
   const posterUrl = movie.backdrop_path
-    ? (tmdbImageUrl(movie.backdrop_path, 'original') ?? '')
+    ? (tmdbImageUrl(movie.backdrop_path, 'w1280') ?? '')
     : (tmdbImageUrl(movie.poster_path, 'w1280') ?? '');
 
   if (!streamUrl) {

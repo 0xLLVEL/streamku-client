@@ -52,7 +52,7 @@ export default async function WatchTvShowPage({
   const videoData = resolveStreamableVideo(media);
   const streamUrl = videoData ? buildStreamUrl(videoData.id) : null;
   const posterUrl = tvShow.backdrop_path
-    ? (tmdbImageUrl(tvShow.backdrop_path, 'original') ?? '')
+    ? (tmdbImageUrl(tvShow.backdrop_path, 'w1280') ?? '')
     : (tmdbImageUrl(tvShow.poster_path, 'w1280') ?? '');
 
   if (!streamUrl) {

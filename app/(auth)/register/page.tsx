@@ -14,7 +14,7 @@ export default function RegisterPage() {
       {/* Full-screen Background Image with Heavy Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src={tmdbImageUrl('/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg', 'original') ?? ''} 
+          src={tmdbImageUrl('/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg', 'w1280') ?? ''} 
           alt="Background" 
           className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
         />

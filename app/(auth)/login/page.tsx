@@ -14,7 +14,7 @@ export default function LoginPage() {
       {/* Full-screen Background Image with Heavy Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src={tmdbImageUrl('/9l1eZiJHmhr5jIlthMdJN5WYoff.jpg', 'original') ?? ''} 
+          src={tmdbImageUrl('/9l1eZiJHmhr5jIlthMdJN5WYoff.jpg', 'w1280') ?? ''} 
           alt="Background" 
           className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
         />

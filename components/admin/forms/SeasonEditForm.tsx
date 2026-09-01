@@ -141,7 +141,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                   <div className="aspect-[2/3] bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
                     {season.poster_path ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={tmdbImageUrl(season.poster_path, 'w500') ?? undefined} alt="Poster" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={tmdbImageUrl(season.poster_path, 'w342') ?? undefined} alt="Poster" className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                       <span className="text-white/20 text-sm">No Poster</span>
                     )}
@@ -198,7 +198,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                     <div className="w-24 sm:w-36 md:w-48 shrink-0 bg-[#1e1e24] relative aspect-video rounded-md overflow-hidden shadow-md border border-white/10">
                       {episode.still_path ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={tmdbImageUrl(episode.still_path, 'w500') ?? undefined} className="w-full h-full object-cover" alt={episode.name ?? undefined} />
+                        <img src={tmdbImageUrl(episode.still_path, 'w300') ?? undefined} className="w-full h-full object-cover" alt={episode.name ?? undefined} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">No Photo</div>
                       )}

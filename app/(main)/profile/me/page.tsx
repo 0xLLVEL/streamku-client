@@ -97,7 +97,7 @@ export default async function MePage() {
             {favorites.map((item) => {
               const details = item.media_details;
               const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w500') : null;
+              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w342') : null;
 
               return (
                 <div key={item.id} className="relative group cursor-pointer">
@@ -155,7 +155,7 @@ export default async function MePage() {
             {watchlist.map((item) => {
               const details = item.media_details;
               const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w500') : null;
+              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w342') : null;
 
               return (
                 <div key={item.id} className="relative group cursor-pointer">

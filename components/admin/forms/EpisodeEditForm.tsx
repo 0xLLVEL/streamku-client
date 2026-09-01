@@ -139,7 +139,7 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
                   <div className="aspect-video bg-white/5 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden shadow-sm">
                     {episode.still_path ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={tmdbImageUrl(episode.still_path, 'w500') ?? undefined} alt="Still" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={tmdbImageUrl(episode.still_path, 'w300') ?? undefined} alt="Still" className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                       <span className="text-white/20 text-sm">No Photo</span>
                     )}

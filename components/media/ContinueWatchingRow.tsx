@@ -53,7 +53,7 @@ export function ContinueWatchingRow({ items }: ContinueWatchingRowProps) {
               <div className="relative aspect-video rounded-xl overflow-hidden bg-[#1e1e24] border border-white/5 shadow-sm group-hover:border-white/20 transition-all">
                 {history.item.poster_path ? (
                   <img
-                    src={tmdbImageUrl(history.item.poster_path, 'w500') ?? ''}
+                    src={tmdbImageUrl(history.item.poster_path, 'w342') ?? ''}
                     alt={displayTitle}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100"
                     loading="lazy"
@@ -68,7 +68,7 @@ export function ContinueWatchingRow({ items }: ContinueWatchingRowProps) {
                   <PlayAction
                     mediaEndpoint={endpoint}
                     title={displayTitle}
-                    poster={tmdbImageUrl(history.item.poster_path, 'w500') ?? ''}
+                    poster={tmdbImageUrl(history.item.poster_path, 'w342') ?? ''}
                     type={isMovie ? 'movie' : 'tv'}
                     watchableId={history.item.id}
                     initialTime={history.progress_seconds}

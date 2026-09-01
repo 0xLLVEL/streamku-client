@@ -82,7 +82,7 @@ export function PrimaryFactsTab({
               {data.poster_path && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={tmdbImageUrl(data.poster_path, 'w500') ?? undefined}
+                  src={tmdbImageUrl(data.poster_path, 'w342') ?? undefined}
                   alt="Poster"
                   className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity duration-200"
                 />

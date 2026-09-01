@@ -114,7 +114,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
             {/* Right Side: Poster Card */}
             <div className="w-64 shrink-0 hidden lg:block liquid-glass p-2 rounded-[2rem] rotate-[2deg] hover:rotate-0 transition-transform duration-500 shadow-2xl ml-8">
               <img
-                src={tmdbImageUrl(movie.poster_path, 'w500') ?? ''}
+                src={tmdbImageUrl(movie.poster_path, 'w342') ?? ''}
                 alt={movie.title}
                 className="w-full rounded-3xl shadow-inner"
               />

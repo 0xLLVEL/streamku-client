@@ -18,7 +18,7 @@ export function PosterCard({ item, priority = false }: PosterCardProps) {
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1e1e24] border border-white/5 shadow-sm group-hover:border-white/20 transition-all">
         {item.poster_path ? (
           <img
-            src={tmdbImageUrl(item.poster_path, 'w500') ?? undefined}
+            src={tmdbImageUrl(item.poster_path, 'w342') ?? undefined}
             alt={displayTitle}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading={priority ? "eager" : "lazy"}

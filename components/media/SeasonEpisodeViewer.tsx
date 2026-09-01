@@ -196,7 +196,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
         )}
         <div className="w-full aspect-video bg-black/50 relative">
           {episode.still_path ? (
-            <img src={tmdbImageUrl(episode.still_path, 'w500') ?? ''} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <img src={tmdbImageUrl(episode.still_path, 'w300') ?? ''} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs text-white/30">No Image</div>
           )}

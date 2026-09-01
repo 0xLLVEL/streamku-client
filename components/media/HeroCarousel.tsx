@@ -46,7 +46,8 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
             >
               <div className="absolute inset-0">
                 <img
-                  src={tmdbImageUrl(item.backdrop_path, 'original') ?? ''}
+                  src={tmdbImageUrl(item.backdrop_path, 'w1280') ?? ''}
+                  fetchPriority={index === 0 ? 'high' : undefined}
                   alt={item.title || item.name}
                   className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${isActive ? 'scale-105' : 'scale-100'}`}
                 />
@@ -60,7 +61,7 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
                   {/* Logo or Text Title */}
                   {item.images?.logos?.[0]?.file_path ? (
                     <img
-                      src={tmdbImageUrl(item.images.logos[0].file_path, 'original') ?? ''}
+                      src={tmdbImageUrl(item.images.logos[0].file_path, 'w500') ?? ''}
                       alt={item.title || item.name}
                       className="max-h-20 sm:max-h-24 md:max-h-32 object-contain mb-3 drop-shadow-md origin-left"
                     />
