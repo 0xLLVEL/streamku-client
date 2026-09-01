@@ -32,6 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
 
   const isClient = useIsClient();
 
@@ -41,10 +42,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [user, loading, router]);
 
-  // Close the mobile drawer on navigation.
-  useEffect(() => {
+  // Close the mobile drawer on navigation. Adjust state during render
+  // instead of in an effect so React can bail out before the next paint.
+  if (lastPathname !== pathname) {
+    setLastPathname(pathname);
     setSidebarOpen(false);
-  }, [pathname]);
+  }
 
   if (!isClient || loading || !user || !user.is_admin) {
     return <div className="min-h-screen bg-[#060607] flex items-center justify-center text-white">Authenticating...</div>;
