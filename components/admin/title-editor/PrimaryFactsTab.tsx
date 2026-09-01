@@ -89,7 +89,7 @@ export function PrimaryFactsTab({
               )}
               <button
                 type="button"
-                className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 cursor-pointer focus-ring"
+                className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded-md opacity-100 sm:opacity-0 group-hover:opacity-100 sm:focus-visible:opacity-100 transition-opacity duration-200 cursor-pointer focus-ring"
               >
                 Replace image
               </button>
@@ -112,7 +112,7 @@ export function PrimaryFactsTab({
               )}
               <button
                 type="button"
-                className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 cursor-pointer focus-ring"
+                className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded-md opacity-100 sm:opacity-0 group-hover:opacity-100 sm:focus-visible:opacity-100 transition-opacity duration-200 cursor-pointer focus-ring"
               >
                 Replace image
               </button>

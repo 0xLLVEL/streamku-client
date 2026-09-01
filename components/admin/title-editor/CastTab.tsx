@@ -50,7 +50,7 @@ export function CastTab({ cast }: CastTabProps) {
                 {person.character}
               </p>
             </div>
-            <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 flex items-center">
+            <div className="opacity-100 sm:opacity-0 group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200 flex items-center">
               <button type="button" aria-label={`Remove ${person.name}`} className="text-white/30 hover:text-red-400 p-1 cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:text-red-400">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path

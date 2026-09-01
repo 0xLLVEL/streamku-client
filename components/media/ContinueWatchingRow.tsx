@@ -64,7 +64,7 @@ export function ContinueWatchingRow({ items }: ContinueWatchingRowProps) {
                   </div>
                 )}
                 
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                <div className="absolute inset-0 flex items-center justify-center opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                   <PlayAction
                     mediaEndpoint={endpoint}
                     title={displayTitle}

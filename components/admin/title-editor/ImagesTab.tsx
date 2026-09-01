@@ -47,7 +47,7 @@ export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDelet
         addLabel="Add Poster"
         aspectClass="aspect-[2/3]"
         thumbSize="w500"
-        gridClass="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"
+        gridClass="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6"
         emptyMessage="No posters available."
         items={
           posters.length > 0

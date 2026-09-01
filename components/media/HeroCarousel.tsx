@@ -7,21 +7,28 @@ import { tmdbImageUrl } from '@/lib/config';
 
 export function HeroCarousel({ items }: { items: MediaItem[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (!items || items.length === 0) return;
+    if (!items || items.length === 0 || isPaused) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length);
     }, 8000);
 
     return () => clearInterval(interval);
-  }, [items]);
+  }, [items, isPaused]);
 
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="relative h-screen w-full flex items-center overflow-hidden bg-[#0a0a0a]">
+    <div
+      className="relative h-[80vh] sm:h-screen w-full flex items-center overflow-hidden bg-[#0a0a0a]"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+    >
       {/* Global edge hider */}
       <div className="absolute inset-x-0 -bottom-4 h-48 bg-gradient-to-t from-[#0a0a0a] from-10% via-[#0a0a0a]/60 to-transparent pointer-events-none z-10" />
       {/* Sliding Track */}
@@ -48,23 +55,23 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
                 <div className="absolute inset-x-0 -bottom-2 h-48 bg-gradient-to-t from-[#0a0a0a] from-10% via-[#0a0a0a]/60 to-transparent pointer-events-none" />
               </div>
 
-              <div className="relative w-full h-full flex items-end pb-32 px-8 md:px-16 lg:px-24">
+              <div className="relative w-full h-full flex items-end pb-28 sm:pb-32 px-5 sm:px-8 md:px-16 lg:px-24">
                 <div className={`w-full max-w-2xl transition-all duration-1000 delay-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                   {/* Logo or Text Title */}
                   {item.images?.logos?.[0]?.file_path ? (
                     <img
                       src={tmdbImageUrl(item.images.logos[0].file_path, 'original') ?? ''}
                       alt={item.title || item.name}
-                      className="max-h-24 md:max-h-32 object-contain mb-3 drop-shadow-md origin-left"
+                      className="max-h-20 sm:max-h-24 md:max-h-32 object-contain mb-3 drop-shadow-md origin-left"
                     />
                   ) : (
-                    <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-2 tracking-tight drop-shadow-md">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-2 tracking-tight drop-shadow-md">
                       {item.title || item.name}
                     </h1>
                   )}
 
                   {/* Meta Info */}
-                  <div className="flex items-center gap-3 text-base md:text-lg font-semibold text-white/80 mb-4 drop-shadow">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-base md:text-lg font-semibold text-white/80 mb-4 drop-shadow">
                     {(item.vote_average ?? 0) > 0 && (
                       <span className="flex items-center text-yellow-500">
                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
@@ -129,7 +136,7 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
       </div>
 
       {/* Carousel Indicators (Timeout Progress Bars) */}
-      <div className="absolute bottom-24 right-8 md:right-16 lg:right-24 z-20 flex space-x-3">
+      <div className="absolute bottom-20 right-5 sm:bottom-24 sm:right-8 md:right-16 lg:right-24 z-20 flex space-x-3">
         {items.map((_, index) => {
           const isActive = index === currentIndex;
           return (

@@ -295,7 +295,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             <div>
               <label className="block text-xs font-medium text-white/50 mb-2">Thumbnail</label>
               <div className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-white/20 transition-colors" onClick={() => thumbInputRef.current?.click()}>
-                <button className="bg-white/10 text-white px-3 py-1.5 rounded-md text-xs font-semibold pointer-events-none">Choose File</button>
+                <span className="bg-white/10 text-white px-3 py-1.5 rounded-md text-xs font-semibold">Choose File</span>
                 <span className="text-white/40 text-sm truncate">No file chosen</span>
                 <input type="file" ref={thumbInputRef} className="hidden" accept="image/*" />
               </div>
@@ -376,7 +376,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                 onClick={() => fileInputRef.current?.click()}
                 className={`w-full bg-white/5 border ${videoFile ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'} rounded-lg px-4 py-3 flex items-center gap-3 cursor-pointer hover:border-white/30 transition-all`}
               >
-                <button className="bg-white/10 text-white px-3 py-1.5 rounded-md text-xs font-semibold pointer-events-none">Choose Video</button>
+                <span className="bg-white/10 text-white px-3 py-1.5 rounded-md text-xs font-semibold">Choose Video</span>
                 <span className={`text-sm truncate ${videoFile ? 'text-white' : 'text-white/40'}`}>{videoFile ? videoFile.name : 'No file chosen'}</span>
                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleVideoFileChange} accept="video/mp4,video/x-m4v,video/*" />
               </div>

@@ -195,7 +195,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
               <div className="flex flex-col rounded-xl border border-white/10 bg-black/30 divide-y divide-white/5">
                 {season.episodes?.map((episode) => (
                   <div key={episode.id} className="flex items-center gap-3 sm:gap-6 py-3 sm:py-5 px-4 sm:px-6 hover:bg-white/[0.03] transition-colors group">
-                    <div className="w-36 md:w-48 shrink-0 bg-[#1e1e24] relative aspect-video rounded-md overflow-hidden shadow-md border border-white/10">
+                    <div className="w-24 sm:w-36 md:w-48 shrink-0 bg-[#1e1e24] relative aspect-video rounded-md overflow-hidden shadow-md border border-white/10">
                       {episode.still_path ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={tmdbImageUrl(episode.still_path, 'w500') ?? undefined} className="w-full h-full object-cover" alt={episode.name ?? undefined} />
@@ -216,7 +216,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                         {(episode.runtime ?? 0) > 0 && <span className="text-xs text-white/30">{episode.runtime ?? 0} min</span>}
                       </div>
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pl-4 transition-opacity duration-200 flex items-center gap-2">
+                    <div className="opacity-100 sm:opacity-0 group-hover:opacity-100 sm:group-focus-within:opacity-100 pl-4 transition-opacity duration-200 flex items-center gap-2">
                       <Link href={`/admin/tv-shows/${tvShowId}/seasons/${season.season_number}/episodes/${episode.episode_number}`} aria-label={`Edit episode ${episode.episode_number}`} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors duration-200 shadow-sm cursor-pointer focus-ring" title="Edit Episode">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                       </Link>

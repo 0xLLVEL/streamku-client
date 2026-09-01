@@ -23,14 +23,14 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <div className="pt-32 px-8 text-center min-h-screen">
+      <div className="pt-20 sm:pt-32 px-4 sm:px-8 text-center min-h-screen">
         <p className="text-white/50 text-lg">Please log in to view settings.</p>
       </div>
     );
   }
 
   return (
-    <div className="pt-32 pb-20 px-8 md:px-16 lg:px-24 min-h-screen">
+    <div className="pt-20 sm:pt-32 pb-20 px-4 sm:px-8 md:px-16 lg:px-24 min-h-screen">
       <div className="max-w-2xl mx-auto liquid-glass p-8 md:p-12 rounded-3xl relative overflow-hidden">
         {/* Subtle accent glow behind the form */}
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-600/10 rounded-full blur-[100px] pointer-events-none" />

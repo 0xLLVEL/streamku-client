@@ -114,7 +114,7 @@ export default async function MePage() {
                           <span className="text-xs">No Image</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                         <div className="w-full">
                           <h3 className="text-white font-bold text-sm truncate w-full shadow-black drop-shadow-md">
                             {details?.title}
@@ -173,7 +173,7 @@ export default async function MePage() {
                           <span className="text-xs">No Image</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                         <div className="w-full">
                           <div className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">
                             {item.media_type === 'movie' ? 'Movie' : 'TV Show'}

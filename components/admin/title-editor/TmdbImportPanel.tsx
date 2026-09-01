@@ -66,6 +66,7 @@ export function TmdbImportPanel({ placeholder, searchAction, onImport }: TmdbImp
             onChange={handleChange}
             onFocus={handleFocus}
             placeholder={placeholder}
+            aria-label="Search TMDB"
             className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm focus:border-red-500/50 focus:ring-2 focus:ring-red-500/60 focus:outline-none transition-colors duration-200 placeholder:text-white/30"
           />
           {renderDropdown(onImport)}

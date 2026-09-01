@@ -31,7 +31,7 @@ export default async function GenreDetailsPage({ params }: { params: Promise<{ s
   const hasTvShows = tv_shows && tv_shows.length > 0;
 
   return (
-    <div className="pt-32 pb-20 px-8 md:px-16 lg:px-24 min-h-screen">
+    <div className="pt-20 sm:pt-32 pb-20 px-4 sm:px-8 md:px-16 lg:px-24 min-h-screen">
       <div className="mb-12">
         <h1 className="text-5xl font-bold text-white tracking-tight drop-shadow-md">{genre.name}</h1>
         <p className="text-white/50 mt-3 text-lg font-medium">

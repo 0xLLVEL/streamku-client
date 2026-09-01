@@ -27,6 +27,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const q = formData.get('q');
+    setIsMobileMenuOpen(false);
     if (q) {
       router.push(`/search?q=${encodeURIComponent(q as string)}`);
     }
@@ -50,15 +51,17 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               : 'bg-transparent border border-transparent shadow-none h-20'
             }`}
         >
-          <div className="flex items-center space-x-6">
-            <Link href="/" className="text-3xl font-black text-red-600 tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <div className="flex items-center space-x-3 sm:space-x-6">
+            <Link href="/" className="text-2xl sm:text-3xl font-black text-red-600 tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               STREAMKU
             </Link>
 
             {/* Mobile Menu Toggle Button */}
             <button
-              className="md:hidden text-white focus:outline-none"
+              className="md:hidden text-white focus-visible:outline-none focus-visible:text-red-400"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-expanded={isMobileMenuOpen}
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMobileMenuOpen ? (
@@ -90,8 +93,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Expandable Search Bar */}
-            <form onSubmit={handleSearch} className="relative flex items-center group">
+            {/* Expandable Search Bar — inline above `sm`, search form moves into the mobile menu */}
+            <form onSubmit={handleSearch} className="relative flex items-center group hidden sm:flex">
               <input
                 type="text"
                 name="q"
@@ -159,7 +162,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 )}
               </div>
             ) : (
-              <Link href="/login" className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-500 shadow-lg text-sm font-bold text-white transition-all">
+              <Link href="/login" className="px-4 sm:px-5 py-2 rounded-full bg-red-600 hover:bg-red-500 shadow-lg text-sm font-bold text-white transition-all">
                 Sign In
               </Link>
             )}
@@ -168,7 +171,21 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 mx-4 mt-2 liquid-glass rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-40 animate-in slide-in-from-top-2">
+          <div className="md:hidden absolute top-full left-0 right-0 mx-4 mt-2 liquid-glass rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-40 animate-in slide-in-from-top-2 pointer-events-auto">
+            <form onSubmit={handleSearch} className="px-4 py-3 border-b border-white/10">
+              <div className="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Search titles, people, genres"
+                  aria-label="Search Streamku"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-3 py-2.5 text-sm text-white outline-none placeholder:text-white/40 focus:ring-2 focus:ring-red-500/60 focus:border-red-500/50"
+                />
+              </div>
+            </form>
             <div className="flex flex-col py-2">
               {navLinks.map((link) => {
                 const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path + '/'));

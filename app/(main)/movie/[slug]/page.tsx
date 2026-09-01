@@ -88,10 +88,6 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                 />
                 <WatchlistButton watchableId={movie.id} watchableType="movie" watchable={watchlist} />
                 <FavoriteButton favoritableId={movie.id} favoritableType="movie" favorite={favorite} />
-                <button className="flex items-center gap-2 px-5 py-2.5 rounded-full liquid-glass hover:bg-white/20 transition-colors text-sm font-bold text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg>
-                  Add to Collection
-                </button>
               </div>
 
               {/* Metadata Row */}
@@ -106,10 +102,6 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
                   </span>
                 )}
                 {movie.original_language && <span className="uppercase">{movie.original_language}</span>}
-                <button className="flex items-center gap-1 hover:text-white transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>
-                  Share
-                </button>
               </div>
 
               {/* Overview */}
@@ -133,7 +125,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
 
       {/* Cast Section */}
       {(movie.cast && movie.cast.length > 0) && (
-        <div className="w-full px-8 md:px-16 lg:px-24 py-12">
+        <div className="w-full px-4 md:px-12 lg:px-24 py-12">
           <h2 className="text-2xl font-bold text-white mb-8 drop-shadow-md">Top Cast</h2>
           <DraggableList className="pb-4" innerClassName="space-x-6">
             {movie.cast.slice(0, 15).map((actor) => (
@@ -159,7 +151,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
 
       {/* More Like This */}
       {(recommendations && recommendations.length > 0) && (
-        <div className="w-full px-8 md:px-16 lg:px-24 pb-24">
+        <div className="w-full px-4 md:px-12 lg:px-24 pb-24">
           <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-md">More Like This</h2>
           <DraggableList className="pb-4" innerClassName="space-x-3">
             {recommendations.map((item) => (

@@ -46,6 +46,7 @@ export function EditFormShell({
               rel="noreferrer"
               className="text-white/30 hover:text-white transition-colors duration-200 cursor-pointer focus-ring rounded-md shrink-0"
               title="View on site"
+              aria-label="View on site"
             >
               <ExternalLinkIcon />
             </a>

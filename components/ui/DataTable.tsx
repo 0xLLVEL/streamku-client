@@ -120,7 +120,7 @@ export function DataTable<TData, TValue>({
             <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin" role="status" aria-label="Loading" />
           </div>
         )}
-        <Table>
+        <Table className="min-w-[720px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

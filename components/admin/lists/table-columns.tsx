@@ -166,7 +166,7 @@ export function actionsColumn<TData extends { id: number }>({
     id: 'actions',
     enableSorting: false,
     cell: ({ row }) => (
-      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+      <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200">
         <Link
           href={editHref(row.original.id)}
           className="text-white/60 hover:text-white px-2.5 py-1 rounded-md border border-white/10 hover:bg-white/10 transition-colors duration-200 text-[11px] font-medium cursor-pointer focus-ring"

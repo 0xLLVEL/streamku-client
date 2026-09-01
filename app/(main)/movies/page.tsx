@@ -13,7 +13,7 @@ export default async function MoviesPage() {
   const movies = await getMovies();
 
   return (
-    <div className="pt-32 pb-20 px-8 md:px-16 lg:px-24 min-h-screen">
+    <div className="pt-20 sm:pt-32 pb-20 px-4 sm:px-8 md:px-16 lg:px-24 min-h-screen">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-md">Movies</h1>
