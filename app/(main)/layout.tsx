@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { logoutAction } from '@/app/actions/auth';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -81,11 +80,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     className={`relative px-5 py-2 font-medium drop-shadow-lg transition-colors duration-300 ${isActive ? 'text-white' : 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'}`}
                   >
                     {isActive && (
-                      <motion.div
-                        layoutId="nav-pill"
-                        className="absolute inset-0 liquid-glass rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/20 -z-10"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
+                      <div className="absolute inset-0 liquid-glass rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/20 -z-10" />
                     )}
                     <span className="relative z-10">{link.name}</span>
                   </Link>

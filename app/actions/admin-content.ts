@@ -3,6 +3,16 @@
 import { fetchApi } from '@/lib/api';
 import { revalidatePath } from 'next/cache';
 
+/** Pull the API's error message, falling back to a contextual default. */
+async function readError(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = await res.json();
+    return data?.message || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // -- DELETIONS --
 
 export async function deleteContentAction(id: number | string, type: 'movies' | 'tv-shows' | 'genres' | 'cast') {
@@ -16,8 +26,7 @@ export async function deleteContentAction(id: number | string, type: 'movies' | 
       return { success: true };
     }
 
-    const data = await res.json();
-    return { success: false, error: data.message || `Failed to delete ${type}` };
+    return { success: false, error: await readError(res, `Failed to delete ${type}`) };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -57,7 +66,7 @@ export async function deleteVideoAction(movieId: number | string, videoId: numbe
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to delete video' };
+    return { success: false, error: await readError(res, 'Failed to delete video') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -99,7 +108,7 @@ export async function createEmbedVideoAction(params: {
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to save embed video' };
+    return { success: false, error: await readError(res, 'Failed to save embed video') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -124,13 +133,14 @@ export async function deleteEmbedVideoAction(params: {
     if (res.ok) {
       const revalidatePath_ = params.mediableType === 'movie'
         ? `/admin/movies/${params.mediableId}`
-        : `/admin/tv-shows/${params.mediableId}`;
+        : params.mediableType === 'episode'
+          ? `/admin/episodes/${params.mediableId}`
+          : `/admin/tv-shows/${params.mediableId}`;
       revalidatePath(revalidatePath_);
       return { success: true };
     }
 
-    const data = await res.json();
-    return { success: false, error: data.message || 'Failed to delete stream' };
+    return { success: false, error: await readError(res, 'Failed to delete stream') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -148,7 +158,7 @@ export async function deleteSeasonAction(tvShowId: number | string, seasonNumber
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to delete season' };
+    return { success: false, error: await readError(res, 'Failed to delete season') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -170,7 +180,7 @@ export async function bulkGenerateVidkingEpisodesAction(tvShowId: number | strin
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to bulk generate episodes' };
+    return { success: false, error: await readError(res, 'Failed to bulk generate episodes') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -202,7 +212,7 @@ export async function createMovieAction(formData: FormData) {
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to create movie' };
+    return { success: false, error: await readError(res, 'Failed to create movie') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -232,7 +242,7 @@ export async function createTvShowAction(formData: FormData) {
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to create TV show' };
+    return { success: false, error: await readError(res, 'Failed to create TV show') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -254,7 +264,7 @@ export async function importMovieFromTmdbAction(tmdbId: string | number) {
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to import movie from TMDB' };
+    return { success: false, error: await readError(res, 'Failed to import movie from TMDB') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -274,7 +284,7 @@ export async function importTvShowFromTmdbAction(tmdbId: string | number) {
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to import TV show from TMDB' };
+    return { success: false, error: await readError(res, 'Failed to import TV show from TMDB') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -345,7 +355,7 @@ export async function updateMovieAction(id: number | string, formData: FormData)
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to update movie' };
+    return { success: false, error: await readError(res, 'Failed to update movie') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -375,7 +385,7 @@ export async function updateTvShowAction(id: number | string, formData: FormData
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to update TV show' };
+    return { success: false, error: await readError(res, 'Failed to update TV show') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -399,7 +409,7 @@ export async function createGenreAction(formData: FormData) {
     }
 
     const data = await res.json();
-    return { success: false as const, error: data.message || 'Failed to create genre' };
+    return { success: false as const, error: await readError(res, 'Failed to create genre') };
   } catch {
     return { success: false as const, error: 'An unexpected error occurred.' };
   }
@@ -423,7 +433,7 @@ export async function updateGenreAction(id: number | string, formData: FormData)
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to update genre' };
+    return { success: false, error: await readError(res, 'Failed to update genre') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -449,7 +459,7 @@ export async function updateSeasonAction(tvShowId: number | string, seasonNumber
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to update season' };
+    return { success: false, error: await readError(res, 'Failed to update season') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -476,7 +486,7 @@ export async function updateEpisodeAction(tvShowId: number | string, seasonNumbe
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to update episode' };
+    return { success: false, error: await readError(res, 'Failed to update episode') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
@@ -493,7 +503,7 @@ export async function deleteMediaAction(mediaId: number | string) {
     }
 
     const data = await res.json();
-    return { success: false, error: data.message || 'Failed to delete media' };
+    return { success: false, error: await readError(res, 'Failed to delete media') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }

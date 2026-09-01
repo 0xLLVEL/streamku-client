@@ -37,14 +37,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   pageCount?: number
-  pagination?: PaginationState
-  onPaginationChange?: React.Dispatch<React.SetStateAction<PaginationState>>
-  sorting?: SortingState
-  onSortingChange?: React.Dispatch<React.SetStateAction<SortingState>>
-  globalFilter?: string
-  onGlobalFilterChange?: React.Dispatch<React.SetStateAction<string>>
-  rowSelection?: RowSelectionState
-  onRowSelectionChange?: React.Dispatch<React.SetStateAction<RowSelectionState>>
+  pagination: PaginationState
+  onPaginationChange: React.Dispatch<React.SetStateAction<PaginationState>>
+  sorting: SortingState
+  onSortingChange: React.Dispatch<React.SetStateAction<SortingState>>
+  globalFilter: string
+  onGlobalFilterChange: React.Dispatch<React.SetStateAction<string>>
+  rowSelection: RowSelectionState
+  onRowSelectionChange: React.Dispatch<React.SetStateAction<RowSelectionState>>
   isLoading?: boolean
   toolbarAction?: React.ReactNode
   /** Disable column sorting UI entirely (e.g. client-merged data). */
@@ -55,37 +55,18 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   pageCount,
-  pagination: controlledPagination,
-  onPaginationChange: setControlledPagination,
-  sorting: controlledSorting,
-  onSortingChange: setControlledSorting,
-  globalFilter: controlledGlobalFilter,
-  onGlobalFilterChange: setControlledGlobalFilter,
-  rowSelection: controlledRowSelection,
-  onRowSelectionChange: setControlledRowSelection,
+  pagination,
+  onPaginationChange,
+  sorting,
+  onSortingChange,
+  globalFilter,
+  onGlobalFilterChange,
+  rowSelection,
+  onRowSelectionChange,
   isLoading,
   toolbarAction,
   enableSorting = true,
 }: DataTableProps<TData, TValue>) {
-  const [internalGlobalFilter, setInternalGlobalFilter] = React.useState('')
-  const [internalSorting, setInternalSorting] = React.useState<SortingState>([])
-  const [internalPagination, setInternalPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 20 })
-  const [internalRowSelection, setInternalRowSelection] = React.useState<RowSelectionState>({})
-
-  const isControlled = controlledPagination !== undefined
-
-  const globalFilter = isControlled ? controlledGlobalFilter : internalGlobalFilter
-  const setGlobalFilter = isControlled ? setControlledGlobalFilter! : setInternalGlobalFilter
-
-  const sorting = isControlled ? controlledSorting : internalSorting
-  const setSorting = isControlled ? setControlledSorting! : setInternalSorting
-
-  const pagination = isControlled ? controlledPagination : internalPagination
-  const setPagination = isControlled ? setControlledPagination! : setInternalPagination
-
-  const rowSelection = isControlled ? controlledRowSelection : internalRowSelection
-  const setRowSelection = isControlled ? setControlledRowSelection! : setInternalRowSelection
-
   const table = useReactTable({
     data,
     columns,
@@ -98,17 +79,17 @@ export function DataTable<TData, TValue>({
     },
     enableRowSelection: true,
     enableSorting,
-    manualPagination: isControlled,
-    manualSorting: isControlled,
-    manualFiltering: isControlled,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
-    onRowSelectionChange: setRowSelection,
+    onSortingChange,
+    onGlobalFilterChange,
+    onPaginationChange,
+    onRowSelectionChange,
   })
 
   return (
@@ -123,7 +104,7 @@ export function DataTable<TData, TValue>({
             type="text"
             placeholder="Search all columns..."
             value={globalFilter ?? ''}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            onChange={(e) => onGlobalFilterChange(e.target.value)}
             aria-label="Search all columns"
             className="h-10 rounded-lg py-0 pl-10 pr-3 text-sm placeholder:text-white/30"
           />

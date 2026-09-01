@@ -33,13 +33,3 @@ export async function apiFetch(endpoint: string, options: ApiFetchOptions = {}):
 
   return fetch(`${API_BASE_URL}${path}`, { ...rest, headers });
 }
-
-/** Extract a human-readable error message from an API error response. */
-export async function extractApiErrorMessage(response: Response): Promise<string> {
-  try {
-    const data = await response.json();
-    return typeof data?.message === 'string' ? data.message : response.statusText;
-  } catch {
-    return response.statusText;
-  }
-}
