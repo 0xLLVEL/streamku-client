@@ -88,7 +88,9 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
     if (!confirm('Are you sure you want to delete this stream?')) return;
 
     const res = await deleteEmbedVideoAction({
-      mediableId: episode.id,
+      tvShowId,
+      seasonNumber,
+      mediableId: episode.episode_number,
       mediableType: 'episode',
       videoId,
     });
@@ -259,7 +261,9 @@ export function EpisodeEditForm({ tvShowId, seasonNumber, episode }: { tvShowId:
             <SectionCard title="Upload New Video" className="mt-8">
             <VideoCreateForm
               mediableType="episode"
-              mediableId={episode.id}
+              mediableId={episode.episode_number}
+              tvShowId={tvShowId}
+              seasonNumber={seasonNumber}
               parentTitle={episode.name ?? ''}
               inline={true}
               existingVideoQualityIds={existingVideoQualityIds}

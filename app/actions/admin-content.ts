@@ -78,12 +78,15 @@ export async function createEmbedVideoAction(params: {
   key: string;
   site: string;
   name: string;
+  /** Required when mediableType is 'episode'. */
+  tvShowId?: number | string;
+  seasonNumber?: number | string;
 }) {
   try {
     const endpoint = params.mediableType === 'movie'
       ? `/admin/movies/${params.mediableId}/videos`
       : params.mediableType === 'episode'
-        ? `/admin/episodes/${params.mediableId}/videos`
+        ? `/admin/tv-shows/${params.tvShowId}/seasons/${params.seasonNumber}/episodes/${params.mediableId}/videos`
         : `/admin/tv-shows/${params.mediableId}/videos`;
 
     const res = await fetchApi(endpoint, {
@@ -118,12 +121,15 @@ export async function deleteEmbedVideoAction(params: {
   mediableId: string | number;
   mediableType: 'movie' | 'tv-show' | 'episode';
   videoId: string | number;
+  /** Required when mediableType is 'episode'. */
+  tvShowId?: number | string;
+  seasonNumber?: number | string;
 }) {
   try {
     const endpoint = params.mediableType === 'movie'
       ? `/admin/movies/${params.mediableId}/videos/${params.videoId}`
       : params.mediableType === 'episode'
-        ? `/admin/episodes/${params.mediableId}/videos/${params.videoId}`
+        ? `/admin/tv-shows/${params.tvShowId}/seasons/${params.seasonNumber}/episodes/${params.mediableId}/videos/${params.videoId}`
         : `/admin/tv-shows/${params.mediableId}/videos/${params.videoId}`;
 
     const res = await fetchApi(endpoint, {

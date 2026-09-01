@@ -18,6 +18,8 @@ interface VideoCreateFormProps {
   parentTitle: string;
   parentPoster?: string;
   parentTmdbId?: number | string;
+  tvShowId?: number | string;
+  seasonNumber?: number | string;
   onClose?: () => void;
   inline?: boolean;
   existingVideoQualityIds?: number[];
@@ -38,7 +40,7 @@ function parseVidKingId(input: string): string | null {
   return null;
 }
 
-export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentPoster, parentTmdbId, onClose, inline = false, existingVideoQualityIds = [] }: VideoCreateFormProps) {
+export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentPoster, parentTmdbId, tvShowId, seasonNumber, onClose, inline = false, existingVideoQualityIds = [] }: VideoCreateFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +131,8 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     const res = await createEmbedVideoAction({
       mediableId,
       mediableType: mediableType as 'movie' | 'tv-show' | 'episode',
+      tvShowId,
+      seasonNumber,
       key: vidkingId,
       site: 'VidKing',
       name: name || parentTitle || 'Stream',
