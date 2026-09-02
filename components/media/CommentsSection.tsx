@@ -1,23 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { submitCommentAction, deleteCommentAction } from '@/app/actions/comments';
+import { apiFetch } from '@/lib/apiClient';
 import { Comment, CommentThreads } from '@/types';
 import { UserAvatar } from '@/components/media/UserAvatar';
 
 function CommentBox({
   comment,
   slug,
+  onDelete,
   onReply,
 }: {
   comment: Comment;
   slug: string;
+  onDelete: () => void;
   onReply: () => void;
 }) {
   const { user } = useAuth();
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const mine = user && comment.user_id === user.id;
 
@@ -25,7 +26,7 @@ function CommentBox({
     setBusy(true);
     const res = await deleteCommentAction({ id: comment.id, slug });
     setBusy(false);
-    if (res.success) router.refresh();
+    if (res.success) onDelete();
   }
 
   return (
@@ -76,16 +77,56 @@ export function CommentsSection({
   mediaType: 'movie' | 'tv_show';
   mediaId: number;
   slug: string;
-  initial: CommentThreads;
+  initial?: CommentThreads;
 }) {
   const { user } = useAuth();
-  const router = useRouter();
+  const [threads, setThreads] = useState<CommentThreads>(
+    initial ?? {
+      media_type: mediaType,
+      media_id: mediaId,
+      total: 0,
+      comments: [],
+    },
+  );
+  const [loading, setLoading] = useState(!initial);
   const [body, setBody] = useState('');
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    if (initial) return;
+    let cancelled = false;
+    apiFetch(`/comments/${mediaType}/${mediaId}`, { requireAuth: false })
+      .then(async (res) => {
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (json?.data && !cancelled) {
+          setThreads({ ...json.data, media_type: mediaType, media_id: mediaId });
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaType, mediaId, initial]);
+
   const canWrite = !!user;
+
+  async function fetchComments() {
+    try {
+      const res = await apiFetch(`/comments/${mediaType}/${mediaId}`, { requireAuth: false });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          setThreads({ ...json.data, media_type: mediaType, media_id: mediaId });
+        }
+      }
+    } catch {}
+  }
 
   async function submit() {
     setBusy(true);
@@ -101,7 +142,7 @@ export function CommentsSection({
     if (res.success) {
       setBody('');
       setReplyTo(null);
-      router.refresh();
+      fetchComments();
     } else {
       setError(res.error ?? 'Failed to post comment.');
     }
@@ -111,8 +152,8 @@ export function CommentsSection({
     <div className="w-full px-4 md:px-12 lg:px-24 py-14 border-t border-white/10">
       <div className="flex items-baseline gap-3 mb-7">
         <h2 className="text-3xl font-bold text-white tracking-tight">Comments</h2>
-        {initial.total > 0 && (
-          <span className="text-sm font-semibold text-white/40">{initial.total}</span>
+        {threads.total > 0 && (
+          <span className="text-sm font-semibold text-white/40">{threads.total}</span>
         )}
       </div>
 
@@ -157,15 +198,18 @@ export function CommentsSection({
         </div>
       )}
 
-      {initial.comments.length === 0 ? (
+      {loading ? (
+        <p className="text-gray-500 text-sm">Loading comments...</p>
+      ) : threads.comments.length === 0 ? (
         <p className="text-gray-500 text-sm">{canWrite ? 'No comments yet — start the discussion!' : 'No comments yet.'}</p>
       ) : (
         <div className="flex flex-col">
-          {initial.comments.map((comment) => (
+          {threads.comments.map((comment) => (
             <div key={comment.id} className="border-b border-white/5 py-3 last:border-0">
               <CommentBox
                 comment={comment}
                 slug={slug}
+                onDelete={fetchComments}
                 onReply={() => {
                   setReplyTo(comment);
                   setBody('');
@@ -179,6 +223,7 @@ export function CommentsSection({
                       key={reply.id}
                       comment={reply}
                       slug={slug}
+                      onDelete={fetchComments}
                       onReply={() => {
                         setReplyTo(reply);
                         setBody('');

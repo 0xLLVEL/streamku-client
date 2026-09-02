@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { submitReviewAction, deleteReviewAction } from '@/app/actions/reviews';
+import { apiFetch } from '@/lib/apiClient';
 import { ReviewBucket, Review } from '@/types';
 import { UserAvatar } from '@/components/media/UserAvatar';
 
@@ -25,16 +25,45 @@ export function ReviewsSection({
   mediaType: 'movie' | 'tv_show';
   mediaId: number;
   slug: string;
-  initial: ReviewBucket;
+  initial?: ReviewBucket;
 }) {
   const { user } = useAuth();
-  const router = useRouter();
-  const [bucket, setBucket] = useState<ReviewBucket>(initial);
-  const [rating, setRating] = useState(initial.my_review?.rating ?? 5);
-  const [body, setBody] = useState(initial.my_review?.body ?? '');
+  const [bucket, setBucket] = useState<ReviewBucket>(
+    initial ?? {
+      media_type: mediaType,
+      media_id: mediaId,
+      avg_rating: null,
+      review_count: 0,
+      my_review: null,
+      reviews: [],
+    },
+  );
+  const [loading, setLoading] = useState(!initial);
+  const [rating, setRating] = useState(initial?.my_review?.rating ?? 5);
+  const [body, setBody] = useState(initial?.my_review?.body ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (initial) return;
+    let cancelled = false;
+      apiFetch(`/reviews/${mediaType}/${mediaId}`)
+      .then(async (res) => {
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (json?.data && !cancelled) {
+          setBucket({ ...json.data, media_type: mediaType, media_id: mediaId });
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaType, mediaId, initial]);
 
   const canWrite = !!user;
   const myReview = bucket.my_review;
@@ -98,8 +127,6 @@ export function ReviewsSection({
       return { ...prev, my_review: saved, reviews };
     });
     setEditing(false);
-
-    router.refresh();
   }
 
   async function remove() {
@@ -121,8 +148,6 @@ export function ReviewsSection({
     }));
     setEditing(false);
     startNew();
-
-    router.refresh();
   }
 
   const reviewCount = bucket.reviews.length;
@@ -189,7 +214,9 @@ export function ReviewsSection({
       )}
 
       {/* Review list */}
-      {bucket.reviews.length === 0 ? (
+      {loading ? (
+        <p className="text-gray-500 text-sm">Loading reviews...</p>
+      ) : bucket.reviews.length === 0 ? (
         <p className="text-gray-500 text-sm">No reviews yet{canWrite ? ' — be the first!' : '.'}</p>
       ) : (
         <div className="flex flex-col gap-4">

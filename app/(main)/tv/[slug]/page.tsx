@@ -13,7 +13,6 @@ import { FavoriteButton } from '@/components/media/FavoriteButton';
 import { ReviewsSection } from '@/components/media/ReviewsSection';
 import { CommentsSection } from '@/components/media/CommentsSection';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
-import { getReviewBucket, getCommentThreads } from '@/lib/title-social';
 import { tmdbImageUrl } from '@/lib/config';
 import { TvShow, MediaItem } from '@/types';
 
@@ -33,18 +32,16 @@ async function getRecommendations(slug: string): Promise<MediaItem[]> {
 
 export default async function TvShowDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const show = await getTvShow(slug);
-  const recommendations = await getRecommendations(slug);
+  const [show, recommendations] = await Promise.all([getTvShow(slug), getRecommendations(slug)]);
 
   if (!show) {
     notFound();
   }
 
-  const watchlist = await getWatchlistState(show?.id);
-  const favorite = await getFavoriteState(show?.id);
-
-  const reviewBucket = await getReviewBucket('tv_show', show.id);
-  const commentThreads = await getCommentThreads('tv_show', show.id);
+  const [watchlist, favorite] = await Promise.all([
+    getWatchlistState(show.id),
+    getFavoriteState(show.id),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -201,8 +198,8 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
       {/* Seasons or Episodes Section */}
       <SeasonEpisodeViewer seasons={show.seasons || []} showSlug={slug} />
 
-      <ReviewsSection mediaType="tv_show" mediaId={show.id} slug={slug} initial={reviewBucket} />
-      <CommentsSection mediaType="tv_show" mediaId={show.id} slug={slug} initial={commentThreads} />
+      <ReviewsSection mediaType="tv_show" mediaId={show.id} slug={slug} />
+      <CommentsSection mediaType="tv_show" mediaId={show.id} slug={slug} />
 
       {/* More Like This */}
       {(recommendations && recommendations.length > 0) && (

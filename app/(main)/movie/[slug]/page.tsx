@@ -12,7 +12,6 @@ import { FavoriteButton } from '@/components/media/FavoriteButton';
 import { ReviewsSection } from '@/components/media/ReviewsSection';
 import { CommentsSection } from '@/components/media/CommentsSection';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
-import { getReviewBucket, getCommentThreads } from '@/lib/title-social';
 import { tmdbImageUrl } from '@/lib/config';
 import { Movie, MediaItem } from '@/types';
 
@@ -32,17 +31,16 @@ async function getRecommendations(slug: string): Promise<MediaItem[]> {
 
 export default async function MovieDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const movie = await getMovie(slug);
-  const recommendations = await getRecommendations(slug);
-  const watchlist = await getWatchlistState(movie?.id);
-  const favorite = await getFavoriteState(movie?.id);
+  const [movie, recommendations] = await Promise.all([getMovie(slug), getRecommendations(slug)]);
 
   if (!movie) {
     notFound();
   }
 
-  const reviewBucket = await getReviewBucket('movie', movie.id);
-  const commentThreads = await getCommentThreads('movie', movie.id);
+  const [watchlist, favorite] = await Promise.all([
+    getWatchlistState(movie.id),
+    getFavoriteState(movie.id),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -161,8 +159,8 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         </div>
       )}
 
-      <ReviewsSection mediaType="movie" mediaId={movie.id} slug={slug} initial={reviewBucket} />
-      <CommentsSection mediaType="movie" mediaId={movie.id} slug={slug} initial={commentThreads} />
+      <ReviewsSection mediaType="movie" mediaId={movie.id} slug={slug} />
+      <CommentsSection mediaType="movie" mediaId={movie.id} slug={slug} />
 
       {/* More Like This */}
       {(recommendations && recommendations.length > 0) && (
