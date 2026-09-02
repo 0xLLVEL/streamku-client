@@ -108,16 +108,17 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="settings-username" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Username</label>
-                  <input id="settings-username" type="text" name="username" value={username} onChange={e => setUsername(e.target.value)} placeholder="Your username" autoComplete="username" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
-                </div>
-                <div>
-                  <label htmlFor="settings-nickname" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Nickname <span className="normal-case font-normal text-white/30">@username</span></label>
+                  <label htmlFor="settings-username" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Username <span className="normal-case font-normal text-white/30">a-z 0-9 _</span></label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 select-none" aria-hidden>@</span>
-                    <input id="settings-nickname" type="text" name="nickname" value={nickname} onChange={e => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="streamku_fan" maxLength={30} aria-describedby="nickname-help" autoComplete="username" className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+                    <input id="settings-username" type="text" name="username" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="streamku_fan" maxLength={30} autoComplete="username" className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
                   </div>
-                  <p id="nickname-help" className="text-[11px] text-white/35 mt-1.5">Lowercase letters, numbers, underscore. Shown as @nickname.</p>
+                  <p className="text-[11px] text-white/35 mt-1">3–30 chars, letters, numbers, underscore. Used for login.</p>
+                </div>
+                <div>
+                  <label htmlFor="settings-nickname" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Nickname <span className="normal-case font-normal text-white/30">public display</span></label>
+                  <input id="settings-nickname" type="text" name="nickname" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="Budi Cool 😎" maxLength={50} aria-describedby="nickname-help" autoComplete="nickname" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+                  <p id="nickname-help" className="text-[11px] text-white/35 mt-1.5">Any characters, max 50. Shown publicly as your display name.</p>
                 </div>
                 <div>
                   <label htmlFor="settings-email" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Email</label>
