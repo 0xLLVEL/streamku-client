@@ -53,14 +53,43 @@ export function PlayAction({
   useEffect(() => {
     if (!isOpen || !embedUrl || !watchableId) return;
 
+    let hasRealProgress = false;
+    const findTime = (obj: unknown): number | null => {
+      if (!obj || typeof obj !== 'object') return null;
+      const o = obj as Record<string, unknown>;
+      for (const k of ['currentTime','current_time','time','progress','position','seconds','elapsed']) {
+        if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
+      }
+      for (const v of Object.values(o)) {
+        if (v && typeof v === 'object') {
+          const r = findTime(v);
+          if (r !== null) return r;
+        }
+      }
+      return null;
+    };
+    const findDuration = (obj: unknown): number | undefined => {
+      if (!obj || typeof obj !== 'object') return undefined;
+      const o = obj as Record<string, unknown>;
+      for (const k of ['duration','durationSeconds','duration_seconds','totalTime','total_time']) {
+        if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
+      }
+      for (const v of Object.values(o)) {
+        if (v && typeof v === 'object') {
+          const r = findDuration(v);
+          if (r !== undefined) return r;
+        }
+      }
+      return undefined;
+    };
+
     const handleMessage = async (event: MessageEvent) => {
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        // Vidking sends { event: 'timeupdate', currentTime: number, duration: number } or similar
-        const time = data.time || data.currentTime || data.progress;
-        const dur = data.duration || data.totalTime;
-        
-        if (typeof time === 'number' && time > 0) {
+        const time = findTime(data);
+        const dur = findDuration(data);
+        if (time !== null) {
+          hasRealProgress = true;
           await syncWatchProgress({
             mediaType: type === 'movie' ? 'movie' : 'episode',
             mediaId: watchableId,
@@ -68,13 +97,20 @@ export function PlayAction({
             durationSeconds: dur,
           });
         }
-      } catch {
-        // Ignore JSON parse errors for non-vidking messages
-      }
+      } catch {}
     };
-
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+
+    // Fallback only if VidKing never sends real time — keeps Continue Watching but won't override real progress
+    const estimatedDuration = type === 'movie' ? 7200 : 1440;
+    const start = Date.now();
+    const interval = setInterval(() => {
+      if (hasRealProgress) return;
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      if (elapsed >= 30) syncWatchProgress({ mediaType: type === 'movie' ? 'movie' : 'episode', mediaId: watchableId, progressSeconds: elapsed, durationSeconds: estimatedDuration });
+    }, 5000);
+
+    return () => { window.removeEventListener('message', handleMessage); clearInterval(interval); };
   }, [isOpen, embedUrl, watchableId, type]);
 
   const handlePlayClick = async (e: React.MouseEvent) => {
@@ -106,20 +142,31 @@ export function PlayAction({
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}${mediaEndpoint}`);
-
       if (!res.ok) throw new Error('Failed to load media');
-
       const json = await res.json();
-      const videoData = resolveStreamableVideo(
-        json.data,
-        type === 'movie' ? 'Movie' : 'Episode',
-      );
-
+      const videoData = resolveStreamableVideo(json.data, type === 'movie' ? 'Movie' : 'Episode');
       if (videoData) {
         setStreamUrl(buildStreamUrl(videoData.id));
         setIsOpen(true);
       } else {
-        alert('Video not available yet. Please upload it first.');
+        // No uploaded file — try VidKing embed from title/episode endpoint
+        const titleEndpoint = mediaEndpoint.replace(/\/media$/, '');
+        const titleRes = await fetch(`${API_BASE_URL}${titleEndpoint}`);
+        if (titleRes.ok) {
+          const titleJson = await titleRes.json();
+          const vids: ExternalEmbedVideo[] = titleJson.data?.videos ?? titleJson.videos ?? [];
+          const vidking = vids.find(v => v.site === 'VidKing');
+          const embed = vidking ?? vids[0];
+          if (embed) {
+            const url = embed.site === 'VidKing' ? buildVidKingEmbedUrl(embed.key, type, seasonNumber, episodeNumber) : embed.key;
+            setEmbedUrl(url);
+            setIsOpen(true);
+          } else {
+            alert('Video not available yet. Please upload it first.');
+          }
+        } else {
+          alert('Video not available yet. Please upload it first.');
+        }
       }
     } catch {
       alert('Failed to load video.');

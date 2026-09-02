@@ -48,18 +48,22 @@ export function ReviewsSection({
   useEffect(() => {
     if (initial) return;
     let cancelled = false;
-      apiFetch(`/reviews/${mediaType}/${mediaId}`)
-      .then(async (res) => {
+    (async () => {
+      try {
+        let res: Response;
+        try {
+          res = await apiFetch(`/reviews/${mediaType}/${mediaId}`);
+        } catch {
+          res = await apiFetch(`/reviews/${mediaType}/${mediaId}`, { requireAuth: false });
+        }
         if (!res.ok || cancelled) return;
         const json = await res.json();
         if (json?.data && !cancelled) {
           setBucket({ ...json.data, media_type: mediaType, media_id: mediaId });
         }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      } catch {}
+      if (!cancelled) setLoading(false);
+    })();
     return () => {
       cancelled = true;
     };

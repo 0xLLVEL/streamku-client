@@ -116,27 +116,46 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
   useEffect(() => {
     if (!isOpen || !embedUrl || !episode.id) return;
 
+    let hasRealProgress = false;
+    const findTime = (obj: unknown): number | null => {
+      if (!obj || typeof obj !== 'object') return null;
+      const o = obj as Record<string, unknown>;
+      for (const k of ['currentTime','current_time','time','progress','position','seconds','elapsed']) {
+        if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
+      }
+      for (const v of Object.values(o)) { if (v && typeof v === 'object') { const r = findTime(v); if (r !== null) return r; } }
+      return null;
+    };
+    const findDuration = (obj: unknown): number | undefined => {
+      if (!obj || typeof obj !== 'object') return undefined;
+      const o = obj as Record<string, unknown>;
+      for (const k of ['duration','durationSeconds','duration_seconds','totalTime','total_time']) {
+        if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
+      }
+      for (const v of Object.values(o)) { if (v && typeof v === 'object') { const r = findDuration(v); if (r !== undefined) return r; } }
+      return undefined;
+    };
     const handleMessage = async (event: MessageEvent) => {
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        const time = data.time || data.currentTime || data.progress;
-        const dur = data.duration || data.totalTime;
-        
-        if (typeof time === 'number' && time > 0) {
-          await syncWatchProgress({
-            mediaType: 'episode',
-            mediaId: episode.id,
-            progressSeconds: time,
-            durationSeconds: dur,
-          });
+        const time = findTime(data);
+        const dur = findDuration(data);
+        if (time !== null) {
+          hasRealProgress = true;
+          await syncWatchProgress({ mediaType: 'episode', mediaId: episode.id, progressSeconds: time, durationSeconds: dur });
         }
-      } catch {
-        // Ignore JSON parse errors for non-vidking messages
-      }
+      } catch {}
     };
-
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+
+    const start = Date.now();
+    const interval = setInterval(() => {
+      if (hasRealProgress) return;
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      if (elapsed >= 30) syncWatchProgress({ mediaType: 'episode', mediaId: episode.id, progressSeconds: elapsed, durationSeconds: 1440 });
+    }, 5000);
+
+    return () => { window.removeEventListener('message', handleMessage); clearInterval(interval); };
   }, [isOpen, embedUrl, episode.id]);
 
   const handlePlayClick = async () => {
@@ -225,7 +244,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
               <div 
                 className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]"
-                style={{ width: `${Math.min(100, Math.max(0, episode.history.duration_seconds > 0 ? (episode.history.progress_seconds / episode.history.duration_seconds) * 100 : 0))}%` }}
+                style={{ width: `${(() => { const raw = episode.history.duration_seconds > 0 ? (episode.history.progress_seconds / episode.history.duration_seconds) * 100 : (episode.history.progress_seconds / 1440) * 100; return Math.min(100, Math.max(0, episode.history.progress_seconds > 0 ? Math.max(8, raw) : 0)); })()}%` }}
               />
             </div>
           )}

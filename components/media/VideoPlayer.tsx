@@ -44,6 +44,11 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
   const [tooltipX, setTooltipX] = useState(0);
   const [tooltipTime, setTooltipTime] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [theater, setTheater] = useState(false);
+  const [pip, setPip] = useState(false);
+  const [subsOn, setSubsOn] = useState(false);
+  const [quality, setQuality] = useState('1080p');
+  const [audioTrack, setAudioTrack] = useState('English');
   const initialTimeSet = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -147,6 +152,34 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
     if (document.fullscreenElement) { document.exitFullscreen(); } else { el.requestFullscreen(); }
   }, []);
 
+  const toggleTheater = useCallback(() => setTheater(v => !v), []);
+  const togglePip = useCallback(async () => {
+    const v = videoRef.current;
+    if (!v) return;
+    try {
+      if (document.pictureInPictureElement) await document.exitPictureInPicture();
+      else if (v.requestPictureInPicture) await v.requestPictureInPicture();
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onEnter = () => setPip(true);
+    const onLeave = () => setPip(false);
+    v.addEventListener('enterpictureinpicture', onEnter);
+    v.addEventListener('leavepictureinpicture', onLeave);
+    return () => { v.removeEventListener('enterpictureinpicture', onEnter); v.removeEventListener('leavepictureinpicture', onLeave); };
+  }, []);
+  const toggleSubs = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const tracks = v.textTracks;
+    const next = !subsOn;
+    for (let i = 0; i < tracks.length; i++) tracks[i].mode = next ? 'showing' : 'hidden';
+    setSubsOn(next);
+  }, [subsOn]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -244,7 +277,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-black flex items-center justify-center overflow-hidden select-none"
+      className={`relative w-full bg-black flex items-center justify-center overflow-hidden select-none ${theater ? 'h-[56.25vw] max-h-[70vh] max-w-6xl mx-auto aspect-video' : 'h-screen'}`}
       onMouseMove={resetIdleTimer}
     >
       <style>{`
@@ -310,7 +343,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
           <button className="vp-ep-btn" onClick={prevEpisode.onClick}>
             <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
             <div className="ep-info">
-              <span className="ep-label">Previous</span>
+              <span className="ep-label">{prevEpisode.label || 'Previous'}</span>
               <span className="ep-name">{prevEpisode.name}</span>
             </div>
           </button>
@@ -322,7 +355,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
         <div className={`absolute bottom-[100px] right-6 z-10 transition-opacity duration-500 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           <button className="vp-ep-btn" onClick={nextEpisode.onClick}>
             <div className="ep-info">
-              <span className="ep-label">Next</span>
+              <span className="ep-label">{nextEpisode.label || 'Next'}</span>
               <span className="ep-name">{nextEpisode.name}</span>
             </div>
             <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
@@ -419,7 +452,7 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
           <div className="flex-1" />
 
           {/* Subtitles */}
-          <button className="vp-btn" title="Subtitles">
+          <button className={`vp-btn ${subsOn ? 'bg-white/20' : ''}`} title="Subtitles" onClick={toggleSubs}>
             <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="18" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
           </button>
 
@@ -432,31 +465,38 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
               <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
             <div className={`vp-settings-popover ${settingsOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
-              <button className="option">
-                <span>Quality</span>
-                <span className="label active">1080p</span>
-              </button>
+              <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Quality</div>
+              <div className="vp-speed-options">
+                {['1080p','720p','480p','360p'].map(q => (
+                  <button key={q} className={`vp-speed-option ${quality === q ? 'active' : ''}`} onClick={() => { setQuality(q); setSettingsOpen(false); }}>{q}</button>
+                ))}
+              </div>
               <div className="divider" />
-              <button className="option"><span>Speed</span></button>
+              <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Speed</div>
               <div className="vp-speed-options">
                 {[0.5, 0.75, 1, 1.25, 1.5, 2].map(r => (
                   <button key={r} className={`vp-speed-option ${playbackRate === r ? 'active' : ''}`} onClick={() => changeSpeed(r)}>{r}x</button>
                 ))}
               </div>
               <div className="divider" />
-              <button className="option"><span>Subtitles</span><span className="label">Off</span></button>
+              <button className="option" onClick={() => { toggleSubs(); setSettingsOpen(false); }}><span>Subtitles</span><span className={`label ${subsOn ? 'active' : ''}`}>{subsOn ? 'On' : 'Off'}</span></button>
               <div className="divider" />
-              <button className="option"><span>Audio Track</span><span className="label">English</span></button>
+              <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Audio</div>
+              <div className="vp-speed-options">
+                {['English','Indonesian'].map(a => (
+                  <button key={a} className={`vp-speed-option ${audioTrack === a ? 'active' : ''}`} onClick={() => { setAudioTrack(a); setSettingsOpen(false); }}>{a}</button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Mini Player */}
-          <button className="vp-btn" title="Mini Player">
+          <button className={`vp-btn ${pip ? 'bg-white/20' : ''}`} title="Mini Player" onClick={togglePip}>
             <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="12" y="9" width="8" height="6" rx="1"/></svg>
           </button>
 
           {/* Theater Mode */}
-          <button className="vp-btn" title="Theater Mode">
+          <button className={`vp-btn ${theater ? 'bg-white/20' : ''}`} title="Theater Mode" onClick={toggleTheater}>
             <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="7" x2="22" y2="7"/><line x1="2" y1="17" x2="22" y2="17"/></svg>
           </button>
 

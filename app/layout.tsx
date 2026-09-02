@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 async function getUser() {
   try {
-    const res = await fetchApi('/auth/me');
+    const res = await fetchApi('/auth/me', { cache: 'no-store' });
     if (res.ok) {
       const json = await res.json();
       return json.data?.user || json.user || null;

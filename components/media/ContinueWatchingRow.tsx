@@ -36,9 +36,11 @@ export function ContinueWatchingRow({ items }: ContinueWatchingRowProps) {
         {items.map((history) => {
           if (!history.item) return null;
           
-          const progressPercent = history.duration_seconds > 0 
+          const estimated = history.media_type === 'movie' ? 7200 : 1440;
+          const raw = history.duration_seconds > 0 
             ? (history.progress_seconds / history.duration_seconds) * 100 
-            : 0;
+            : history.progress_seconds > 0 ? (history.progress_seconds / estimated) * 100 : 0;
+          const progressPercent = history.progress_seconds > 0 ? Math.max(8, raw) : 0;
             
           const isMovie = history.media_type === 'movie';
           const endpoint = isMovie 
