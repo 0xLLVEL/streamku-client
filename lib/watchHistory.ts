@@ -1,8 +1,8 @@
 import { apiFetch } from '@/lib/apiClient';
 
 export interface WatchProgressInput {
-  watchableType: 'movie' | 'episode';
-  watchableId: number;
+  mediaType: 'movie' | 'episode';
+  mediaId: number;
   progressSeconds: number;
   durationSeconds?: number;
 }
@@ -13,36 +13,27 @@ export function isNearEnd(progressSeconds: number, durationSeconds: number): boo
 }
 
 /**
- * Record a watch-progress heartbeat. Best-effort: a PATCH to history/sync,
- * falling back to a POST history when no record exists yet.
+ * Record a watch-progress heartbeat. Single idempotent upsert: POST /history
+ * creates or updates the row for this media item.
  */
 export async function syncWatchProgress(input: WatchProgressInput): Promise<void> {
-  const { watchableType, watchableId, progressSeconds, durationSeconds = 0 } = input;
+  const { mediaType, mediaId, progressSeconds, durationSeconds = 0 } = input;
   const payload = {
-    watchable_type: watchableType,
-    watchable_id: watchableId,
+    media_type: mediaType,
+    media_id: mediaId,
     progress_seconds: Math.floor(progressSeconds),
+    duration_seconds: Math.floor(durationSeconds),
     completed: isNearEnd(progressSeconds, durationSeconds),
   };
 
   try {
-    await apiFetch('history/sync', {
-      method: 'PATCH',
+    await apiFetch('history', {
+      method: 'POST',
       body: JSON.stringify(payload),
       headers: { 'Content-Type': 'application/json' },
       requireAuth: true,
     });
-  } catch (e) {
-    if (!(e instanceof Error) || !e.message.includes('not found')) return;
-    try {
-      await apiFetch('history', {
-        method: 'POST',
-        body: JSON.stringify({ ...payload, duration_seconds: Math.floor(durationSeconds) }),
-        headers: { 'Content-Type': 'application/json' },
-        requireAuth: true,
-      });
-    } catch (err) {
-      console.error(err);
-    }
+  } catch (err) {
+    console.error(err);
   }
 }

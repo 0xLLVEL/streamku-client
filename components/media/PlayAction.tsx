@@ -62,8 +62,8 @@ export function PlayAction({
         
         if (typeof time === 'number' && time > 0) {
           await syncWatchProgress({
-            watchableType: type === 'movie' ? 'movie' : 'episode',
-            watchableId,
+            mediaType: type === 'movie' ? 'movie' : 'episode',
+            mediaId: watchableId,
             progressSeconds: time,
             durationSeconds: dur,
           });

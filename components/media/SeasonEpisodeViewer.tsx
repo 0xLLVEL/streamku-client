@@ -121,8 +121,8 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
         
         if (typeof time === 'number' && time > 0) {
           await syncWatchProgress({
-            watchableType: 'episode',
-            watchableId: episode.id,
+            mediaType: 'episode',
+            mediaId: episode.id,
             progressSeconds: time,
             durationSeconds: dur,
           });

@@ -4,11 +4,9 @@ import { useCallback, useState } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 
 type ToggleEndpoint = '/favorites' | '/watchlist';
-type ResourceKey = 'favoritable' | 'watchlistable';
 
 interface UseResourceToggleOptions {
   endpoint: ToggleEndpoint;
-  resourceKey: ResourceKey;
   resourceId: number;
   resourceType: 'movie' | 'tv_show';
   /** Server entry id when the item is already saved, otherwise null/undefined. */
@@ -28,7 +26,6 @@ interface UseResourceToggleResult {
  */
 export function useResourceToggle({
   endpoint,
-  resourceKey,
   resourceId,
   resourceType,
   initialEntryId = null,
@@ -58,8 +55,8 @@ export function useResourceToggle({
     const res = await apiFetch(endpoint, {
       method: 'POST',
       body: JSON.stringify({
-        [`${resourceKey}_id`]: resourceId,
-        [`${resourceKey}_type`]: resourceType,
+        media_id: resourceId,
+        media_type: resourceType,
       }),
       headers: { 'Content-Type': 'application/json' },
     });
@@ -75,7 +72,7 @@ export function useResourceToggle({
       setEntryId(data.data.id);
     }
     flashSuccess();
-  }, [endpoint, flashSuccess, resourceKey, resourceId, resourceType]);
+  }, [endpoint, flashSuccess, resourceId, resourceType]);
 
   const toggle = useCallback(async () => {
     if (isLoading) {

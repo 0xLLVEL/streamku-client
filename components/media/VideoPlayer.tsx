@@ -44,8 +44,8 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
       
       if (time > 0) {
         syncWatchProgress({
-          watchableType,
-          watchableId,
+          mediaType: watchableType,
+          mediaId: watchableId,
           progressSeconds: time,
           durationSeconds: dur,
         });

@@ -20,7 +20,6 @@ export function FavoriteButton({
 }: FavoriteButtonProps) {
   const { isAdded, isLoading, isSuccess, toggle } = useResourceToggle({
     endpoint: '/favorites',
-    resourceKey: 'favoritable',
     resourceId: favoritableId,
     resourceType: favoritableType,
     initialEntryId: favorite,

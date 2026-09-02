@@ -20,7 +20,6 @@ export function WatchlistButton({
 }: WatchlistButtonProps) {
   const { isAdded, isLoading, isSuccess, toggle } = useResourceToggle({
     endpoint: '/watchlist',
-    resourceKey: 'watchlistable',
     resourceId: watchableId,
     resourceType: watchableType,
     initialEntryId: watchable,

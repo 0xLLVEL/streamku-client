@@ -24,7 +24,7 @@ async function getRecommendations(slug: string): Promise<MediaItem[]> {
   const res = await fetchApi(`/tv-shows/${slug}/recommendations`, { next: { revalidate: 60 } });
   if (!res.ok) return [];
   const json = await res.json();
-  return json.data?.data || [];
+  return json.data || [];
 }
 
 export default async function TvShowDetailPage({ params }: { params: Promise<{ slug: string }> }) {
