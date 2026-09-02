@@ -2,7 +2,7 @@ import { fetchApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { tmdbImageUrl } from '@/lib/config';
+import { avatarUrl, tmdbImageUrl } from '@/lib/config';
 import type { MediaListItem, ProfileUser } from '../profile-types';
 
 interface ProfileData {
@@ -34,75 +34,59 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
     const { user, favorites } = profileData;
 
+    const displayName = user.nickname ? `@${user.nickname}` : user.name;
+
     return (
-        <div className="min-h-screen bg-[#0a0a0a] pt-28 px-4 md:px-12 lg:px-24 pb-24">
-            {/* Profile Header */}
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-5xl md:text-6xl shadow-2xl shrink-0">
-                    {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="text-center md:text-left flex flex-col justify-center h-full pt-4">
-                    <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 mb-2">
-                        {user.name}
-                    </h1>
-                </div>
-            </div>
-
-            {/* Favorites Section */}
-            <div className="mb-16">
-                <div className="flex items-center gap-3 mb-8">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-rose-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                    </svg>
-                    <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">Favorites</h2>
-                </div>
-
-                {favorites.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-16 rounded-3xl liquid-glass border-white/5 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                        <h3 className="text-xl font-bold text-white mb-2">No favorites yet</h3>
-                        <p className="text-white/50 max-w-md">{user.name} hasn&apos;t added any favorites.</p>
+        <div className="min-h-screen bg-[#0a0a0a] pb-24">
+            <div className="h-48 md:h-56 w-full bg-gradient-to-br from-zinc-800 via-[#0a0a0a] to-zinc-900 border-b border-white/5" aria-hidden />
+            <div className="max-w-[1600px] mx-auto px-4 md:px-12 lg:px-24">
+                <div className="-mt-16 md:-mt-20 flex flex-col md:flex-row md:items-end gap-6 mb-12">
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-5xl md:text-6xl shadow-2xl shrink-0 border-4 border-[#0a0a0a] ring-1 ring-white/10">
+                        {user.avatar ? <img src={avatarUrl(user.avatar) ?? ''} alt={`${user.name} avatar`} className="w-full h-full object-cover" /> : (user.nickname || user.name).charAt(0).toUpperCase()}
                     </div>
-                ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                        {favorites.map((item) => {
-                            const details = item.media_details;
-                            const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-                            const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w342') : null;
+                    <div className="pb-1">
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">{displayName}</h1>
+                        {user.nickname && <p className="text-white/60 mt-1">{user.name}</p>}
+                        <p className="text-white/40 text-sm mt-2">{favorites.length} favorites • Public profile</p>
+                    </div>
+                </div>
 
-                            return (
-                                <div key={item.id} className="relative group cursor-pointer">
-                                    <Link href={link}>
-                                        <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-lg relative">
-                                            {poster ? (
-                                                <Image
-                                                    src={poster}
-                                                    alt={details?.title || 'Media poster'}
-                                                    fill
-                                                    sizes="(max-width: 768px) 160px, 220px"
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center text-white/30 p-4 text-center">
-                                                    <span className="text-xs">No Image</span>
-                                                </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                                <div className="w-full">
-                                                    <h3 className="text-white font-bold text-sm truncate w-full shadow-black drop-shadow-md">
-                                                        {details?.title}
-                                                    </h3>
+                <section aria-labelledby="favorites-heading" className="mb-16">
+                    <div className="flex items-center gap-3 mb-6">
+                        <span className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center" aria-hidden>
+                            <svg className="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
+                        </span>
+                        <h2 id="favorites-heading" className="text-xl md:text-2xl font-bold text-white">Favorites</h2>
+                        <span className="ml-auto text-sm text-white/40">{favorites.length} titles</span>
+                    </div>
+
+                    {favorites.length === 0 ? (
+                        <div role="status" className="flex flex-col items-center justify-center p-12 md:p-16 rounded-3xl bg-white/[0.03] border border-white/5 text-center">
+                            <p className="text-white font-semibold">No favorites yet</p>
+                            <p className="text-white/50 text-sm mt-1 max-w-md">{displayName} hasn&apos;t added any favorites.</p>
+                        </div>
+                    ) : (
+                        <ul role="list" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                            {favorites.map((item) => {
+                                const details = item.media_details;
+                                const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
+                                const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w342') : null;
+                                return (
+                                    <li key={item.id} className="group">
+                                        <Link href={link} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 rounded-xl">
+                                            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 border border-white/10 relative">
+                                                {poster ? <Image src={poster} alt={details?.title || ''} fill sizes="180px" className="object-cover group-hover:scale-105 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">No Image</div>}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-end p-3">
+                                                    <h3 className="text-white font-semibold text-sm truncate">{details?.title}</h3>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Link>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+                                        </Link>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </section>
             </div>
         </div>
     );

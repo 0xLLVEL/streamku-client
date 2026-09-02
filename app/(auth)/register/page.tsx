@@ -72,10 +72,10 @@ export default function RegisterPage() {
 
           <form action={formAction} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-white/50 mb-2 uppercase tracking-widest">Full Name</label>
+              <label className="block text-[11px] font-bold text-white/50 mb-2 uppercase tracking-widest">Username</label>
               <input 
                 type="text" 
-                name="name" 
+                name="username" 
                 required 
                 className="w-full px-5 py-3.5 bg-black/40 border border-white/5 focus:bg-black/60 focus:border-white/20 backdrop-blur-md outline-none text-white rounded-xl transition-all shadow-inner"
               />

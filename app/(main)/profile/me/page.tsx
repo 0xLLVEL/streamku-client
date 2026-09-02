@@ -1,9 +1,9 @@
 import { fetchApi } from '@/lib/api';
 import { redirect } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
-import { tmdbImageUrl } from '@/lib/config';
 import type { MediaListItem, ProfileUser } from '../profile-types';
+import { LibraryTabs } from '@/components/library/LibraryTabs';
+import { avatarUrl } from '@/lib/config';
 
 async function getUser(): Promise<ProfileUser | null> {
   try {
@@ -51,150 +51,43 @@ export default async function MePage() {
     redirect('/login');
   }
 
-  const watchlist = await getWatchlist();
-  const favorites = await getFavorites();
+  const [watchlist, favorites] = await Promise.all([getWatchlist(), getFavorites()]);
+
+  const joined = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : null;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pt-28 px-4 md:px-12 lg:px-24 pb-24">
-      {/* Profile Header */}
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16">
-        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-5xl md:text-6xl shadow-2xl shrink-0">
-          {user.name.charAt(0).toUpperCase()}
-        </div>
-        <div className="text-center md:text-left flex flex-col justify-center h-full pt-4">
-          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 mb-2">
-            {user.name}
-          </h1>
-          <p className="text-lg text-white/50">{user.email}</p>
-          <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
-            <Link href="/settings" className="px-5 py-2.5 rounded-full liquid-glass hover:bg-white/10 transition-colors text-sm font-bold text-white flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-              </svg>
-              Account Settings
-            </Link>
+    <div className="min-h-screen bg-[#0a0a0a] pb-24">
+      {/* Banner */}
+      <div className="h-48 md:h-56 w-full bg-gradient-to-br from-red-900/30 via-[#0a0a0a] to-indigo-900/20 border-b border-white/5" aria-hidden />
+
+      <div className="max-w-[1600px] mx-auto px-4 md:px-12 lg:px-24">
+        {/* Profile header — overlaps banner */}
+        <div className="-mt-16 md:-mt-20 flex flex-col md:flex-row md:items-end gap-6 mb-10">
+          <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-4xl md:text-5xl shadow-2xl shrink-0 border-4 border-[#0a0a0a] ring-1 ring-white/10">
+            {user.avatar ? <img src={avatarUrl(user.avatar) ?? ''} alt={`${user.name} avatar`} className="w-full h-full object-cover" /> : (user.nickname || user.name).charAt(0).toUpperCase()}
+          </div>
+
+          <div className="flex-1 min-w-0 pb-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">{user.nickname ? `@${user.nickname}` : user.name}</h1>
+              {user.is_admin && <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-bold tracking-wide">ADMIN</span>}
+            </div>
+            {user.nickname && <p className="text-white/60 mt-1">{user.name} • {user.email}</p>}
+            {!user.nickname && <p className="text-white/60 mt-1">{user.email}</p>}
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-white/40">
+              {joined && <span>Joined {joined}</span>}
+              <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-white/20" />{watchlist.length} watchlist</span>
+              <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-white/20" />{favorites.length} favorites</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 shrink-0">
+            <Link href="/settings" className="px-5 py-2.5 rounded-full bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors">Edit profile</Link>
+            <Link href="/settings" className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 text-white text-sm font-bold transition-colors">Settings</Link>
           </div>
         </div>
-      </div>
 
-      <div className="mb-16">
-        <div className="flex items-center gap-3 mb-8">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-rose-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-          </svg>
-          <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">Favorites</h2>
-        </div>
-
-        {favorites.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-16 rounded-3xl liquid-glass border-white/5 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-            <h3 className="text-xl font-bold text-white mb-2">No favorites yet</h3>
-            <p className="text-white/50 max-w-md">{user.name} hasn&apos;t added any favorites.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {favorites.map((item) => {
-              const details = item.media_details;
-              const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w342') : null;
-
-              return (
-                <div key={item.id} className="relative group cursor-pointer">
-                  <Link href={link}>
-                    <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-lg relative">
-                      {poster ? (
-                        <Image
-                          src={poster}
-                          alt={details?.title || 'Media poster'}
-                          fill
-                          sizes="(max-width: 768px) 160px, 220px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-white/30 p-4 text-center">
-                          <span className="text-xs">No Image</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                        <div className="w-full">
-                          <h3 className="text-white font-bold text-sm truncate w-full shadow-black drop-shadow-md">
-                            {details?.title}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Watchlist Section */}
-      <div>
-        <div className="flex items-center gap-3 mb-8">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-          </svg>
-          <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">My Watchlist</h2>
-        </div>
-
-        {watchlist.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-16 rounded-3xl liquid-glass border-white/5 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-            <h3 className="text-xl font-bold text-white mb-2">Your watchlist is empty</h3>
-            <p className="text-white/50 max-w-md">Looks like you haven&apos;t added any movies or TV shows to your watchlist yet. Start exploring to add some!</p>
-            <Link href="/" className="mt-6 px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold transition-colors">
-              Explore Now
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {watchlist.map((item) => {
-              const details = item.media_details;
-              const link = item.media_type === 'movie' ? `/movie/${details?.slug}` : `/tv/${details?.slug}`;
-              const poster = details?.poster_path ? tmdbImageUrl(details.poster_path, 'w342') : null;
-
-              return (
-                <div key={item.id} className="relative group cursor-pointer">
-                  <Link href={link}>
-                    <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-lg relative">
-                      {poster ? (
-                        <Image
-                          src={poster}
-                          alt={details?.title || 'Media poster'}
-                          fill
-                          sizes="(max-width: 768px) 160px, 220px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-white/30 p-4 text-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                          <span className="text-xs">No Image</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                        <div className="w-full">
-                          <div className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">
-                            {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
-                          </div>
-                          <h3 className="text-white font-bold text-sm truncate w-full shadow-black drop-shadow-md">
-                            {details?.title}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <LibraryTabs initialWatchlist={watchlist} initialFavorites={favorites} />
       </div>
     </div>
   );

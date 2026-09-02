@@ -1,10 +1,14 @@
+import { avatarUrl } from '@/lib/config';
+
 export function UserAvatar({
   name,
+  avatar,
   userId,
   size = 'md',
   className = '',
 }: {
   name?: string | null;
+  avatar?: string | null;
   userId: number;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -21,6 +25,17 @@ export function UserAvatar({
         : 'w-16 h-16 text-2xl';
 
   const label = (name?.trim() || `User ${userId}`).charAt(0).toUpperCase();
+  const src = avatarUrl(avatar);
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name || `User ${userId}`}
+        className={`${dims} ${className} shrink-0 rounded-full object-cover ring-2 ring-white/10 shadow-lg`}
+      />
+    );
+  }
 
   return (
     <div

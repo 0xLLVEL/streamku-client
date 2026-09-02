@@ -146,6 +146,8 @@ export interface Review {
   rating: number;
   body: string | null;
   user_name?: string | null;
+  user_avatar?: string | null;
+  user_nickname?: string | null;
   created_at?: string | null;
   is_approved?: boolean;
 }
@@ -167,6 +169,8 @@ export interface Comment {
   body: string;
   parent_id?: number | null;
   user_name?: string | null;
+  user_avatar?: string | null;
+  user_nickname?: string | null;
   created_at?: string | null;
   is_approved?: boolean;
   replies?: Comment[];

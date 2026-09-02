@@ -11,8 +11,9 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     Accept: 'application/json',
     ...(options.headers as Record<string, string>),
   };

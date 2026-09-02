@@ -37,6 +37,17 @@ export function buildStreamUrl(mediaId: number | string): string {
 
 export const VIDKING_BASE_URL = 'https://www.vidking.net';
 
+/** Resolve a stored avatar path (/storage/...) to an absolute URL on the API host. */
+export function avatarUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/storage')) {
+    const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+    return `${origin}${path}`;
+  }
+  return path;
+}
+
 /** Build a VidKing embed URL. TV keys that already carry season/episode are used as-is. */
 export function buildVidKingEmbedUrl(
   key: string,

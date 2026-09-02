@@ -5,9 +5,12 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type User = {
   id: number;
-  name: string;
+  username: string;
+  name?: string;
   email: string;
   is_admin?: boolean;
+  avatar?: string | null;
+  nickname?: string | null;
   preferences?: {
     include_adult?: boolean;
     dark_mode?: boolean;

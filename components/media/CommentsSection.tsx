@@ -31,11 +31,11 @@ function CommentBox({
 
   return (
     <div className="group flex gap-3 rounded-xl p-3 -mx-2 transition-colors hover:bg-white/[0.03]">
-      <UserAvatar name={comment.user_name} userId={comment.user_id} size="sm" />
+      <UserAvatar name={comment.user_nickname ? `@${comment.user_nickname}` : `User ${comment.user_id}`} avatar={comment.user_avatar} userId={comment.user_id} size="sm" />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm font-bold text-white">{comment.user_name ?? `User ${comment.user_id}`}</span>
+          <span className="text-sm font-bold text-white">{comment.user_nickname ? `@${comment.user_nickname}` : `User ${comment.user_id}`}</span>
           {mine && (
             <span className="text-[10px] font-bold uppercase tracking-wide text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">You</span>
           )}
@@ -162,15 +162,15 @@ export function CommentsSection({
           {replyTo && (
             <p className="text-sm text-white/50 mb-3 flex items-center gap-2">
               <span>Replying to</span>
-              <UserAvatar name={replyTo.user_name} userId={replyTo.user_id} size="sm" className="w-5 h-5 text-[10px]" />
-              <span className="font-semibold text-white">{replyTo.user_name ?? `User ${replyTo.user_id}`}</span>
+              <UserAvatar name={replyTo.user_nickname ? `@${replyTo.user_nickname}` : `User ${replyTo.user_id}`} avatar={replyTo.user_avatar} userId={replyTo.user_id} size="sm" className="w-5 h-5 text-[10px]" />
+              <span className="font-semibold text-white">{replyTo.user_nickname ? `@${replyTo.user_nickname}` : `User ${replyTo.user_id}`}</span>
               <button type="button" onClick={() => setReplyTo(null)} className="ml-1 text-red-400 hover:text-red-300 font-semibold cursor-pointer">
                 cancel
               </button>
             </p>
           )}
           <div className="flex items-start gap-3">
-            {user && <UserAvatar name={user.name} userId={user.id} size="sm" />}
+            {user && <UserAvatar name={user.nickname ? `@${user.nickname}` : user.name} avatar={user.avatar} userId={user.id} size="sm" />}
             <div className="flex-1">
               <textarea
                 value={body}

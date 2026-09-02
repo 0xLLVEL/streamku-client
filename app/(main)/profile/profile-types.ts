@@ -1,6 +1,11 @@
 export interface ProfileUser {
-  name: string;
+  name?: string;
+  username: string;
   email: string;
+  avatar?: string | null;
+  nickname?: string | null;
+  created_at?: string | null;
+  is_admin?: boolean;
 }
 
 export interface MediaListItem {
