@@ -9,7 +9,10 @@ import Link from 'next/link';
 import { PosterCard } from '@/components/media/PosterCard';
 import { WatchlistButton } from '@/components/media/WatchlistButton';
 import { FavoriteButton } from '@/components/media/FavoriteButton';
+import { ReviewsSection } from '@/components/media/ReviewsSection';
+import { CommentsSection } from '@/components/media/CommentsSection';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
+import { getReviewBucket, getCommentThreads } from '@/lib/title-social';
 import { tmdbImageUrl } from '@/lib/config';
 import { TvShow, MediaItem } from '@/types';
 
@@ -38,6 +41,9 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
 
   const watchlist = await getWatchlistState(show?.id);
   const favorite = await getFavoriteState(show?.id);
+
+  const reviewBucket = await getReviewBucket('tv_show', show.id);
+  const commentThreads = await getCommentThreads('tv_show', show.id);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -188,6 +194,9 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
       {/* Seasons Grid in Liquid Glass */}
       {/* Seasons or Episodes Section */}
       <SeasonEpisodeViewer seasons={show.seasons || []} showSlug={slug} />
+
+      <ReviewsSection mediaType="tv_show" mediaId={show.id} slug={slug} initial={reviewBucket} />
+      <CommentsSection mediaType="tv_show" mediaId={show.id} slug={slug} initial={commentThreads} />
 
       {/* More Like This */}
       {(recommendations && recommendations.length > 0) && (

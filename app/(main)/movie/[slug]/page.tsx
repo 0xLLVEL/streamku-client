@@ -8,7 +8,10 @@ import Link from 'next/link';
 import { PosterCard } from '@/components/media/PosterCard';
 import { WatchlistButton } from '@/components/media/WatchlistButton';
 import { FavoriteButton } from '@/components/media/FavoriteButton';
+import { ReviewsSection } from '@/components/media/ReviewsSection';
+import { CommentsSection } from '@/components/media/CommentsSection';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
+import { getReviewBucket, getCommentThreads } from '@/lib/title-social';
 import { tmdbImageUrl } from '@/lib/config';
 import { Movie, MediaItem } from '@/types';
 
@@ -36,6 +39,9 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
   if (!movie) {
     notFound();
   }
+
+  const reviewBucket = await getReviewBucket('movie', movie.id);
+  const commentThreads = await getCommentThreads('movie', movie.id);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -148,6 +154,9 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
           </DraggableList>
         </div>
       )}
+
+      <ReviewsSection mediaType="movie" mediaId={movie.id} slug={slug} initial={reviewBucket} />
+      <CommentsSection mediaType="movie" mediaId={movie.id} slug={slug} initial={commentThreads} />
 
       {/* More Like This */}
       {(recommendations && recommendations.length > 0) && (

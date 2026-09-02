@@ -15,6 +15,8 @@ function pageTitle(pathname: string): string {
   if (pathname.startsWith('/admin/cast/')) return 'Edit Cast';
   if (pathname === '/admin/genres') return 'Genres';
   if (pathname.startsWith('/admin/genres/')) return 'Edit Genre';
+  if (pathname === '/admin/reviews') return 'Reviews';
+  if (pathname === '/admin/comments') return 'Comments';
   if (pathname.startsWith('/admin/movies/create')) return 'Create Movie';
   if (pathname.startsWith('/admin/movies/')) return 'Edit Movie';
   if (pathname.startsWith('/admin/tv-shows/create')) return 'Create TV Show';
@@ -102,13 +104,17 @@ function Sidebar({
     pathname.startsWith('/admin/movies') ||
     pathname.startsWith('/admin/tv-shows') ||
     pathname.startsWith('/admin/cast') ||
-    pathname.startsWith('/admin/genres');
+    pathname.startsWith('/admin/genres') ||
+    pathname.startsWith('/admin/reviews') ||
+    pathname.startsWith('/admin/comments');
   const isDashboard = pathname === '/admin';
 
   const contentItems = [
     { name: 'Titles', path: '/admin/content', exact: true },
     { name: 'Cast', path: '/admin/cast' },
     { name: 'Genres', path: '/admin/genres' },
+    { name: 'Reviews', path: '/admin/reviews' },
+    { name: 'Comments', path: '/admin/comments' },
   ];
 
   return (
