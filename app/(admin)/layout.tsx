@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Sidebar */}
-      <Sidebar pathname={pathname} userName={user.name} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar pathname={pathname} userName={user.name} open={sidebarOpen} />
 
       {/* Main column */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
@@ -91,12 +91,10 @@ function Sidebar({
   pathname,
   userName,
   open,
-  onClose,
 }: {
   pathname: string;
   userName: string;
   open: boolean;
-  onClose: () => void;
 }) {
   const [contentOpen, setContentOpen] = useState(true);
   const contentActive =

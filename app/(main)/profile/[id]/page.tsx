@@ -1,5 +1,6 @@
 import { fetchApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { tmdbImageUrl } from '@/lib/config';
 import type { MediaListItem, ProfileUser } from '../profile-types';
@@ -76,10 +77,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                                     <Link href={link}>
                                         <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-lg relative">
                                             {poster ? (
-                                                <img
+                                                <Image
                                                     src={poster}
                                                     alt={details?.title || 'Media poster'}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    fill
+                                                    sizes="(max-width: 768px) 160px, 220px"
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-white/30 p-4 text-center">

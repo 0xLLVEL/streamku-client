@@ -1,5 +1,6 @@
 import { fetchApi } from '@/lib/api';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { HeroTrailer } from '@/components/media/HeroTrailer';
 import { DraggableList } from '@/components/media/DraggableList';
 import { SeasonEpisodeViewer } from '@/components/media/SeasonEpisodeViewer';
@@ -154,10 +155,13 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
 
             {/* Right Side: Poster Card */}
             <div className="w-64 shrink-0 hidden lg:block liquid-glass p-2 rounded-[2rem] rotate-[2deg] hover:rotate-0 transition-transform duration-500 shadow-2xl ml-8">
-              <img
+              <Image
                 src={tmdbImageUrl(show.poster_path, 'w342') ?? ''}
-                alt={show.name}
-                className="w-full rounded-3xl shadow-inner"
+                alt={show.name ?? ''}
+                width={342}
+                height={513}
+                sizes="256px"
+                className="w-full h-auto rounded-3xl shadow-inner"
               />
             </div>
 
@@ -172,12 +176,14 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
           <DraggableList className="pb-4" innerClassName="space-x-6">
             {show.cast.slice(0, 15).map((actor, index) => (
               <div key={index} className="snap-start flex-shrink-0 w-28 md:w-36 group">
-                <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg">
+                <div className="aspect-square rounded-full overflow-hidden liquid-glass mb-3 mx-auto w-24 md:w-32 border-2 border-white/10 shadow-lg relative">
                   {actor.profile_path ? (
-                    <img
+                    <Image
                       src={tmdbImageUrl(actor.profile_path, 'w185') ?? ''}
                       alt={actor.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      fill
+                      sizes="(max-width: 768px) 96px, 128px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-white/5 text-white/30 text-xs text-center p-2">No Image</div>

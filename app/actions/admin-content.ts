@@ -71,7 +71,6 @@ export async function createGenreAction(formData: FormData) {
       return { success: true as const, id: data?.data?.id ?? data?.id ?? null };
     }
 
-    const data = await res.json();
     return { success: false as const, error: await readError(res, 'Failed to create genre') };
   } catch {
     return { success: false as const, error: 'An unexpected error occurred.' };
@@ -95,7 +94,6 @@ export async function updateGenreAction(id: number | string, formData: FormData)
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to update genre') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };

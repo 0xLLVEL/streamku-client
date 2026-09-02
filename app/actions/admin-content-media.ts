@@ -38,7 +38,6 @@ export async function createMovieAction(formData: FormData) {
       return { success: true, id: data.data?.id };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to create movie') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -68,7 +67,6 @@ export async function createTvShowAction(formData: FormData) {
       return { success: true, id: data.data?.id };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to create TV show') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -98,7 +96,6 @@ export async function updateMovieAction(id: number | string, formData: FormData)
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to update movie') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -128,7 +125,6 @@ export async function updateTvShowAction(id: number | string, formData: FormData
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to update TV show') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -150,7 +146,6 @@ export async function importMovieFromTmdbAction(tmdbId: string | number) {
       return { success: true, id: data.data?.id };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to import movie from TMDB') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -170,7 +165,6 @@ export async function importTvShowFromTmdbAction(tmdbId: string | number) {
       return { success: true, id: data.data?.id };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to import TV show from TMDB') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };

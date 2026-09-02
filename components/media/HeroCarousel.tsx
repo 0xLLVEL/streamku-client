@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MediaItem } from '@/types';
 import { tmdbImageUrl } from '@/lib/config';
 
@@ -45,11 +46,12 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
               className="relative w-full h-full shrink-0"
             >
               <div className="absolute inset-0">
-                <img
+                <Image
                   src={tmdbImageUrl(item.backdrop_path, 'w1280') ?? ''}
-                  fetchPriority={index === 0 ? 'high' : undefined}
-                  alt={item.title || item.name}
-                  className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${isActive ? 'scale-105' : 'scale-100'}`}
+                      alt={item.title || item.name || ''}
+                  fill
+                  sizes="100vw"
+                  className={`object-cover transition-transform duration-[10000ms] ease-out ${isActive ? 'scale-105' : 'scale-100'}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-transparent" />
@@ -60,10 +62,12 @@ export function HeroCarousel({ items }: { items: MediaItem[] }) {
                 <div className={`w-full max-w-2xl transition-all duration-1000 delay-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                   {/* Logo or Text Title */}
                   {item.images?.logos?.[0]?.file_path ? (
-                    <img
+                    <Image
                       src={tmdbImageUrl(item.images.logos[0].file_path, 'w500') ?? ''}
-                      alt={item.title || item.name}
-                      className="max-h-20 sm:max-h-24 md:max-h-32 object-contain mb-3 drop-shadow-md origin-left"
+                  alt={item.title || item.name || ''}
+                      width={400}
+                      height={140}
+                      className="w-auto h-auto max-h-20 sm:max-h-24 md:max-h-32 object-contain mb-3 drop-shadow-md origin-left"
                     />
                   ) : (
                     <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-2 tracking-tight drop-shadow-md">

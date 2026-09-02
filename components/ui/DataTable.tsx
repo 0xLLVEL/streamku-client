@@ -28,6 +28,9 @@ import { AdminCard } from "@/components/admin/ui"
 
 declare module "@tanstack/react-table" {
   // Allow per-column meta with a known shape across all tables in the app.
+  // The type params must match the augmented generic's arity; they're only
+  // placeholders here, hence the suppression.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string
   }
@@ -67,6 +70,9 @@ export function DataTable<TData, TValue>({
   toolbarAction,
   enableSorting = true,
 }: DataTableProps<TData, TValue>) {
+  // TanStack Table's hook reports as "incompatible library" under the React
+  // Compiler, but it's a false positive here (no memoized consumers).
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

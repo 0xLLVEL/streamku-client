@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { API_BASE_URL, buildStreamUrl, buildVidKingEmbedUrl, tmdbImageUrl } from '@/lib/config';
 import { resolveStreamableVideo } from '@/lib/media';
@@ -68,12 +69,14 @@ export function SeasonEpisodeViewer({ seasons, showSlug }: SeasonEpisodeViewerPr
             onClick={() => setSelectedSeasonId(season.id)}
             className="cursor-pointer group"
           >
-            <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 aspect-[2/3]">
+            <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 aspect-[2/3] relative">
               {season.poster_path ? (
-                <img 
+                <Image 
                   src={tmdbImageUrl(season.poster_path, 'w300') ?? ''} 
                   alt={season.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="220px"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[10px] md:text-xs text-white/30">No Poster</div>
@@ -196,7 +199,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
         )}
         <div className="w-full aspect-video bg-black/50 relative">
           {episode.still_path ? (
-            <img src={tmdbImageUrl(episode.still_path, 'w300') ?? ''} alt={episode.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <Image src={tmdbImageUrl(episode.still_path, 'w300') ?? ''} alt={episode.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="400px" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs text-white/30">No Image</div>
           )}

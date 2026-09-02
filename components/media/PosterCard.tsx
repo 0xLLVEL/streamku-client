@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { MediaItem } from '@/types';
 import { tmdbImageUrl } from '@/lib/config';
@@ -17,10 +18,12 @@ export function PosterCard({ item, priority = false }: PosterCardProps) {
     <Link href={href} className="group flex flex-col w-[140px] md:w-[180px] flex-shrink-0 transition-all duration-300">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1e1e24] border border-white/5 shadow-sm group-hover:border-white/20 transition-all">
         {item.poster_path ? (
-          <img
-            src={tmdbImageUrl(item.poster_path, 'w342') ?? undefined}
-            alt={displayTitle}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          <Image
+            src={tmdbImageUrl(item.poster_path, 'w342') ?? ''}
+            alt={displayTitle ?? ''}
+            fill
+            sizes="(max-width: 768px) 140px, 180px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             loading={priority ? "eager" : "lazy"}
           />
         ) : (

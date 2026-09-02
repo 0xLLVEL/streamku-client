@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { tmdbImageUrl } from '@/lib/config';
 
 interface HeroTrailerProps {
@@ -122,10 +123,12 @@ export function HeroTrailer({ backdropPath, title, trailerUrl }: HeroTrailerProp
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
       {/* Static Backdrop (Always behind) */}
-      <img
+      <Image
         src={tmdbImageUrl(backdropPath, 'w1280') ?? ''}
         alt={title}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${videoPlaying ? 'opacity-0' : 'opacity-100'}`}
+        fill
+        sizes="100vw"
+        className={`object-cover transition-opacity duration-[2000ms] ease-in-out ${videoPlaying ? 'opacity-0' : 'opacity-100'}`}
       />
 
       {/* Video Player Container */}

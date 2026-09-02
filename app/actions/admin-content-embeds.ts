@@ -53,7 +53,6 @@ export async function createEmbedVideoAction(params: {
       return { success: true, data: data.data };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to save embed video') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -108,7 +107,6 @@ export async function deleteSeasonAction(tvShowId: number | string, seasonNumber
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to delete season') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -130,7 +128,6 @@ export async function bulkGenerateVidkingEpisodesAction(tvShowId: number | strin
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to bulk generate episodes') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -156,7 +153,6 @@ export async function updateSeasonAction(tvShowId: number | string, seasonNumber
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to update season') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -183,7 +179,6 @@ export async function updateEpisodeAction(tvShowId: number | string, seasonNumbe
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to update episode') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
@@ -202,7 +197,6 @@ export async function deleteMediaAction(mediaId: number | string) {
       return { success: true };
     }
 
-    const data = await res.json();
     return { success: false, error: await readError(res, 'Failed to delete media') };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };

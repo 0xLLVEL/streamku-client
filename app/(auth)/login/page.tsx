@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { loginAction } from '@/app/actions/auth';
 import Link from 'next/link';
+import Image from 'next/image';
 import { tmdbImageUrl } from '@/lib/config';
 
 export default function LoginPage() {
@@ -13,10 +14,13 @@ export default function LoginPage() {
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-black">
       {/* Full-screen Background Image with Heavy Overlay */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <Image 
           src={tmdbImageUrl('/9l1eZiJHmhr5jIlthMdJN5WYoff.jpg', 'w1280') ?? ''} 
           alt="Background" 
-          className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
+          fill
+          sizes="100vw"
+          preload
+          className="object-cover opacity-60 scale-105 blur-[2px]"
         />
         <div className="absolute inset-0 bg-black/60 bg-gradient-to-t from-black via-black/40 to-black/60" />
       </div>

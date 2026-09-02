@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/apiClient';
 import { useTusUpload } from '@/hooks/useTusUpload';
 import { Label } from '@/components/ui/Label';
@@ -269,8 +270,8 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
             <div>
               <label className="block text-xs font-medium text-white/50 mb-2">Title</label>
               <div className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
-                <div className="w-6 h-8 bg-white/10 rounded overflow-hidden shrink-0 flex items-center justify-center">
-                  {parentPoster ? <img src={tmdbImageUrl(parentPoster, 'w92') ?? undefined} alt="" className="w-full h-full object-cover" /> : <svg className="w-3 h-3 text-white/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M4 4h16v16H4z"></path></svg>}
+                <div className="w-6 h-8 bg-white/10 rounded overflow-hidden shrink-0 flex items-center justify-center relative">
+                  {parentPoster ? <Image src={tmdbImageUrl(parentPoster, 'w92') ?? ''} alt="" fill sizes="24px" className="object-cover" /> : <svg className="w-3 h-3 text-white/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M4 4h16v16H4z"></path></svg>}
                 </div>
                 <span className="text-white text-sm truncate">{parentTitle}</span>
               </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { PlayAction } from '@/components/media/PlayAction';
 import { DraggableList } from '@/components/media/DraggableList';
 import { tmdbImageUrl } from '@/lib/config';
@@ -52,10 +53,12 @@ export function ContinueWatchingRow({ items }: ContinueWatchingRowProps) {
             <div key={history.id} className="relative snap-start shrink-0 w-[200px] md:w-[240px] flex flex-col group cursor-pointer transition-all duration-300">
               <div className="relative aspect-video rounded-xl overflow-hidden bg-[#1e1e24] border border-white/5 shadow-sm group-hover:border-white/20 transition-all">
                 {history.item.poster_path ? (
-                  <img
+                  <Image
                     src={tmdbImageUrl(history.item.poster_path, 'w342') ?? ''}
                     alt={displayTitle}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                    fill
+                    sizes="(max-width: 768px) 200px, 240px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-80 group-hover:opacity-100"
                     loading="lazy"
                   />
                 ) : (
