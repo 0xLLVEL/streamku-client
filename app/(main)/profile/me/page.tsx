@@ -69,7 +69,7 @@ export default async function MePage() {
 
           <div className="flex-1 min-w-0 pb-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">{user.nickname ? `@${user.nickname}` : user.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">{user.nickname ?? user.name}</h1>
               {user.is_admin && <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-bold tracking-wide">ADMIN</span>}
             </div>
             {user.nickname && <p className="text-white/60 mt-1">{user.name} • {user.email}</p>}

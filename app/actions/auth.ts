@@ -97,6 +97,10 @@ export async function updateSettingsAction(
 ): Promise<UpdateSettingsResult> {
   const username = formData.get('username') as string;
   const nickname = formData.get('nickname') as string;
+  const email = formData.get('email') as string;
+  const current_password = formData.get('current_password') as string;
+  const password = formData.get('password') as string;
+  const password_confirmation = formData.get('password_confirmation') as string;
   const language = formData.get('language') as string;
   const include_adult = formData.get('include_adult') === 'on';
   const avatar = formData.get('avatar') as File | null;
@@ -108,26 +112,36 @@ export async function updateSettingsAction(
       const fd = new FormData();
       if (username) fd.append('username', username);
       if (nickname) fd.append('nickname', nickname);
+      if (email) fd.append('email', email);
+      if (current_password) fd.append('current_password', current_password);
+      if (password) fd.append('password', password);
+      if (password_confirmation) fd.append('password_confirmation', password_confirmation);
       fd.append('avatar', avatar);
       fd.append('preferences[language]', language);
       fd.append('preferences[include_adult]', include_adult ? '1' : '0');
       fd.append('_method', 'PUT');
       res = await fetchApi('/auth/me', { method: 'POST', body: fd } as RequestInit);
     } else {
+      const payload: Record<string, unknown> = {
+        username,
+        nickname: nickname || null,
+        preferences: { language, include_adult },
+      };
+      if (email) payload.email = email;
+      if (current_password) payload.current_password = current_password;
+      if (password) { payload.password = password; payload.password_confirmation = password_confirmation; }
       res = await fetchApi('/auth/me', {
         method: 'PUT',
-        body: JSON.stringify({
-          username,
-          nickname: nickname || null,
-          preferences: { language, include_adult },
-        }),
+        body: JSON.stringify(payload),
       });
     }
 
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.message || 'Failed to update settings' };
+      // surface first validation error if present
+      const err = data.errors ? Object.values(data.errors).flat().join(' ') : data.message;
+      return { error: err || 'Failed to update settings' };
     }
 
     return { success: true, user: data.data.user };

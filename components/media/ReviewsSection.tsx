@@ -228,11 +228,11 @@ export function ReviewsSection({
             const mine = user && review.user_id === user.id;
             return (
               <div key={review.id} className="liquid-glass rounded-2xl p-5 flex gap-4">
-                <UserAvatar name={review.user_nickname ? `@${review.user_nickname}` : `User ${review.user_id}`} avatar={review.user_avatar} userId={review.user_id} />
+                <UserAvatar name={review.user_nickname ?? `User ${review.user_id}`} avatar={review.user_avatar} userId={review.user_id} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white">{review.user_nickname ? `@${review.user_nickname}` : `User ${review.user_id}`}</span>
+                      <span className="text-sm font-bold text-white">{review.user_nickname ?? `User ${review.user_id}`}</span>
                       {mine && (
                         <span className="text-[10px] font-bold uppercase tracking-wide text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">You</span>
                       )}

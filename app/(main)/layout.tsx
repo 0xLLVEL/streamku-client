@@ -121,7 +121,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-sm shadow-inner shrink-0">
                     {user.avatar ? <img src={avatarUrl(user.avatar) ?? ''} alt="avatar" className="w-full h-full object-cover" /> : (user.nickname || (user as unknown as { username?: string }).username || user.name || 'U').charAt(0).toUpperCase()}
                   </div>
-                  <span className="font-medium group-hover:text-red-300 transition-colors hidden sm:block max-w-[100px] truncate">{user.nickname ? `@${user.nickname}` : ((user as unknown as { username?: string }).username || user.name || '')}</span>
+                  <span className="font-medium group-hover:text-red-300 transition-colors hidden sm:block max-w-[100px] truncate">{user.nickname ?? ((user as unknown as { username?: string }).username || user.name || '')}</span>
                   <svg className={`w-3.5 h-3.5 text-white/50 transition-transform duration-300 hidden sm:block ${isUserMenuOpen ? 'rotate-180 text-white' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                 </button>
 

@@ -34,7 +34,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
     const { user, favorites } = profileData;
 
-    const displayName = user.nickname ? `@${user.nickname}` : user.name;
+    const displayName = user.nickname ?? user.name;
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] pb-24">

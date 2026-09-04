@@ -12,6 +12,10 @@ export default function SettingsPage() {
 
   const [username, setUsername] = useState((user as unknown as { username?: string })?.username ?? user?.name ?? '');
   const [nickname, setNickname] = useState(user?.nickname ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [language, setLanguage] = useState(user?.preferences?.language ?? 'en');
   const [includeAdult, setIncludeAdult] = useState(user?.preferences?.include_adult ?? false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -27,10 +31,19 @@ export default function SettingsPage() {
     if (user) {
       setUsername((user as unknown as { username?: string })?.username ?? user.name ?? '');
       setNickname(user.nickname ?? '');
+      setEmail(user.email ?? '');
       setLanguage(user.preferences?.language ?? 'en');
       setIncludeAdult(!!user.preferences?.include_adult);
     }
-  }, [user, (user as unknown as { username?: string })?.username, user?.nickname, user?.preferences?.language, user?.preferences?.include_adult]);
+  }, [user, (user as unknown as { username?: string })?.username, user?.nickname, user?.email, user?.preferences?.language, user?.preferences?.include_adult]);
+
+  useEffect(() => {
+    if (state?.success) {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+  }, [state?.success]);
 
   useEffect(() => {
     if (avatarFile) {
@@ -76,7 +89,7 @@ export default function SettingsPage() {
                 <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               </span> Profile
             </legend>
-            <p className="text-sm text-white/40 mt-1 mb-6">This is how others see you — avatar and <span className="text-white/60 font-mono text-xs">@nickname</span> in reviews and comments.</p>
+            <p className="text-sm text-white/40 mt-1 mb-6">This is how others see you — avatar and nickname in reviews and comments.</p>
 
             <div className="flex flex-col sm:flex-row gap-8">
               <div className="flex flex-col items-center gap-3 shrink-0">
@@ -102,8 +115,8 @@ export default function SettingsPage() {
                     {avatarPreview ? <img src={avatarPreview} alt="preview" className="w-full h-full object-cover" /> : (nickname || username || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{nickname ? `@${nickname}` : username || 'Your nickname'}</p>
-                    <p className="text-xs text-white/40">Preview — others see @nickname</p>
+                    <p className="text-sm font-bold text-white truncate">{nickname || username || 'Your nickname'}</p>
+                    <p className="text-xs text-white/40">Preview — others see nickname</p>
                   </div>
                 </div>
 
@@ -122,10 +135,37 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label htmlFor="settings-email" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Email</label>
-                  <input id="settings-email" value={user.email} disabled aria-disabled="true" className="w-full bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3 text-white/50 cursor-not-allowed" />
-                  <p className="text-[11px] text-white/30 mt-1">Email cannot be changed here.</p>
+                  <input id="settings-email" name="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+                  <p className="text-[11px] text-white/30 mt-1">We&apos;ll use this for login and notifications.</p>
                 </div>
               </div>
+            </div>
+          </fieldset>
+
+          {/* Account Security Card */}
+          <fieldset className="liquid-glass rounded-3xl p-6 md:p-8 border border-white/10">
+            <legend className="text-lg font-bold text-white flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center" aria-hidden>
+                <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </span> Account Security
+            </legend>
+            <p className="text-sm text-white/40 mt-1 mb-6">Update email or password. Leave password blank to keep current.</p>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="settings-current-password" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Current Password</label>
+                <input id="settings-current-password" name="current_password" type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="settings-password" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">New Password</label>
+                  <input id="settings-password" name="password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min 8 characters" autoComplete="new-password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+                </div>
+                <div>
+                  <label htmlFor="settings-password-confirm" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Confirm New Password</label>
+                  <input id="settings-password-confirm" name="password_confirmation" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat new password" autoComplete="new-password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+                </div>
+              </div>
+              <p className="text-[11px] text-white/35">Password must be at least 8 characters. Current password required to set a new one.</p>
             </div>
           </fieldset>
 
