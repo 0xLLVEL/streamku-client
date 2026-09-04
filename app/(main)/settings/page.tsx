@@ -5,17 +5,30 @@ import { useAuth, type User } from '@/providers/AuthProvider';
 import { updateSettingsAction } from '@/app/actions/auth';
 import { useActionState, useEffect, useState, useRef } from 'react';
 import { avatarUrl } from '@/lib/config';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
+
+type SectionId = 'profile' | 'account' | 'preferences';
+
+const NAV_ITEMS: { id: SectionId; label: string; description: string }[] = [
+  { id: 'profile', label: 'Profile', description: 'Avatar & display name' },
+  { id: 'account', label: 'Account', description: 'Email & password' },
+  { id: 'preferences', label: 'Preferences', description: 'Language & content' },
+];
 
 export default function SettingsPage() {
   const { user, setUser } = useAuth();
   const [state, formAction, isPending] = useActionState(updateSettingsAction, null);
 
+  const [activeSection, setActiveSection] = useState<SectionId>('profile');
   const [username, setUsername] = useState((user as unknown as { username?: string })?.username ?? user?.name ?? '');
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
   const [language, setLanguage] = useState(user?.preferences?.language ?? 'en');
   const [includeAdult, setIncludeAdult] = useState(user?.preferences?.include_adult ?? false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -26,7 +39,6 @@ export default function SettingsPage() {
     if (state?.success && state.user) setUser(state.user as User);
   }, [state, setUser]);
 
-  // Keep form fields in sync when user loads/updates (e.g. after login)
   useEffect(() => {
     if (user) {
       setUsername((user as unknown as { username?: string })?.username ?? user.name ?? '');
@@ -58,154 +70,248 @@ export default function SettingsPage() {
   if (!user) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4" aria-hidden>
-          <svg className="w-8 h-8 text-white/30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+        <div className="w-14 h-14 rounded-xl bg-muted border border-border flex items-center justify-center mb-4" aria-hidden>
+          <svg className="w-7 h-7 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
-        <h2 className="text-xl font-bold text-white">Sign in required</h2>
-        <p className="text-sm text-white/50 mt-1">Please log in to manage your profile.</p>
-        <a href="/login" className="mt-6 px-6 py-2.5 rounded-full bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors">Go to login</a>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Sign in required</h1>
+        <p className="text-sm text-muted-foreground mt-1 max-w-sm">You need to be signed in to manage your account settings.</p>
+        <a href="/login" className="mt-6 inline-flex items-center justify-center h-10 px-6 rounded-full bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-colors focus-ring">Go to login</a>
       </div>
     );
   }
 
+  const scrollTo = (id: SectionId) => {
+    setActiveSection(id);
+    document.getElementById(`section-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="pt-24 pb-20 px-4 md:px-12 lg:px-24 min-h-screen">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-black tracking-tight text-white">Settings</h1>
-          <p className="text-sm text-white/50 mt-1">Manage your profile and how Streamku personalizes for you.</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        {/* Header */}
+        <div className="mb-8 md:mb-10">
+          <h1 className="text-[28px] md:text-[32px] font-bold tracking-tight text-foreground leading-none">Settings</h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-xl">Manage your profile, account security, and viewing preferences. Changes apply across reviews, comments, and recommendations.</p>
         </div>
 
-        {state?.error && <div role="alert" className="mb-6 p-4 rounded-2xl bg-red-500/15 border border-red-500/20 text-red-200 text-sm">{state.error}</div>}
-        {state?.success && <div role="status" className="mb-6 p-4 rounded-2xl bg-green-500/15 border border-green-500/20 text-green-200 text-sm">Settings saved — updated across your profile, reviews and comments.</div>}
+        {/* Feedback */}
+        {state?.error && (
+          <div role="alert" className="mb-6 flex gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+            <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+            <span className="min-w-0">{state.error}</span>
+          </div>
+        )}
+        {state?.success && (
+          <div role="status" className="mb-6 flex gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-200">
+            <svg className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <span>Settings saved. Your profile is updated everywhere.</span>
+          </div>
+        )}
 
-        <form action={formAction} className="space-y-6" aria-labelledby="settings-heading">
-          <h2 id="settings-heading" className="sr-only">Account settings</h2>
-
-          {/* Profile Card */}
-          <fieldset className="liquid-glass rounded-3xl p-6 md:p-8 border border-white/10">
-            <legend className="text-lg font-bold text-white flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center" aria-hidden>
-                <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              </span> Profile
-            </legend>
-            <p className="text-sm text-white/40 mt-1 mb-6">This is how others see you — avatar and nickname in reviews and comments.</p>
-
-            <div className="flex flex-col sm:flex-row gap-8">
-              <div className="flex flex-col items-center gap-3 shrink-0">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-2xl border-2 border-white/10 shadow-lg">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {avatarPreview ? <img src={avatarPreview} alt={`${username || (user as unknown as { username?: string })?.username || ''} avatar`} className="w-full h-full object-cover" /> : ((user.nickname || (user as unknown as { username?: string })?.username || user.name || 'U') as string).charAt(0).toUpperCase()}
-                </div>
-                <input ref={fileRef} type="file" name="avatar" accept="image/*" className="hidden" onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} aria-label="Upload avatar" />
-                <button type="button" onClick={() => fileRef.current?.click()} className="text-xs font-bold px-4 py-1.5 rounded-full bg-white text-black hover:bg-white/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
-                  {avatarFile ? 'Change photo' : 'Upload photo'}
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 lg:gap-8 items-start">
+          {/* Sidebar / Tabs */}
+          <nav aria-label="Settings sections" className="lg:sticky lg:top-20">
+            {/* Mobile: horizontal tabs */}
+            <div className="flex lg:hidden gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none" role="tablist">
+              {NAV_ITEMS.map((item) => (
+                <button
+                  key={item.id}
+                  role="tab"
+                  aria-selected={activeSection === item.id}
+                  aria-controls={`section-${item.id}`}
+                  onClick={() => scrollTo(item.id)}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium border transition-colors focus-ring ${activeSection === item.id ? 'bg-foreground text-background border-foreground' : 'bg-muted text-muted-foreground border-border hover:bg-muted/80 hover:text-foreground'}`}
+                >
+                  {item.label}
                 </button>
-                {avatarPreview && (
-                  <button type="button" onClick={() => { setAvatarFile(null); setAvatarPreview(null); if (fileRef.current) fileRef.current.value = ''; }} className="text-xs text-white/50 hover:text-white focus-visible:outline-none focus-visible:text-white">
-                    Remove
+              ))}
+            </div>
+            {/* Desktop: vertical nav */}
+            <div className="hidden lg:block rounded-2xl border border-border bg-card p-2">
+              {NAV_ITEMS.map((item) => {
+                const active = activeSection === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollTo(item.id)}
+                    aria-current={active ? 'true' : undefined}
+                    className={`w-full text-left rounded-xl px-3 py-3 flex items-start gap-3 transition-colors focus-ring ${active ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                  >
+                    <span className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 ${active ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground'}`} aria-hidden>
+                      {item.label.charAt(0)}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block text-sm font-semibold leading-none ${active ? 'text-background' : 'text-foreground'}`}>{item.label}</span>
+                      <span className={`block text-xs mt-1 leading-none ${active ? 'text-background/70' : 'text-muted-foreground'}`}>{item.description}</span>
+                    </span>
                   </button>
-                )}
-                <span className="text-[11px] text-white/30">JPG, PNG • max 2 MB</span>
+                );
+              })}
+              <div className="mt-3 pt-3 border-t border-border px-3 pb-2">
+                <p className="text-xs text-muted-foreground leading-relaxed">Signed in as <span className="text-foreground font-medium">{user.email}</span></p>
+              </div>
+            </div>
+          </nav>
+
+          {/* Content */}
+          <form action={formAction} className="space-y-6" aria-labelledby="settings-heading">
+            <h2 id="settings-heading" className="sr-only">Account settings</h2>
+
+            {/* Profile */}
+            <section id="section-profile" aria-labelledby="profile-heading" className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="px-6 md:px-8 py-6 border-b border-border">
+                <h2 id="profile-heading" className="text-base font-semibold text-foreground tracking-tight">Profile</h2>
+                <p className="text-sm text-muted-foreground mt-1">Visible to other members in reviews and comments.</p>
               </div>
 
-              <div className="flex-1 space-y-4 min-w-0">
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
-                  <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    {avatarPreview ? <img src={avatarPreview} alt="preview" className="w-full h-full object-cover" /> : (nickname || username || 'U').charAt(0).toUpperCase()}
+              <div className="p-6 md:p-8 space-y-8">
+                {/* Avatar row */}
+                <div className="flex flex-col sm:flex-row gap-6">
+                  <div className="flex flex-row sm:flex-col items-center gap-4 sm:gap-3 sm:w-[160px] shrink-0">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-muted border border-border flex items-center justify-center text-foreground font-bold text-xl shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {avatarPreview ? <img src={avatarPreview} alt={`${nickname || username} avatar preview`} className="w-full h-full object-cover" /> : (nickname || username || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col gap-2 items-start sm:items-center">
+                      <input ref={fileRef} type="file" name="avatar" accept="image/*" className="hidden" onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)} aria-label="Upload avatar image" />
+                      <Button type="button" variant="secondary" size="sm" onClick={() => fileRef.current?.click()} className="h-8 rounded-full px-4 text-xs">
+                        {avatarFile ? 'Change' : 'Upload'}
+                      </Button>
+                      {avatarPreview && (
+                        <button type="button" onClick={() => { setAvatarFile(null); setAvatarPreview(null); if (fileRef.current) fileRef.current.value = ''; }} className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline focus-ring rounded">Remove</button>
+                      )}
+                      <span className="hidden sm:block text-[11px] text-muted-foreground">JPG or PNG, max 2MB</span>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{nickname || username || 'Your nickname'}</p>
-                    <p className="text-xs text-white/40">Preview — others see nickname</p>
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-muted border border-border flex items-center justify-center text-foreground font-semibold text-sm shrink-0">
+                        {avatarPreview ? <img src={avatarPreview} alt="" className="w-full h-full object-cover" aria-hidden /> : (nickname || username || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{nickname || username || 'Your display name'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{username ? `${username} • preview` : 'Preview how others see you'}</p>
+                      </div>
+                      <span className="ml-auto hidden sm:inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">Preview</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground px-1">Avatar is cropped to square. Keep it recognizable at small sizes.</p>
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="settings-username" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Username <span className="normal-case font-normal text-white/30">a-z 0-9 _</span></label>
+                {/* Fields */}
+                <div className="grid grid-cols-1 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-username">Username</Label>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground" aria-hidden>@</span>
+                        <Input id="settings-username" name="username" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="streamku_fan" maxLength={30} autoComplete="username" className="pl-8" aria-describedby="username-help" />
+                      </div>
+                      <p id="username-help" className="text-xs text-muted-foreground">3–30 characters: letters, numbers, underscore.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-nickname">Display name</Label>
+                      <Input id="settings-nickname" name="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Budi" maxLength={50} autoComplete="nickname" aria-describedby="nickname-help" />
+                      <p id="nickname-help" className="text-xs text-muted-foreground">Max 50 characters. Public. No @ needed.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-email">Email address</Label>
+                    <Input id="settings-email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" inputMode="email" aria-describedby="email-help" />
+                    <p id="email-help" className="text-xs text-muted-foreground">Used for sign-in and notifications. Must be unique.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Account */}
+            <section id="section-account" aria-labelledby="account-heading" className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="px-6 md:px-8 py-6 border-b border-border">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 id="account-heading" className="text-base font-semibold text-foreground tracking-tight">Account</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Change your password. Leave blank to keep the current one.</p>
+                  </div>
+                  <label className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground cursor-pointer select-none">
+                    <input type="checkbox" checked={showPasswords} onChange={(e) => setShowPasswords(e.target.checked)} className="w-4 h-4 rounded border-input bg-background text-foreground focus:ring-ring" />
+                    Show
+                  </label>
+                </div>
+              </div>
+              <div className="p-6 md:p-8 space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="settings-current-password">Current password</Label>
+                  <Input id="settings-current-password" name="current_password" type={showPasswords ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Required to set a new password" autoComplete="current-password" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-password">New password</Label>
+                    <Input id="settings-password" name="password" type={showPasswords ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" aria-describedby="password-help" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-password-confirm">Confirm new password</Label>
+                    <Input id="settings-password-confirm" name="password_confirmation" type={showPasswords ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat new password" autoComplete="new-password" />
+                  </div>
+                </div>
+                <p id="password-help" className="text-xs text-muted-foreground">We never store your password. Use a unique, strong password.</p>
+              </div>
+            </section>
+
+            {/* Preferences */}
+            <section id="section-preferences" aria-labelledby="preferences-heading" className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="px-6 md:px-8 py-6 border-b border-border">
+                <h2 id="preferences-heading" className="text-base font-semibold text-foreground tracking-tight">Preferences</h2>
+                <p className="text-sm text-muted-foreground mt-1">Personalize appearance, language, and content filters.</p>
+              </div>
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="space-y-2 max-w-sm">
+                  <Label htmlFor="settings-language">Language</Label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 select-none" aria-hidden>@</span>
-                    <input id="settings-username" type="text" name="username" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} placeholder="streamku_fan" maxLength={30} autoComplete="username" className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
+                    <select id="settings-language" name="language" value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full h-11 rounded-xl border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 appearance-none">
+                      <option value="en">English</option>
+                      <option value="id">Indonesian</option>
+                      <option value="es">Spanish</option>
+                      <option value="fr">French</option>
+                    </select>
+                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                   </div>
-                  <p className="text-[11px] text-white/35 mt-1">3–30 chars, letters, numbers, underscore. Used for login.</p>
                 </div>
-                <div>
-                  <label htmlFor="settings-nickname" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Nickname <span className="normal-case font-normal text-white/30">public display</span></label>
-                  <input id="settings-nickname" type="text" name="nickname" value={nickname} onChange={e => setNickname(e.target.value)} placeholder="Budi Cool 😎" maxLength={50} aria-describedby="nickname-help" autoComplete="nickname" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
-                  <p id="nickname-help" className="text-[11px] text-white/35 mt-1.5">Any characters, max 50. Shown publicly as your display name.</p>
+
+                <div className="rounded-xl border border-border bg-muted/30 p-4 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground">Include adult content (18+)</h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">Show mature titles in Browse, search, and recommendations. You can change this anytime.</p>
+                  </div>
+                  <label className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-muted transition-colors has-[input:checked]:bg-red-600 focus-within:ring-2 focus-within:ring-ring">
+                    <input id="settings-adult" name="include_adult" type="checkbox" checked={includeAdult} onChange={(e) => setIncludeAdult(e.target.checked)} className="peer sr-only" />
+                    <span className="pointer-events-none absolute h-5 w-5 rounded-full bg-white left-0.5 top-0.5 transition-transform peer-checked:translate-x-5 shadow" aria-hidden />
+                    <span className="sr-only">Include adult content</span>
+                  </label>
                 </div>
-                <div>
-                  <label htmlFor="settings-email" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Email</label>
-                  <input id="settings-email" name="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
-                  <p className="text-[11px] text-white/30 mt-1">We&apos;ll use this for login and notifications.</p>
-                </div>
+              </div>
+            </section>
+
+            {/* Sticky save bar */}
+            <div className="sticky bottom-0 -mx-4 sm:mx-0 px-4 sm:px-0 py-4 sm:py-0 bg-gradient-to-t from-background via-background/90 to-transparent sm:bg-none border-t border-border sm:border-0 backdrop-blur sm:backdrop-blur-none">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <p className="hidden sm:block text-xs text-muted-foreground">All changes are saved together.</p>
+                <Button type="submit" disabled={isPending} aria-busy={isPending} variant="brand" size="default" className="w-full sm:w-auto min-w-[160px]">
+                  {isPending ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" aria-hidden />
+                      Saving…
+                    </span>
+                  ) : (
+                    'Save changes'
+                  )}
+                </Button>
               </div>
             </div>
-          </fieldset>
-
-          {/* Account Security Card */}
-          <fieldset className="liquid-glass rounded-3xl p-6 md:p-8 border border-white/10">
-            <legend className="text-lg font-bold text-white flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center" aria-hidden>
-                <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              </span> Account Security
-            </legend>
-            <p className="text-sm text-white/40 mt-1 mb-6">Update email or password. Leave password blank to keep current.</p>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="settings-current-password" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Current Password</label>
-                <input id="settings-current-password" name="current_password" type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="settings-password" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">New Password</label>
-                  <input id="settings-password" name="password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min 8 characters" autoComplete="new-password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
-                </div>
-                <div>
-                  <label htmlFor="settings-password-confirm" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Confirm New Password</label>
-                  <input id="settings-password-confirm" name="password_confirmation" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat new password" autoComplete="new-password" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 transition-colors" />
-                </div>
-              </div>
-              <p className="text-[11px] text-white/35">Password must be at least 8 characters. Current password required to set a new one.</p>
-            </div>
-          </fieldset>
-
-          {/* Preferences Card */}
-          <fieldset className="liquid-glass rounded-3xl p-6 md:p-8 border border-white/10">
-            <legend className="text-lg font-bold text-white flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center" aria-hidden>
-                <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              </span> Preferences
-            </legend>
-            <p className="text-sm text-white/40 mt-1 mb-6">Language and sensitive-content filtering.</p>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="settings-language" className="block text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Language</label>
-                <div className="relative">
-                  <select id="settings-language" name="language" value={language} onChange={e => setLanguage(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 appearance-none cursor-pointer">
-                    <option value="en">English</option>
-                    <option value="id">Indonesian</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white/40" aria-hidden>▼</div>
-                </div>
-              </div>
-
-              <label htmlFor="settings-adult" className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 cursor-pointer hover:bg-white/[0.06] transition-colors focus-within:ring-2 focus-within:ring-white/10">
-                <div>
-                  <p className="text-white font-semibold text-sm">Include Adult Content (18+)</p>
-                  <p className="text-white/40 text-xs mt-0.5">Show mature titles in browse and recommendations.</p>
-                </div>
-                <input id="settings-adult" type="checkbox" name="include_adult" checked={includeAdult} onChange={e => setIncludeAdult(e.target.checked)} className="w-11 h-6 rounded-full appearance-none bg-white/10 checked:bg-red-600 relative before:absolute before:w-5 before:h-5 before:rounded-full before:bg-white before:top-0.5 before:left-0.5 checked:before:translate-x-5 before:transition-transform cursor-pointer shrink-0" />
-              </label>
-            </div>
-          </fieldset>
-
-          <button type="submit" disabled={isPending} aria-busy={isPending} className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-white/90 active:bg-white/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 flex items-center justify-center gap-2">
-            {isPending ? (<><span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" aria-hidden /><span>Saving…</span></>) : 'Save changes'}
-          </button>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
