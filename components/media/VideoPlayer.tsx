@@ -56,8 +56,6 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
   const [pip, setPip] = useState(false);
   const [subsOn, setSubsOn] = useState(subtitles.length > 0);
   const [activeSubLang, setActiveSubLang] = useState(subtitles[0]?.lang ?? 'en');
-  const [quality, setQuality] = useState('1080p');
-  const [audioTrack, setAudioTrack] = useState('English');
   const initialTimeSet = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -487,13 +485,6 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
               <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
             <div className={`vp-settings-popover ${settingsOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
-              <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Quality</div>
-              <div className="vp-speed-options">
-                {['1080p','720p','480p','360p'].map(q => (
-                  <button key={q} className={`vp-speed-option ${quality === q ? 'active' : ''}`} onClick={() => { setQuality(q); setSettingsOpen(false); }}>{q}</button>
-                ))}
-              </div>
-              <div className="divider" />
               <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Speed</div>
               <div className="vp-speed-options">
                 {[0.5, 0.75, 1, 1.25, 1.5, 2].map(r => (
@@ -509,13 +500,6 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
                   ))}
                 </div>
               )}
-              <div className="divider" />
-              <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Audio</div>
-              <div className="vp-speed-options">
-                {['English','Indonesian'].map(a => (
-                  <button key={a} className={`vp-speed-option ${audioTrack === a ? 'active' : ''}`} onClick={() => { setAudioTrack(a); setSettingsOpen(false); }}>{a}</button>
-                ))}
-              </div>
             </div>
           </div>
 

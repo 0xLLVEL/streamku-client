@@ -425,6 +425,7 @@ function CaptionsManager({ mediableId, mediableType, tvShowId, seasonNumber, par
   const [subtitleLang, setSubtitleLang] = useState('en');
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
+  const subTus = useTusUpload({ onSuccess: () => { setUploadMsg('Subtitle uploaded!'); setSubtitleFile(null); fetchSubtitles(); setUploading(false); setTimeout(() => setUploadMsg(''), 3000); }, onError: (e) => { setUploadMsg(e.message); setUploading(false); } });
   const [osLang, setOsLang] = useState('en,id');
   const [osSearching, setOsSearching] = useState(false);
   const [osResults, setOsResults] = useState<any[]>([]); // ponytail: any for OpenSubtitles shape
@@ -462,39 +463,20 @@ function CaptionsManager({ mediableId, mediableType, tvShowId, seasonNumber, par
     if (!subtitleFile) { setUploadMsg('Choose a .srt or .vtt file'); return; }
     setUploading(true);
     setUploadMsg('Uploading...');
+    // ponytail: chunk API removed — use tus (same as video) for subtitles
+    const mediaTypeForUpload = mediableType === 'tv-show' ? 'movie' : mediableType;
     try {
-      const mediaTypeForUpload = mediableType === 'tv-show' ? 'movie' : mediableType; // ponytail: tv-show not supported as mediable for upload, fallback to movie
-      const initRes = await apiFetch('admin/uploads/initiate', {
-        method: 'POST',
-        body: JSON.stringify({
-          filename: subtitleFile.name,
-          mime_type: subtitleFile.type || 'application/x-subrip',
-          total_size: subtitleFile.size,
-          media_id: Number(String(mediableId).split('/')[0]) || Number(mediableId),
-          media_type: mediaTypeForUpload,
-          type: 'subtitle',
-          collection: 'subtitles',
-          metadata: { language: subtitleLang },
-        }),
+      await subTus.startUpload(subtitleFile, {
+        mediable_id: String(Number(String(mediableId).split('/')[0]) || Number(mediableId)),
+        mediable_type: mediaTypeForUpload,
+        type: 'subtitle',
+        collection: 'subtitles',
+        language: subtitleLang,
       });
-      if (!initRes.ok) throw new Error('Initiate failed');
-      const initJson = await initRes.json();
-      const uploadId = initJson.data?.upload_id || initJson.upload_id;
-      const form = new FormData();
-      form.append('chunk', subtitleFile);
-      form.append('chunk_number', '0');
-      const chunkRes = await apiFetch(`admin/uploads/${uploadId}/chunks`, { method: 'POST', body: form as any });
-      if (!chunkRes.ok) throw new Error('Chunk upload failed');
-      const compRes = await apiFetch(`admin/uploads/${uploadId}/complete`, { method: 'POST' });
-      if (!compRes.ok) throw new Error('Complete failed');
-      setUploadMsg('Subtitle uploaded!');
-      setSubtitleFile(null);
-      fetchSubtitles();
     } catch (e: any) {
       setUploadMsg(e.message || 'Upload failed');
+      setUploading(false);
     }
-    setUploading(false);
-    setTimeout(() => setUploadMsg(''), 3000);
   };
 
   const handleOpenSubtitlesSearch = async () => {
