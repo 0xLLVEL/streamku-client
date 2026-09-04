@@ -12,7 +12,7 @@ import { FavoriteButton } from '@/components/media/FavoriteButton';
 import { ReviewsSection } from '@/components/media/ReviewsSection';
 import { CommentsSection } from '@/components/media/CommentsSection';
 import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
-import { tmdbImageUrl } from '@/lib/config';
+import { artworkUrl, tmdbImageUrl } from '@/lib/config';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
@@ -119,7 +119,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
             {/* Right Side: Poster Card */}
             <div className="w-64 shrink-0 hidden lg:block liquid-glass p-2 rounded-[2rem] rotate-[2deg] hover:rotate-0 transition-transform duration-500 shadow-2xl ml-8">
               <Image
-                src={tmdbImageUrl(movie.poster_path, 'w342') ?? ''}
+                src={artworkUrl(movie.poster_path, 'w342') ?? tmdbImageUrl(movie.poster_path, 'w342') ?? ''}
                 alt={movie.title ?? ''}
                 width={342}
                 height={513}
@@ -130,6 +130,28 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
           </div>
         </div>
       </div>
+
+      {/* Images — backdrops only, a few (ponytail: keep minimal, poster already in hero) */}
+      {((movie.backdrop_path || (movie as any).images?.backdrops?.length > 0)) && (
+        <div className="w-full px-4 md:px-12 lg:px-24 py-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Backdrops</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(() => {
+              const allBackdrops: string[] = [
+                ...(movie.backdrop_path ? [movie.backdrop_path] : []),
+                ...(((movie as any).images?.backdrops ?? []).map((b: any) => b.file_path) as string[]),
+              ];
+              const uniq = Array.from(new Set(allBackdrops)).slice(0, 3);
+              return uniq.map((path, idx) => (
+                <div key={`${path}-${idx}`} className="aspect-video rounded-xl overflow-hidden bg-muted border border-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={artworkUrl(path, 'w780') ?? tmdbImageUrl(path, 'w780') ?? ''} alt={`Backdrop ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Cast Section */}
       {(movie.cast && movie.cast.length > 0) && (

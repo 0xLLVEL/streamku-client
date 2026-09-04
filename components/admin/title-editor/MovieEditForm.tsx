@@ -46,8 +46,14 @@ export function MovieEditForm({ movie }: MovieEditFormProps) {
   const [previewData, setPreviewData] = useState<TitleDisplayData | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [message, setMessage] = useState<FormMessage | null>(null);
+  const [artworkOverride, setArtworkOverride] = useState<{ poster_path?: string | null; backdrop_path?: string | null }>({});
 
-  const displayData = previewData ?? movie ?? EMPTY_MOVIE;
+  const baseDisplayData = previewData ?? movie ?? EMPTY_MOVIE;
+  const displayData: TitleDisplayData = {
+    ...baseDisplayData,
+    poster_path: artworkOverride.poster_path !== undefined ? artworkOverride.poster_path : baseDisplayData.poster_path,
+    backdrop_path: artworkOverride.backdrop_path !== undefined ? artworkOverride.backdrop_path : baseDisplayData.backdrop_path,
+  };
 
   const saveMutation = useTitleSave({
     existingId: movie?.id ?? null,
@@ -105,6 +111,33 @@ export function MovieEditForm({ movie }: MovieEditFormProps) {
     });
   };
 
+  const handlePosterSelect = (path: string) => {
+    setArtworkOverride((prev) => ({ ...prev, poster_path: path }));
+    // Also update previewData if in preview mode so the UI reflects immediately
+    if (previewData) {
+      setPreviewData((prev) => (prev ? { ...prev, poster_path: path } : prev));
+    }
+  };
+
+  const handleBackdropSelect = (path: string) => {
+    setArtworkOverride((prev) => ({ ...prev, backdrop_path: path }));
+    if (previewData) {
+      setPreviewData((prev) => (prev ? { ...prev, backdrop_path: path } : prev));
+    }
+  };
+
+  const handleClearPoster = () => {
+    setArtworkOverride((prev) => ({ ...prev, poster_path: '' }));
+    if (previewData) setPreviewData((prev) => (prev ? { ...prev, poster_path: null } : prev));
+  };
+
+  const handleClearBackdrop = () => {
+    setArtworkOverride((prev) => ({ ...prev, backdrop_path: '' }));
+    if (previewData) setPreviewData((prev) => (prev ? { ...prev, backdrop_path: null } : prev));
+  };
+
+  // Sync overrides when movie changes or preview is cleared
+  // ponytail: keep artwork overrides minimal, reset when switching between preview and saved
   const handleDeleteEmbedVideo = async (videoId: string | number) => {
     if (!movie?.id || !confirm('Are you sure you want to delete this stream?')) return;
 
@@ -159,6 +192,10 @@ export function MovieEditForm({ movie }: MovieEditFormProps) {
             importSearchPlaceholder="Search for a movie..."
             importSearchAction={(query) => searchTmdbAction(query, 'movie')}
             onImportTmdb={(tmdbId) => void handleTmdbImport(tmdbId)}
+            onPosterSelect={handlePosterSelect}
+            onBackdropSelect={handleBackdropSelect}
+            onClearPoster={handleClearPoster}
+            onClearBackdrop={handleClearBackdrop}
           />
         </TabPanel>
 
@@ -171,6 +208,8 @@ export function MovieEditForm({ movie }: MovieEditFormProps) {
             onDeleteImage={() =>
               setMessage({ text: 'Image deletion is not implemented yet.', type: 'error' })
             }
+            onPosterSelect={handlePosterSelect}
+            onBackdropSelect={handleBackdropSelect}
           />
         </TabPanel>
 

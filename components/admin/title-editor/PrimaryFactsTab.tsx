@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { SectionCard } from '@/components/admin/ui';
-import { tmdbImageUrl } from '@/lib/config';
+import { artworkUrl } from '@/lib/config';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/Select';
 import type { TmdbSearchResult } from './useTmdbSearch';
 import { TmdbImportPanel } from './TmdbImportPanel';
+import { ImagePickerDialog } from './ImagePickerDialog';
 import type { TitleDisplayData } from './types';
 
 export interface TitleFieldConfig {
@@ -39,6 +41,10 @@ interface PrimaryFactsTabProps {
   importSearchPlaceholder?: string;
   importSearchAction?: (query: string) => Promise<{ success: boolean; results?: TmdbSearchResult[] }>;
   onImportTmdb?: (tmdbId: string) => void;
+  onPosterSelect?: (path: string) => void;
+  onBackdropSelect?: (path: string) => void;
+  onClearPoster?: () => void;
+  onClearBackdrop?: () => void;
 }
 
 const SELECT_TRIGGER_CLASS =
@@ -63,7 +69,13 @@ export function PrimaryFactsTab({
   importSearchPlaceholder,
   importSearchAction,
   onImportTmdb,
+  onPosterSelect,
+  onBackdropSelect,
+  onClearPoster,
+  onClearBackdrop,
 }: PrimaryFactsTabProps) {
+  const [picker, setPicker] = useState<'poster' | 'backdrop' | null>(null);
+
   return (
     <div className="max-w-4xl space-y-8 motion-safe:animate-in fade-in duration-300">
       {!isExistingRecord && importSearchAction && onImportTmdb && (
@@ -75,6 +87,8 @@ export function PrimaryFactsTab({
       )}
 
       <SectionCard title="Artwork">
+        <input type="hidden" name="poster_path" value={data.poster_path ?? ''} />
+        <input type="hidden" name="backdrop_path" value={data.backdrop_path ?? ''} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="col-span-1">
             <label className="block text-xs font-medium text-white/50 mb-2">Poster</label>
@@ -82,21 +96,28 @@ export function PrimaryFactsTab({
               {data.poster_path && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={tmdbImageUrl(data.poster_path, 'w342') ?? undefined}
+                  src={artworkUrl(data.poster_path, 'w342') ?? undefined}
                   alt="Poster"
                   className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity duration-200"
                 />
               )}
               <button
                 type="button"
+                onClick={() => setPicker('poster')}
                 className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded-md opacity-100 sm:opacity-0 group-hover:opacity-100 sm:focus-visible:opacity-100 transition-opacity duration-200 cursor-pointer focus-ring"
               >
                 Replace image
               </button>
             </div>
-            <button type="button" className="text-red-400 text-xs font-medium mt-3 hover:underline cursor-pointer transition-colors duration-200">
-              Remove image
-            </button>
+            {data.poster_path && onClearPoster && (
+              <button
+                type="button"
+                onClick={onClearPoster}
+                className="text-red-400 text-xs font-medium mt-3 hover:underline cursor-pointer transition-colors duration-200"
+              >
+                Remove image
+              </button>
+            )}
           </div>
 
           <div className="col-span-2">
@@ -105,20 +126,41 @@ export function PrimaryFactsTab({
               {data.backdrop_path && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={tmdbImageUrl(data.backdrop_path, 'w1280') ?? undefined}
+                  src={artworkUrl(data.backdrop_path, 'w1280') ?? undefined}
                   alt="Backdrop"
                   className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-30 transition-opacity duration-200"
                 />
               )}
               <button
                 type="button"
+                onClick={() => setPicker('backdrop')}
                 className="relative z-10 bg-white text-black text-xs font-bold px-4 py-2 rounded-md opacity-100 sm:opacity-0 group-hover:opacity-100 sm:focus-visible:opacity-100 transition-opacity duration-200 cursor-pointer focus-ring"
               >
                 Replace image
               </button>
             </div>
+            {data.backdrop_path && onClearBackdrop && (
+              <button
+                type="button"
+                onClick={onClearBackdrop}
+                className="text-red-400 text-xs font-medium mt-3 hover:underline cursor-pointer transition-colors duration-200"
+              >
+                Remove image
+              </button>
+            )}
           </div>
         </div>
+        <ImagePickerDialog
+          open={picker !== null}
+          onClose={() => setPicker(null)}
+          type={picker ?? 'poster'}
+          images={data.images}
+          currentPath={picker === 'poster' ? data.poster_path : data.backdrop_path}
+          onSelect={(path) => {
+            if (picker === 'poster') onPosterSelect?.(path);
+            else onBackdropSelect?.(path);
+          }}
+        />
       </SectionCard>
 
       <SectionCard title="Identity">

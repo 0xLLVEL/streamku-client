@@ -1,6 +1,8 @@
 'use client';
 
-import { tmdbImageUrl } from '@/lib/config';
+import { useState } from 'react';
+import { artworkUrl, tmdbImageUrl } from '@/lib/config';
+import { ImagePickerDialog } from './ImagePickerDialog';
 import type { TitleImageSet } from './types';
 
 interface ImagesTabProps {
@@ -16,9 +18,10 @@ const DELETE_ICON_PATH =
   'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16';
 
 /** Backdrops and posters management grid. */
-export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDeleteImage }: ImagesTabProps) {
+export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDeleteImage, onPosterSelect, onBackdropSelect }: ImagesTabProps & { onPosterSelect?: (path: string) => void; onBackdropSelect?: (path: string) => void }) {
   const backdrops = images?.backdrops ?? [];
   const posters = images?.posters ?? [];
+  const [picker, setPicker] = useState<'poster' | 'backdrop' | null>(null);
 
   return (
     <div className="max-w-6xl space-y-12 motion-safe:animate-in fade-in duration-300">
@@ -39,6 +42,7 @@ export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDelet
         }
         onPreview={onPreview}
         onDeleteImage={onDeleteImage}
+        onAdd={() => setPicker('backdrop')}
       />
 
       <ImageSection
@@ -58,6 +62,19 @@ export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDelet
         }
         onPreview={onPreview}
         onDeleteImage={onDeleteImage}
+        onAdd={() => setPicker('poster')}
+      />
+
+      <ImagePickerDialog
+        open={picker !== null}
+        onClose={() => setPicker(null)}
+        type={picker ?? 'poster'}
+        images={images}
+        currentPath={picker === 'poster' ? posterPath : backdropPath}
+        onSelect={(path) => {
+          if (picker === 'poster') onPosterSelect?.(path);
+          else onBackdropSelect?.(path);
+        }}
       />
     </div>
   );
@@ -74,6 +91,7 @@ interface ImageSectionProps {
   items: { id?: number; filePath: string }[];
   onPreview: (url: string) => void;
   onDeleteImage: (imageId?: number) => void;
+  onAdd?: () => void;
 }
 
 function ImageSection({
@@ -87,6 +105,7 @@ function ImageSection({
   items,
   onPreview,
   onDeleteImage,
+  onAdd,
 }: ImageSectionProps) {
   return (
     <div>
@@ -96,6 +115,7 @@ function ImageSection({
         </h2>
         <button
           type="button"
+          onClick={onAdd}
           className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 flex items-center gap-1.5 border border-white/10 cursor-pointer focus-ring"
         >
           <AddIcon />
@@ -116,15 +136,15 @@ function ImageSection({
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-                  onPreview(tmdbImageUrl(item.filePath, 'original') ?? '');
+                  onPreview(artworkUrl(item.filePath, 'original') ?? tmdbImageUrl(item.filePath, 'original') ?? '');
                 }
               }}
               className={`${aspectClass} bg-black/30 rounded-xl border border-white/10 overflow-hidden relative group/preview cursor-pointer focus-ring`}
-              onClick={() => onPreview(tmdbImageUrl(item.filePath, 'original') ?? '')}
+              onClick={() => onPreview(artworkUrl(item.filePath, 'original') ?? tmdbImageUrl(item.filePath, 'original') ?? '')}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={tmdbImageUrl(item.filePath, thumbSize) ?? undefined}
+                src={artworkUrl(item.filePath, thumbSize) ?? tmdbImageUrl(item.filePath, thumbSize) ?? undefined}
                 className="w-full h-full object-cover group-hover/preview:scale-[1.03] transition-transform duration-300"
                 alt={title}
               />

@@ -47,8 +47,14 @@ export function TvShowEditForm({ tvShow }: TvShowEditFormProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [message, setMessage] = useState<FormMessage | null>(null);
   const [deletingSeasonNumber, setDeletingSeasonNumber] = useState<number | string | null>(null);
+  const [artworkOverride, setArtworkOverride] = useState<{ poster_path?: string | null; backdrop_path?: string | null }>({});
 
-  const displayData = previewData ?? tvShow ?? EMPTY_TV_SHOW;
+  const baseDisplayData = previewData ?? tvShow ?? EMPTY_TV_SHOW;
+  const displayData: TitleDisplayData = {
+    ...baseDisplayData,
+    poster_path: artworkOverride.poster_path !== undefined ? artworkOverride.poster_path : baseDisplayData.poster_path,
+    backdrop_path: artworkOverride.backdrop_path !== undefined ? artworkOverride.backdrop_path : baseDisplayData.backdrop_path,
+  };
 
   const saveMutation = useTitleSave({
     existingId: tvShow?.id ?? null,
@@ -105,6 +111,23 @@ export function TvShowEditForm({ tvShow }: TvShowEditFormProps) {
       text: 'TV Show data loaded for preview. Review fields and click Save.',
       type: 'success',
     });
+  };
+
+  const handlePosterSelect = (path: string) => {
+    setArtworkOverride((prev) => ({ ...prev, poster_path: path }));
+    if (previewData) setPreviewData((prev) => (prev ? { ...prev, poster_path: path } : prev));
+  };
+  const handleBackdropSelect = (path: string) => {
+    setArtworkOverride((prev) => ({ ...prev, backdrop_path: path }));
+    if (previewData) setPreviewData((prev) => (prev ? { ...prev, backdrop_path: path } : prev));
+  };
+  const handleClearPoster = () => {
+    setArtworkOverride((prev) => ({ ...prev, poster_path: '' }));
+    if (previewData) setPreviewData((prev) => (prev ? { ...prev, poster_path: null } : prev));
+  };
+  const handleClearBackdrop = () => {
+    setArtworkOverride((prev) => ({ ...prev, backdrop_path: '' }));
+    if (previewData) setPreviewData((prev) => (prev ? { ...prev, backdrop_path: null } : prev));
   };
 
   const handleDeleteSeason = async (seasonNumber: number | string) => {
@@ -165,6 +188,10 @@ export function TvShowEditForm({ tvShow }: TvShowEditFormProps) {
             importSearchPlaceholder="Search for a TV show..."
             importSearchAction={(query) => searchTmdbAction(query, 'tv')}
             onImportTmdb={(tmdbId) => void handleTmdbImport(tmdbId)}
+            onPosterSelect={handlePosterSelect}
+            onBackdropSelect={handleBackdropSelect}
+            onClearPoster={handleClearPoster}
+            onClearBackdrop={handleClearBackdrop}
           />
         </TabPanel>
 
@@ -186,6 +213,8 @@ export function TvShowEditForm({ tvShow }: TvShowEditFormProps) {
             onDeleteImage={() =>
               setMessage({ text: 'Image deletion is not implemented yet.', type: 'error' })
             }
+            onPosterSelect={handlePosterSelect}
+            onBackdropSelect={handleBackdropSelect}
           />
         </TabPanel>
 

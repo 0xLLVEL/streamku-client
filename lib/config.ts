@@ -27,6 +27,9 @@ export function tmdbImageUrl(
   if (!path) {
     return null;
   }
+  if (path.startsWith('http') || path.startsWith('/storage')) {
+    return avatarUrl(path);
+  }
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
 }
 
@@ -46,6 +49,16 @@ export function avatarUrl(path: string | null | undefined): string | null {
     return `${origin}${path}`;
   }
   return path;
+}
+
+/** Resolve poster/backdrop path: local storage paths are returned as absolute URLs, TMDB paths are converted to image URLs. */
+export function artworkUrl(
+  path: string | null | undefined,
+  size: TmdbImageSize = 'w500',
+): string | null {
+  if (!path) return null;
+  if (path.startsWith('http') || path.startsWith('/storage')) return avatarUrl(path);
+  return tmdbImageUrl(path, size);
 }
 
 export const STREAM_PROVIDERS = {

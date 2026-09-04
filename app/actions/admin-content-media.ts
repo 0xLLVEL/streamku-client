@@ -25,6 +25,8 @@ export async function createMovieAction(formData: FormData) {
       status: formData.get('status'),
       trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
+      poster_path: formData.get('poster_path') || null,
+      backdrop_path: formData.get('backdrop_path') || null,
     };
 
     const res = await fetchApi(`/admin/movies`, {
@@ -54,6 +56,8 @@ export async function createTvShowAction(formData: FormData) {
       status: formData.get('status'),
       trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
+      poster_path: formData.get('poster_path') || null,
+      backdrop_path: formData.get('backdrop_path') || null,
     };
 
     const res = await fetchApi(`/admin/tv-shows`, {
@@ -83,6 +87,8 @@ export async function updateMovieAction(id: number | string, formData: FormData)
       status: formData.get('status'),
       trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
+      poster_path: formData.get('poster_path') || null,
+      backdrop_path: formData.get('backdrop_path') || null,
     };
 
     const res = await fetchApi(`/admin/movies/${id}`, {
@@ -112,6 +118,8 @@ export async function updateTvShowAction(id: number | string, formData: FormData
       status: formData.get('status'),
       trailer_url: formData.get('trailer_url') || null,
       is_featured: formData.get('is_featured') === 'on',
+      poster_path: formData.get('poster_path') || null,
+      backdrop_path: formData.get('backdrop_path') || null,
     };
 
     const res = await fetchApi(`/admin/tv-shows/${id}`, {
@@ -205,6 +213,22 @@ export async function previewTmdbTvAction(tmdbId: string | number) {
       return { success: true, data: data.data };
     }
     return { success: false, error: 'Failed to fetch TV show preview from TMDB' };
+  } catch {
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+export async function uploadImageAction(formData: FormData) {
+  try {
+    const res = await fetchApi('/admin/images/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (res.ok) {
+      return { success: true, path: data.data?.path as string, url: data.data?.url as string };
+    }
+    return { success: false, error: data.message || 'Failed to upload image' };
   } catch {
     return { success: false, error: 'An unexpected error occurred.' };
   }
