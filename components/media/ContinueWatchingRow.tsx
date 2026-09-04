@@ -48,7 +48,7 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
         method: 'POST',
         body: JSON.stringify({ media_type: mediaType, media_id: mediaId, progress_seconds: 0, duration_seconds: 0, completed: true }),
       });
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -57,21 +57,21 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
       <DraggableList className="pb-4" innerClassName="space-x-4">
         {items.map((history) => {
           if (!history.item) return null;
-           
+
           const estimated = history.media_type === 'movie' ? 7200 : 1440;
           const dur = history.duration_seconds > 0 ? history.duration_seconds : estimated;
-          const raw = history.duration_seconds > 0 
-            ? (history.progress_seconds / history.duration_seconds) * 100 
+          const raw = history.duration_seconds > 0
+            ? (history.progress_seconds / history.duration_seconds) * 100
             : history.progress_seconds > 0 ? (history.progress_seconds / estimated) * 100 : 0;
           const progressPercent = history.progress_seconds > 0 ? Math.max(8, raw) : 0;
-             
+
           const isMovie = history.media_type === 'movie';
-          const endpoint = isMovie 
+          const endpoint = isMovie
             ? `/movies/${history.item.slug}/media`
             : `/tv-shows/${history.item.slug}/seasons/${history.item.season_number}/episodes/${history.item.episode_number}/media`;
 
-          const displayTitle = isMovie 
-            ? history.item.title 
+          const displayTitle = isMovie
+            ? history.item.title
             : `${history.item.tv_show_name} - S${history.item.season_number} E${history.item.episode_number}`;
 
           return (
@@ -92,7 +92,7 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
                     <div className="w-full h-full flex items-center justify-center text-white/50 text-sm font-medium">No Image</div>
                   );
                 })()}
-                 
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
                 <button
@@ -100,13 +100,15 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
                   className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-all z-10"
                   title="Remove"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
-                 
+
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <PlayAction
                     mediaEndpoint={endpoint}
                     title={displayTitle}
+                    seasonNumber={history.item.season_number}
+                    episodeNumber={history.item.episode_number}
                     poster={tmdbImageUrl(history.item.poster_path, 'w342') ?? ''}
                     type={isMovie ? 'movie' : 'tv'}
                     watchableId={history.item.id}
@@ -116,16 +118,16 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
                     label=""
                   />
                 </div>
-                 
+
                 <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-bold text-white tracking-wide">
                   {isMovie ? formatLeft(history.progress_seconds, dur) : `S${history.item.season_number} E${history.item.episode_number} • ${formatLeft(history.progress_seconds, dur)}`}
                 </div>
-                 
+
                 <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20">
                   <div className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]" style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }} />
                 </div>
               </div>
-               
+
               <div className="mt-2.5 px-0.5">
                 <h3 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-red-400 transition-colors" title={displayTitle}>{displayTitle}</h3>
                 {!isMovie && <p className="text-white/50 text-xs mt-0.5 line-clamp-1">{history.item.title}</p>}

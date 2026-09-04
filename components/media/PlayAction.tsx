@@ -59,7 +59,7 @@ export function PlayAction({
     const findTime = (obj: unknown): number | null => {
       if (!obj || typeof obj !== 'object') return null;
       const o = obj as Record<string, unknown>;
-      for (const k of ['currentTime','current_time','time','progress','position','seconds','elapsed']) {
+      for (const k of ['currentTime', 'current_time', 'time', 'progress', 'position', 'seconds', 'elapsed']) {
         if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
       }
       for (const v of Object.values(o)) {
@@ -73,7 +73,7 @@ export function PlayAction({
     const findDuration = (obj: unknown): number | undefined => {
       if (!obj || typeof obj !== 'object') return undefined;
       const o = obj as Record<string, unknown>;
-      for (const k of ['duration','durationSeconds','duration_seconds','totalTime','total_time']) {
+      for (const k of ['duration', 'durationSeconds', 'duration_seconds', 'totalTime', 'total_time']) {
         if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
       }
       for (const v of Object.values(o)) {
@@ -99,7 +99,7 @@ export function PlayAction({
             durationSeconds: dur,
           });
         }
-      } catch {}
+      } catch { }
     };
     window.addEventListener('message', handleMessage);
 
