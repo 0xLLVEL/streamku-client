@@ -117,10 +117,11 @@ export async function bulkGenerateVidkingEpisodesAction(tvShowId: number | strin
   try {
     const totalEpisodes = Number(formData.get('total_episodes'));
     if (!totalEpisodes || totalEpisodes < 1) return { success: false, error: 'Invalid total episodes' };
+    const site = String(formData.get('site') || 'VidKing');
 
-    const res = await fetchApi(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}/episodes/bulk-vidking`, {
+    const res = await fetchApi(`/admin/tv-shows/${tvShowId}/seasons/${seasonNumber}/episodes/bulk-embed`, {
       method: 'POST',
-      body: JSON.stringify({ total_episodes: totalEpisodes }),
+      body: JSON.stringify({ total_episodes: totalEpisodes, site }),
     });
 
     if (res.ok) {

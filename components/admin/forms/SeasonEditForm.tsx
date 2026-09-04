@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { SectionCard } from '@/components/admin/ui';
-import { tmdbImageUrl } from '@/lib/config';
+import { STREAM_PROVIDERS, type StreamProvider, tmdbImageUrl } from '@/lib/config';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 
 export interface SeasonEditEpisode {
   id: number;
@@ -37,6 +38,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [totalEpisodes, setTotalEpisodes] = useState(season.episodes?.length?.toString() || '10');
+  const [bulkSite, setBulkSite] = useState<StreamProvider>('VidKing');
   const [generateMessage, setGenerateMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const handleBulkGenerate = async (e: React.MouseEvent) => {
@@ -49,6 +51,7 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
 
     const formData = new FormData();
     formData.append('total_episodes', num.toString());
+    formData.append('site', bulkSite);
 
     const res = await bulkGenerateVidkingEpisodesAction(tvShowId, season.season_number, formData);
 
@@ -182,8 +185,18 @@ export function SeasonEditForm({ tvShowId, season }: { tvShowId: number | string
                     onChange={(e) => setTotalEpisodes(e.target.value)}
                     className="w-20 h-8 text-sm"
                   />
+                  <Select value={bulkSite} onValueChange={(v) => setBulkSite(v as StreamProvider)}>
+                    <SelectTrigger className="w-[140px] h-8 text-xs bg-black/40 border-white/10 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#18181C] border-white/10 text-white">
+                      {Object.entries(STREAM_PROVIDERS).map(([k, p]) => (
+                        <SelectItem key={k} value={k} className="text-white focus:bg-white/10 focus:text-white text-xs">{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button variant="brand" size="xs" onClick={handleBulkGenerate} disabled={isGenerating}>
-                    {isGenerating ? 'Generating...' : 'Bulk Generate VidKing'}
+                    {isGenerating ? 'Generating...' : `Bulk Generate ${bulkSite}`}
                   </Button>
                   {generateMessage && (
                     <span className={`text-xs ml-2 ${generateMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>

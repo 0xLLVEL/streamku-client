@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
-import { API_BASE_URL, buildStreamUrl, buildVidKingEmbedUrl, tmdbImageUrl } from '@/lib/config';
+import { API_BASE_URL, buildEmbedUrl, buildStreamUrl, tmdbImageUrl } from '@/lib/config';
 import { resolveStreamableVideo } from '@/lib/media';
 import { syncWatchProgress } from '@/lib/watchHistory';
 import { useIsClient } from '@/hooks/useIsClient';
@@ -110,6 +111,7 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
   const [isOpen, setIsOpen] = useState(false);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
+  const [subtitleTracks, setSubtitleTracks] = useState<{ url: string; lang: string; label: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const isClient = useIsClient();
 
@@ -166,15 +168,10 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
 
     if (episode.videos && episode.videos.length > 0) {
       const extVideo = episode.videos[0];
-      if (extVideo.site === 'VidKing') {
-        setEmbedUrl(buildVidKingEmbedUrl(extVideo.key, 'tv', episode.season_number, episode.episode_number));
-        setIsOpen(true);
-        return;
-      } else {
-        setEmbedUrl(extVideo.key);
-        setIsOpen(true);
-        return;
-      }
+      const url = buildEmbedUrl(extVideo.site, extVideo.key, 'tv', episode.season_number, episode.episode_number) ?? extVideo.key;
+      setEmbedUrl(url);
+      setIsOpen(true);
+      return;
     }
 
     if (!showSlug) return;
@@ -187,6 +184,9 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
 
       const json = await res.json();
       const videoData = resolveStreamableVideo(json.data, 'Episode');
+      const rawSubs: any[] = json.data?.subtitles ?? json.data?.subtitle ?? [];
+      const tracks = Array.isArray(rawSubs) ? rawSubs.map((m: any) => ({ url: m.url ?? m.path, lang: m.metadata?.language ?? m.language ?? 'en', label: (m.metadata?.language ?? m.language ?? 'en').toUpperCase() })).filter((t: any) => t.url) : [];
+      if (tracks.length) setSubtitleTracks(tracks);
 
       if (videoData) {
         setStreamUrl(buildStreamUrl(videoData.id));
@@ -265,15 +265,16 @@ function EpisodeCard({ episode, showSlug }: { episode: Episode, showSlug: string
       {isClient && isOpen && (streamUrl || embedUrl) && createPortal(
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-in fade-in duration-300">
            {streamUrl ? (
-             <VideoPlayer 
-               src={streamUrl} 
-               title={`Episode ${episode.episode_number}: ${episode.name}`}
-               poster={tmdbImageUrl(episode.still_path, 'w1280') ?? ''} 
-               onBack={() => setIsOpen(false)} 
-               watchableId={episode.id}
-               watchableType="episode"
-               initialTime={episode.history ? episode.history.progress_seconds : 0}
-             />
+              <VideoPlayer 
+                src={streamUrl} 
+                title={`Episode ${episode.episode_number}: ${episode.name}`}
+                poster={tmdbImageUrl(episode.still_path, 'w1280') ?? ''} 
+                onBack={() => setIsOpen(false)} 
+                watchableId={episode.id}
+                watchableType="episode"
+                initialTime={episode.history ? episode.history.progress_seconds : 0}
+                subtitles={subtitleTracks}
+              />
            ) : embedUrl ? (
              <div className="w-full h-full relative flex flex-col bg-black">
                <button 

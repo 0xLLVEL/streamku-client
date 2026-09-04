@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
-import { API_BASE_URL, buildStreamUrl, buildVidKingEmbedUrl } from '@/lib/config';
+import { API_BASE_URL, buildEmbedUrl, buildStreamUrl } from '@/lib/config';
 import { resolveStreamableVideo } from '@/lib/media';
 import { syncWatchProgress } from '@/lib/watchHistory';
 import { useIsClient } from '@/hooks/useIsClient';
@@ -48,6 +49,7 @@ export function PlayAction({
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [subtitleTracks, setSubtitleTracks] = useState<{ url: string; lang: string; label: string }[]>([]);
   const isClient = useIsClient();
 
   useEffect(() => {
@@ -123,20 +125,10 @@ export function PlayAction({
     // Check external videos first
     if (videos && videos.length > 0) {
       const extVideo = videos[0]; // pick first external stream
-      if (extVideo.site === 'VidKing') {
-        setEmbedUrl(buildVidKingEmbedUrl(extVideo.key, type, seasonNumber, episodeNumber));
-        setIsOpen(true);
-        return;
-      } else if (extVideo.site === 'Embed') {
-        setEmbedUrl(extVideo.key); // assume custom embed URL
-        setIsOpen(true);
-        return;
-      } else {
-        // other sites can be added here
-        setEmbedUrl(extVideo.key);
-        setIsOpen(true);
-        return;
-      }
+      const url = buildEmbedUrl(extVideo.site, extVideo.key, type, seasonNumber, episodeNumber) ?? extVideo.key;
+      setEmbedUrl(url);
+      setIsOpen(true);
+      return;
     }
 
     setLoading(true);
@@ -145,20 +137,23 @@ export function PlayAction({
       if (!res.ok) throw new Error('Failed to load media');
       const json = await res.json();
       const videoData = resolveStreamableVideo(json.data, type === 'movie' ? 'Movie' : 'Episode');
+      // ponytail: collect subtitles from grouped media (subtitles/subtitle collection)
+      const rawSubs: any[] = json.data?.subtitles ?? json.data?.subtitle ?? json.data?.captions ?? [];
+      const tracks = Array.isArray(rawSubs) ? rawSubs.map((m: any) => ({ url: m.url ?? m.path, lang: m.metadata?.language ?? m.language ?? 'en', label: (m.metadata?.language ?? m.language ?? 'en').toUpperCase() })).filter((t: any) => t.url) : [];
+      if (tracks.length) setSubtitleTracks(tracks);
       if (videoData) {
         setStreamUrl(buildStreamUrl(videoData.id));
         setIsOpen(true);
       } else {
-        // No uploaded file — try VidKing embed from title/episode endpoint
+        // No uploaded file — try embed from title/episode endpoint
         const titleEndpoint = mediaEndpoint.replace(/\/media$/, '');
         const titleRes = await fetch(`${API_BASE_URL}${titleEndpoint}`);
         if (titleRes.ok) {
           const titleJson = await titleRes.json();
           const vids: ExternalEmbedVideo[] = titleJson.data?.videos ?? titleJson.videos ?? [];
-          const vidking = vids.find(v => v.site === 'VidKing');
-          const embed = vidking ?? vids[0];
+          const embed = vids[0];
           if (embed) {
-            const url = embed.site === 'VidKing' ? buildVidKingEmbedUrl(embed.key, type, seasonNumber, episodeNumber) : embed.key;
+            const url = buildEmbedUrl(embed.site, embed.key, type, seasonNumber, episodeNumber) ?? embed.key;
             setEmbedUrl(url);
             setIsOpen(true);
           } else {
@@ -205,6 +200,7 @@ export function PlayAction({
               watchableId={watchableId}
               watchableType={type === 'movie' ? 'movie' : 'episode'}
               initialTime={initialTime}
+              subtitles={subtitleTracks}
             />
           ) : embedUrl ? (
             <div className="w-full h-full relative flex flex-col bg-black">

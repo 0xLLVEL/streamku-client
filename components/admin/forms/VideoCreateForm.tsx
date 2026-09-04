@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -6,9 +7,8 @@ import Image from 'next/image';
 import { apiFetch } from '@/lib/apiClient';
 import { useTusUpload } from '@/hooks/useTusUpload';
 import { Label } from '@/components/ui/Label';
-import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
-import { buildVidKingEmbedUrl, tmdbImageUrl } from '@/lib/config';
+import { buildEmbedUrl, parseProviderId, STREAM_PROVIDERS, tmdbImageUrl, type StreamProvider } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { ProgressBar } from './ProgressBar';
 import { createEmbedVideoAction } from '@/app/actions/admin-content-embeds';
@@ -26,19 +26,11 @@ interface VideoCreateFormProps {
   existingVideoQualityIds?: number[];
 }
 
-/** Extract a VidKing video ID from a full URL or bare ID.
- *  Accepted forms:
- *   - https://vidking.net/embed/abc123
- *   - https://vidking.net/v/abc123
- *   - abc123  (bare ID)
- */
-function parseVidKingId(input: string): string | null {
-  const trimmed = input.trim();
-  // Match full URL like https://www.vidking.net/embed/movie/12345 or https://vidking.net/embed/tv/12345/1/1
-  const urlMatch = trimmed.match(/vidking\.net\/(?:embed|v)\/(?:movie\/|tv\/)?([a-zA-Z0-9_\/-]+)/);
-  if (urlMatch) return urlMatch[1];
-  if (/^[a-zA-Z0-9_\/-]+$/.test(trimmed)) return trimmed;
-  return null;
+type SourceType = 'Upload' | StreamProvider;
+const PROVIDER_OPTIONS = Object.entries(STREAM_PROVIDERS) as [StreamProvider, { label: string; base: string }][];
+
+function isProviderSource(v: string): v is StreamProvider {
+  return v in STREAM_PROVIDERS;
 }
 
 export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentPoster, parentTmdbId, tvShowId, seasonNumber, onClose, inline = false, existingVideoQualityIds = [] }: VideoCreateFormProps) {
@@ -46,18 +38,17 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
 
-  const [sourceType, setSourceType] = useState('Upload');
+  const [sourceType, setSourceType] = useState<SourceType>('Upload');
 
   // Form State
   const [name, setName] = useState('');
   const [season, setSeason] = useState('');
   const [quality, setQuality] = useState('');
   const [language, setLanguage] = useState('English');
-  const [embedUrl, setEmbedUrl] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
-  // VidKing state (id & error are derived from the raw input)
-  const [vidkingInput, setVidkingInput] = useState(parentTmdbId ? String(parentTmdbId) : '');
+  // Provider state (id & error are derived from the raw input)
+  const [providerInput, setProviderInput] = useState(parentTmdbId ? String(parentTmdbId) : '');
 
   const [isSavingEmbed, setIsSavingEmbed] = useState(false);
   const [embedSaveMessage, setEmbedSaveMessage] = useState('');
@@ -105,12 +96,20 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     fetchQualities();
   }, [existingVideoQualityIds]);
 
-  // Parse VidKing ID from the current input
-  const vidkingId = useMemo(() => parseVidKingId(vidkingInput), [vidkingInput]);
-  const vidkingError =
-    vidkingInput.trim() && !vidkingId
-      ? 'Could not extract a VidKing video ID from this URL.'
+  // Parse provider ID from the current input
+  const providerId = useMemo(() => {
+    if (!isProviderSource(sourceType)) return null;
+    return parseProviderId(sourceType, providerInput);
+  }, [providerInput, sourceType]);
+  const providerError =
+    providerInput.trim() && !providerId && isProviderSource(sourceType)
+      ? `Could not extract a ${sourceType} ID from this URL.`
       : '';
+
+  const providerPreviewUrl = useMemo(() => {
+    if (!isProviderSource(sourceType) || !providerId) return null;
+    return buildEmbedUrl(sourceType, providerId, mediableType === 'movie' ? 'movie' : 'tv');
+  }, [sourceType, providerId, mediableType]);
 
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -123,8 +122,8 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     }
   };
 
-  const handleSaveVidKing = async () => {
-    if (!vidkingId) return;
+  const handleSaveProvider = async () => {
+    if (!providerId || !isProviderSource(sourceType)) return;
     setIsSavingEmbed(true);
     setEmbedSaveStatus('idle');
     setEmbedSaveMessage('');
@@ -134,8 +133,8 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
       mediableType: mediableType as 'movie' | 'tv-show' | 'episode',
       tvShowId,
       seasonNumber,
-      key: vidkingId,
-      site: 'VidKing',
+      key: providerId,
+      site: sourceType,
       name: name || parentTitle || 'Stream',
     });
 
@@ -144,7 +143,7 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
     if (res.success) {
       setEmbedSaveStatus('success');
       setEmbedSaveMessage('Stream saved successfully!');
-      setVidkingInput('');
+      setProviderInput('');
       setTimeout(() => {
         if (onClose) onClose();
         router.refresh();
@@ -156,8 +155,8 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
   };
 
   const handleSave = async () => {
-    if (sourceType === 'VidKing') {
-      await handleSaveVidKing();
+    if (isProviderSource(sourceType)) {
+      await handleSaveProvider();
       return;
     }
 
@@ -176,16 +175,14 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         label: (inline && parentTitle) ? parentTitle.substring(0, 100) : (name ? name.substring(0, 100) : ''),
         language: language,
       });
-    } else {
-      setMessage('Embed saving not yet implemented in this demo.');
-      setStatus('error');
     }
   };
 
+  const isProvider = isProviderSource(sourceType);
   const isSaveDisabled =
     status === 'uploading' || status === 'processing' || isSavingEmbed ||
     (sourceType === 'Upload' && !quality) ||
-    (sourceType === 'VidKing' && !vidkingId);
+    (isProvider && !providerId);
 
   return (
     <div className={`flex flex-col relative ${inline ? 'bg-transparent' : 'bg-[#121212] rounded-2xl overflow-hidden border border-white/10 shadow-2xl motion-safe:animate-in zoom-in-95 duration-300 z-50'}`}>
@@ -212,18 +209,18 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
         <div className="flex-1 flex flex-col gap-8 min-w-0">
 
           {/* Preview Area */}
-          {sourceType === 'VidKing' && vidkingId ? (
+          {isProvider && providerId && providerPreviewUrl ? (
             <div className="aspect-video bg-black/30 rounded-xl overflow-hidden shadow-lg border border-white/5 relative">
               <iframe
-                src={buildVidKingEmbedUrl(vidkingId, mediableType === 'movie' ? 'movie' : 'tv')}
+                src={providerPreviewUrl}
                 className="w-full h-full"
                 allowFullScreen
                 allow="autoplay; fullscreen"
-                title="VidKing Preview"
+                title={`${sourceType} Preview`}
               />
               <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/70 backdrop-blur px-2 py-1 rounded-md">
                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-xs text-white/80 font-medium">VidKing Preview</span>
+                <span className="text-xs text-white/80 font-medium">{sourceType} Preview</span>
               </div>
             </div>
           ) : (
@@ -234,10 +231,10 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
                   <h4 className="text-white font-medium text-lg">{videoFile.name}</h4>
                   <p className="text-white/40 text-sm mt-1">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload</p>
                 </div>
-              ) : sourceType === 'VidKing' ? (
+              ) : isProvider ? (
                 <div className="flex flex-col items-center gap-3 text-white/30">
                   <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <p className="text-sm">Enter a VidKing URL to preview</p>
+                  <p className="text-sm">Enter a {sourceType} URL to preview</p>
                 </div>
               ) : (
                 <button aria-label="Play preview" className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors duration-200 cursor-pointer focus-ring">
@@ -249,19 +246,15 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
 
           <ProgressBar progress={progress} status={status} message={message} onPause={pauseUpload} onResume={resumeUpload} />
 
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold text-lg">Captions</h3>
-              <button className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors duration-200 border border-white/10 cursor-pointer focus-ring">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                Add caption
-              </button>
-            </div>
-            <div className="flex flex-col items-center justify-center py-12 text-white/40 border border-dashed border-white/5 rounded-xl">
-              <svg className="w-8 h-8 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path></svg>
-              <p className="text-sm">Captions will be available after uploading the main video.</p>
-            </div>
-          </div>
+          {sourceType === 'Upload' && (
+            <CaptionsManager
+              mediableId={mediableId}
+              mediableType={mediableType}
+              tvShowId={tvShowId}
+              seasonNumber={seasonNumber}
+              parentTmdbId={parentTmdbId}
+            />
+          )}
         </div>
 
         {/* Right Column */}
@@ -306,29 +299,25 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           {/* Source Type */}
           <div className="space-y-2">
             <Label>Source type</Label>
-            <Select value={sourceType} onValueChange={(val) => setSourceType(val || '')}>
+            <Select value={sourceType} onValueChange={(val) => setSourceType((val || 'Upload') as SourceType)}>
               <SelectTrigger className="flex w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 md:text-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#18181C] border-white/10 text-white rounded-xl overflow-hidden shadow-2xl">
+              <SelectContent className="bg-[#18181C] border-white/10 text-white rounded-xl overflow-hidden shadow-2xl max-h-[300px]">
                 <SelectItem value="Upload" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
                   <span className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     Direct Upload
                   </span>
                 </SelectItem>
-                <SelectItem value="VidKing" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    VidKing.net
-                  </span>
-                </SelectItem>
-                <SelectItem value="Embed" className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                    Custom Embed
-                  </span>
-                </SelectItem>
+                {PROVIDER_OPTIONS.map(([key, p]) => (
+                  <SelectItem key={key} value={key} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer text-white focus:text-white rounded-md mx-1 my-0.5">
+                    <span className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      {p.label}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -337,39 +326,35 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
           <div>
             <label className="block text-xs font-medium text-white/50 mb-2">Source</label>
 
-            {sourceType === 'VidKing' && (
+            {isProvider && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                   <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  <span className="text-xs text-blue-300">Paste a VidKing embed URL or video ID</span>
+                  <span className="text-xs text-blue-300">Paste a {sourceType} embed URL or TMDB ID</span>
                 </div>
                 <div className="relative">
                   <input
                     type="text"
-                    value={vidkingInput}
-                    onChange={(e) => setVidkingInput(e.target.value)}
-                    placeholder="https://vidking.net/embed/abc123  or  abc123"
-                    className={`w-full bg-black/40 border ${vidkingError ? 'border-red-500/50' : vidkingId ? 'border-green-500/40' : 'border-white/10'} rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/60 transition-colors duration-200 placeholder:text-white/30`}
+                    value={providerInput}
+                    onChange={(e) => setProviderInput(e.target.value)}
+                    placeholder={sourceType === 'VidLink' ? 'https://vidlink.pro/movie/27205  or  27205' : `https://.../embed/...  or  TMDB ID`}
+                    className={`w-full bg-black/40 border ${providerError ? 'border-red-500/50' : providerId ? 'border-green-500/40' : 'border-white/10'} rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/60 transition-colors duration-200 placeholder:text-white/30`}
                   />
-                  {vidkingId && (
+                  {providerId && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                   )}
                 </div>
-                {vidkingError && <p className="text-xs text-red-400">{vidkingError}</p>}
-                {vidkingId && (
+                {providerError && <p className="text-xs text-red-400">{providerError}</p>}
+                {providerId && (
                   <p className="text-xs text-green-400">
-                    Video ID: <span className="font-mono bg-green-500/10 px-1.5 py-0.5 rounded">{vidkingId}</span>
+                    Video ID: <span className="font-mono bg-green-500/10 px-1.5 py-0.5 rounded">{providerId}</span>
                   </p>
                 )}
                 {embedSaveStatus === 'success' && <p className="text-xs text-green-400 font-medium">{embedSaveMessage}</p>}
                 {embedSaveStatus === 'error' && <p className="text-xs text-red-400 font-medium">{embedSaveMessage}</p>}
               </div>
-            )}
-
-            {sourceType === 'Embed' && (
-              <Textarea value={embedUrl} onChange={(e) => setEmbedUrl(e.target.value)} placeholder="Full embed code snippet or just src url" />
             )}
 
             {sourceType === 'Upload' && (
@@ -422,12 +407,209 @@ export function VideoCreateForm({ mediableId, mediableType, parentTitle, parentP
               {embedSaveStatus === 'error' && <span className="text-sm text-red-400 font-medium">{embedSaveMessage}</span>}
               {embedSaveStatus === 'success' && <span className="text-sm text-green-400 font-medium">{embedSaveMessage}</span>}
               <Button variant="brand" className="w-full" onClick={handleSave} disabled={isSaveDisabled}>
-                {isSavingEmbed ? 'Saving...' : sourceType === 'VidKing' ? 'Save VidKing Stream' : 'Upload Video'}
+                {isSavingEmbed ? 'Saving...' : isProvider ? `Save ${sourceType} Stream` : 'Upload Video'}
               </Button>
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function CaptionsManager({ mediableId, mediableType, tvShowId, seasonNumber, parentTmdbId }: { mediableId: number | string; mediableType: string; tvShowId?: number | string; seasonNumber?: number | string; parentTmdbId?: number | string }) {
+  const [subtitles, setSubtitles] = useState<{ id: number; original_filename: string; url: string | null; metadata?: { language?: string } }[]>([]);
+  const [loadingSubs, setLoadingSubs] = useState(false);
+  const [tab, setTab] = useState<'upload' | 'auto'>('upload');
+  const [subtitleFile, setSubtitleFile] = useState<File | null>(null);
+  const [subtitleLang, setSubtitleLang] = useState('en');
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
+  const [osLang, setOsLang] = useState('en,id');
+  const [osSearching, setOsSearching] = useState(false);
+  const [osResults, setOsResults] = useState<any[]>([]); // ponytail: any for OpenSubtitles shape
+  const [osError, setOsError] = useState('');
+  const subtitleInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchSubtitles = async () => {
+    setLoadingSubs(true);
+    try {
+      let endpoint = '';
+      if (mediableType === 'movie') endpoint = `admin/movies/${mediableId}/media`;
+      else if (mediableType === 'episode' && tvShowId && seasonNumber) endpoint = `admin/tv-shows/${tvShowId}/seasons/${seasonNumber}/episodes/${mediableId}/media`;
+      else if (mediableType === 'tv-show') endpoint = `admin/tv-shows/${mediableId}/media`;
+      if (!endpoint) { setLoadingSubs(false); return; }
+      const res = await apiFetch(endpoint);
+      if (!res.ok) { setLoadingSubs(false); return; }
+      const json = await res.json();
+      const media: any[] = json.data ?? json ?? [];
+      const subs = Array.isArray(media) ? media.filter((m) => m.type === 'subtitle' || m.collection === 'subtitles') : [];
+      setSubtitles(subs);
+    } catch {}
+    setLoadingSubs(false);
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { fetchSubtitles(); }, [mediableId, mediableType, tvShowId, seasonNumber]);
+
+  const handleDeleteSubtitle = async (id: number) => {
+    if (!confirm('Delete this subtitle?')) return;
+    const res = await apiFetch(`admin/media/${id}`, { method: 'DELETE' });
+    if (res.ok) fetchSubtitles();
+  };
+
+  const handleUploadSubtitle = async () => {
+    if (!subtitleFile) { setUploadMsg('Choose a .srt or .vtt file'); return; }
+    setUploading(true);
+    setUploadMsg('Uploading...');
+    try {
+      const mediaTypeForUpload = mediableType === 'tv-show' ? 'movie' : mediableType; // ponytail: tv-show not supported as mediable for upload, fallback to movie
+      const initRes = await apiFetch('admin/uploads/initiate', {
+        method: 'POST',
+        body: JSON.stringify({
+          filename: subtitleFile.name,
+          mime_type: subtitleFile.type || 'application/x-subrip',
+          total_size: subtitleFile.size,
+          media_id: Number(String(mediableId).split('/')[0]) || Number(mediableId),
+          media_type: mediaTypeForUpload,
+          type: 'subtitle',
+          collection: 'subtitles',
+          metadata: { language: subtitleLang },
+        }),
+      });
+      if (!initRes.ok) throw new Error('Initiate failed');
+      const initJson = await initRes.json();
+      const uploadId = initJson.data?.upload_id || initJson.upload_id;
+      const form = new FormData();
+      form.append('chunk', subtitleFile);
+      form.append('chunk_number', '0');
+      const chunkRes = await apiFetch(`admin/uploads/${uploadId}/chunks`, { method: 'POST', body: form as any });
+      if (!chunkRes.ok) throw new Error('Chunk upload failed');
+      const compRes = await apiFetch(`admin/uploads/${uploadId}/complete`, { method: 'POST' });
+      if (!compRes.ok) throw new Error('Complete failed');
+      setUploadMsg('Subtitle uploaded!');
+      setSubtitleFile(null);
+      fetchSubtitles();
+    } catch (e: any) {
+      setUploadMsg(e.message || 'Upload failed');
+    }
+    setUploading(false);
+    setTimeout(() => setUploadMsg(''), 3000);
+  };
+
+  const handleOpenSubtitlesSearch = async () => {
+    const raw = String(parentTmdbId ?? '').split('/')[0].trim();
+    const tmdbId = Number(raw);
+    if (!tmdbId) { setOsError('TMDB ID not available for this title'); return; }
+    setOsSearching(true);
+    setOsError('');
+    setOsResults([]);
+    try {
+      const res = await apiFetch(`admin/subtitles/search?tmdb_id=${tmdbId}&languages=${encodeURIComponent(osLang)}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Search failed');
+      const data = json.data?.data ?? [];
+      if (json.data?.error) setOsError(json.data.error);
+      setOsResults(data.slice(0, 20));
+      if (data.length === 0 && !json.data?.error) setOsError('No subtitles found');
+    } catch (e: any) {
+      setOsError(e.message || 'Search failed');
+    }
+    setOsSearching(false);
+  };
+
+  const handleImport = async (fileId: number, fileName: string, language: string) => {
+    setOsError('');
+    try {
+      const res = await apiFetch('admin/subtitles/import', {
+        method: 'POST',
+        body: JSON.stringify({
+          mediable_id: Number(String(mediableId).split('/')[0]) || Number(mediableId),
+          mediable_type: mediableType === 'tv-show' ? 'movie' : mediableType,
+          file_id: fileId,
+          file_name: fileName,
+          language,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Import failed');
+      fetchSubtitles();
+    } catch (e: any) {
+      setOsError(e.message || 'Import failed');
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-white font-bold text-lg">Captions</h3>
+        <div className="flex gap-1.5 bg-white/5 p-1 rounded-lg border border-white/10">
+          <button onClick={() => setTab('upload')} className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${tab === 'upload' ? 'bg-white text-black' : 'text-white/60 hover:text-white'}`}>Upload</button>
+          <button onClick={() => setTab('auto')} className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${tab === 'auto' ? 'bg-white text-black' : 'text-white/60 hover:text-white'}`}>Auto (OpenSubtitles)</button>
+        </div>
+      </div>
+
+      {subtitles.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {subtitles.map((s) => (
+            <div key={s.id} className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+              <div className="min-w-0">
+                <p className="text-sm text-white truncate">{s.original_filename}</p>
+                <p className="text-xs text-white/40">{s.metadata?.language ?? 'unknown'} • {s.url ? 'public' : 'stored'}</p>
+              </div>
+              <button onClick={() => handleDeleteSubtitle(s.id)} className="text-white/40 hover:text-red-400 p-1.5 rounded-full hover:bg-white/5 transition-colors" title="Delete">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {loadingSubs && <p className="text-xs text-white/30">Loading captions...</p>}
+
+      {tab === 'upload' ? (
+        <div className="flex flex-col gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-4">
+          <div className="flex gap-2">
+            <div onClick={() => subtitleInputRef.current?.click()} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 flex items-center gap-2 cursor-pointer hover:border-white/20 transition-colors">
+              <span className="bg-white/10 text-white px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap">Choose File</span>
+              <span className="text-xs truncate text-white/60">{subtitleFile ? subtitleFile.name : 'No file (.srt, .vtt)'}</span>
+              <input ref={subtitleInputRef} type="file" className="hidden" accept=".srt,.vtt" onChange={(e) => setSubtitleFile(e.target.files?.[0] ?? null)} />
+            </div>
+            <Select value={subtitleLang} onValueChange={(v) => setSubtitleLang(v ?? 'en')}>
+              <SelectTrigger className="w-[110px] bg-black/40 border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-[#18181C] border-white/10 text-white"><SelectItem value="en">English</SelectItem><SelectItem value="id">Indonesian</SelectItem><SelectItem value="fr">French</SelectItem><SelectItem value="es">Spanish</SelectItem></SelectContent>
+            </Select>
+          </div>
+          <Button variant="brand" size="sm" onClick={handleUploadSubtitle} disabled={uploading || !subtitleFile} className="w-full">{uploading ? 'Uploading...' : 'Upload Caption'}</Button>
+          {uploadMsg && <p className="text-xs text-white/60">{uploadMsg}</p>}
+          {subtitles.length === 0 && !loadingSubs && <p className="text-xs text-white/30 text-center py-2">No captions yet. Upload .srt/.vtt or use Auto.</p>}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-4">
+          <div className="flex gap-2">
+            <input value={osLang} onChange={(e) => setOsLang(e.target.value)} placeholder="languages e.g. en,id" className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-red-500/50" />
+            <Button variant="brand" size="sm" onClick={handleOpenSubtitlesSearch} disabled={osSearching}>{osSearching ? 'Searching...' : 'Search'}</Button>
+          </div>
+          <p className="text-xs text-white/30">Uses TMDB ID {String(parentTmdbId ?? '').split('/')[0] || '—'} • Needs OPENSUBTITLES_API_KEY in .env</p>
+          {osError && <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">{osError}</p>}
+          {osResults.length > 0 && (
+            <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto">
+              {osResults.map((r: any) => {
+                const file = r.attributes?.files?.[0];
+                if (!file) return null;
+                return (
+                  <div key={r.id} className="flex items-center justify-between bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs text-white truncate">{file.file_name} • {r.attributes?.language}</p>
+                      <p className="text-xs text-white/40 truncate">{r.attributes?.release ?? ''}</p>
+                    </div>
+                    <Button variant="brand" size="xs" onClick={() => handleImport(file.file_id, file.file_name, r.attributes?.language)}>Import</Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

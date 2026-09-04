@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -10,6 +11,12 @@ interface EpisodeNav {
   onClick: () => void;
 }
 
+interface SubtitleTrack {
+  url: string;
+  lang: string;
+  label: string;
+}
+
 interface VideoPlayerProps {
   src: string;
   poster?: string;
@@ -20,9 +27,10 @@ interface VideoPlayerProps {
   initialTime?: number;
   prevEpisode?: EpisodeNav;
   nextEpisode?: EpisodeNav;
+  subtitles?: SubtitleTrack[];
 }
 
-export function VideoPlayer({ src, poster, title, onBack, watchableId, watchableType = 'movie', initialTime = 0, prevEpisode, nextEpisode }: VideoPlayerProps) {
+export function VideoPlayer({ src, poster, title, onBack, watchableId, watchableType = 'movie', initialTime = 0, prevEpisode, nextEpisode, subtitles = [] }: VideoPlayerProps) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,7 +54,8 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
   const [showTooltip, setShowTooltip] = useState(false);
   const [theater, setTheater] = useState(false);
   const [pip, setPip] = useState(false);
-  const [subsOn, setSubsOn] = useState(false);
+  const [subsOn, setSubsOn] = useState(subtitles.length > 0);
+  const [activeSubLang, setActiveSubLang] = useState(subtitles[0]?.lang ?? 'en');
   const [quality, setQuality] = useState('1080p');
   const [audioTrack, setAudioTrack] = useState('English');
   const initialTimeSet = useRef(false);
@@ -171,14 +180,22 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
     v.addEventListener('leavepictureinpicture', onLeave);
     return () => { v.removeEventListener('enterpictureinpicture', onEnter); v.removeEventListener('leavepictureinpicture', onLeave); };
   }, []);
-  const toggleSubs = useCallback(() => {
+  // ponytail: show only selected language when subsOn
+  useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     const tracks = v.textTracks;
-    const next = !subsOn;
-    for (let i = 0; i < tracks.length; i++) tracks[i].mode = next ? 'showing' : 'hidden';
-    setSubsOn(next);
-  }, [subsOn]);
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i] as TextTrack & { language?: string };
+      const lang = (track as any).language || track.label?.toLowerCase() || '';
+      const shouldShow = subsOn && (lang === activeSubLang || (!activeSubLang && i === 0));
+      track.mode = shouldShow ? 'showing' : 'hidden';
+    }
+  }, [subsOn, activeSubLang, subtitles]);
+
+  const toggleSubs = useCallback(() => {
+    setSubsOn((v) => !v);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -322,7 +339,12 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
         onPause={() => setIsPlaying(false)}
         onClick={togglePlay}
         onDoubleClick={toggleFullscreen}
-      />
+        crossOrigin="anonymous"
+      >
+        {subtitles.map((s) => (
+          <track key={s.url} kind="subtitles" src={s.url} srcLang={s.lang} label={s.label} default={s.lang === activeSubLang} />
+        ))}
+      </video>
 
       {/* Top Bar */}
       <div
@@ -480,6 +502,13 @@ export function VideoPlayer({ src, poster, title, onBack, watchableId, watchable
               </div>
               <div className="divider" />
               <button className="option" onClick={() => { toggleSubs(); setSettingsOpen(false); }}><span>Subtitles</span><span className={`label ${subsOn ? 'active' : ''}`}>{subsOn ? 'On' : 'Off'}</span></button>
+              {subtitles.length > 0 && (
+                <div className="vp-speed-options">
+                  {subtitles.map((s) => (
+                    <button key={s.lang} className={`vp-speed-option ${subsOn && activeSubLang === s.lang ? 'active' : ''}`} onClick={() => { setActiveSubLang(s.lang); setSubsOn(true); setSettingsOpen(false); }}>{s.label}</button>
+                  ))}
+                </div>
+              )}
               <div className="divider" />
               <div className="px-[18px] py-2 text-[13px] font-semibold text-white/40">Audio</div>
               <div className="vp-speed-options">

@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Sidebar */}
-      <Sidebar pathname={pathname} userName={user.name} open={sidebarOpen} />
+      <Sidebar pathname={pathname} userName={user.name ?? 'Admin'} open={sidebarOpen} />
 
       {/* Main column */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
