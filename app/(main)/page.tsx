@@ -49,10 +49,10 @@ export default async function BrowsePage() {
           if (!row.items || row.items.length === 0) return null;
           return (
             <div key={idx}>
-              <h2 className="text-2xl font-bold text-white mb-4">{row.title}</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">{row.title}</h2>
               <DraggableList className="pb-4" innerClassName="space-x-4">
                 {row.items.map((item, itemIdx) => (
-                  <div key={`${item.id}-${itemIdx}`} className="snap-start shrink-0">
+                  <div key={`${item.id}-${itemIdx}`} className="snap-start shrink-0 w-[140px] md:w-[180px]">
                     <PosterCard item={item} priority={idx === 0} />
                   </div>
                 ))}
