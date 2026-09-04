@@ -143,7 +143,7 @@ export function MediaCatalog({ type, title, description }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8 pt-24 pb-10">
+      <div className="w-full px-6 sm:px-8 lg:px-12 xl:px-16 pt-24 pb-10">
         {/* Title */}
         <div className="mb-8">
           <div className="flex flex-wrap items-baseline gap-3">
@@ -166,7 +166,7 @@ export function MediaCatalog({ type, title, description }: Props) {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search titles…"
-                className="h-10 pl-9"
+                className="!h-10 pl-9 rounded-lg bg-card py-0"
                 autoComplete="off"
               />
               {q && (
@@ -182,7 +182,7 @@ export function MediaCatalog({ type, title, description }: Props) {
 
             <div className="flex gap-2 shrink-0">
               <Select value={sort} onValueChange={(v) => setSort(v ?? 'popularity')}>
-                <SelectTrigger className="h-10 w-[148px] bg-card">
+                <SelectTrigger className="!h-10 w-[148px] justify-between rounded-lg border-input bg-card px-3 py-0 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -193,14 +193,14 @@ export function MediaCatalog({ type, title, description }: Props) {
               </Select>
 
               <Button
-                variant={showFilters || hasActiveFilters ? 'secondary' : 'outline'}
+                variant="outline"
                 size="default"
                 onClick={() => setShowFilters((v) => !v)}
                 aria-expanded={showFilters}
                 aria-controls="genre-filters"
-                className="h-10 gap-2"
+                className="!h-10 w-[148px] justify-center gap-2 rounded-lg border-input bg-card px-3 py-0 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 8h10M10 12h4M12 16h0" /></svg>
+                <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 8h10M10 12h4M12 16h0" /></svg>
                 Filters
                 {hasActiveFilters && <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 text-xs font-bold text-background">{1}</span>}
               </Button>
@@ -245,15 +245,16 @@ export function MediaCatalog({ type, title, description }: Props) {
             </div>
           )}
         </div>
+      </div>
 
-        {/* Content */}
-        {loading ? (
-          <div aria-busy="true" aria-label={`Loading ${title}`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-            {Array.from({ length: 12 }).map((_, i) => (
+      {/* Content */}
+      <div className="w-full px-6 sm:px-8 lg:px-12 xl:px-16 pb-10">
+          {loading ? (
+          <div aria-busy="true" aria-label={`Loading ${title}`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8 gap-2 md:gap-3">
+            {Array.from({ length: 16 }).map((_, i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="aspect-[2/3] rounded-xl" />
+                <Skeleton className="aspect-[2/3] rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
               </div>
             ))}
           </div>
@@ -274,10 +275,10 @@ export function MediaCatalog({ type, title, description }: Props) {
           </div>
         ) : (
           <>
-            <ul role="list" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            <ul role="list" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8 gap-2 md:gap-3">
               {items.map((item, idx) => (
                 <li key={`${item.id}-${idx}`} role="listitem">
-                  <PosterCard item={item} priority={idx < 6} />
+                  <PosterCard item={item} priority={idx < 8} />
                 </li>
               ))}
             </ul>

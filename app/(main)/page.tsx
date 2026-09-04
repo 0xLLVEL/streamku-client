@@ -52,7 +52,7 @@ export default async function BrowsePage() {
               <h2 className="text-2xl font-bold text-foreground mb-4">{row.title}</h2>
               <DraggableList className="pb-4" innerClassName="space-x-4">
                 {row.items.map((item, itemIdx) => (
-                  <div key={`${item.id}-${itemIdx}`} className="snap-start shrink-0 w-[140px] md:w-[180px]">
+                  <div key={`${item.id}-${itemIdx}`} className="snap-start shrink-0 w-[170px] md:w-[210px]">
                     <PosterCard item={item} priority={idx === 0} />
                   </div>
                 ))}

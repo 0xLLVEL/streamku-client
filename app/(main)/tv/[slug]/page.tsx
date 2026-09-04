@@ -205,9 +205,9 @@ export default async function TvShowDetailPage({ params }: { params: Promise<{ s
       {(recommendations && recommendations.length > 0) && (
         <div className="w-full px-4 md:px-12 lg:px-24 pb-24">
           <h2 className="text-3xl font-bold text-foreground mb-8">More Like This</h2>
-          <DraggableList className="pb-4" innerClassName="space-x-3">
+          <DraggableList className="pb-4" innerClassName="space-x-4">
             {recommendations.map((item) => (
-              <div key={item.id} className="snap-start shrink-0 w-[140px] md:w-[180px]">
+              <div key={item.id} className="snap-start shrink-0 w-[170px] md:w-[210px]">
                 <PosterCard item={item} />
               </div>
             ))}
