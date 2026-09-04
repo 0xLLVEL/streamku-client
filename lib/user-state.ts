@@ -23,12 +23,5 @@ async function findUserMediaEntryId(
   return entries.find((entry) => entry.media_id === mediaId)?.id ?? null;
 }
 
-/** Returns the watchlist entry id for a media item, or null when absent. */
-export function getWatchlistState(mediaId: number | undefined): Promise<number | null> {
-  return findUserMediaEntryId('/watchlist', mediaId);
-}
-
-/** Returns the favorite entry id for a media item, or null when absent. */
-export function getFavoriteState(mediaId: number | undefined): Promise<number | null> {
-  return findUserMediaEntryId('/favorites', mediaId);
-}
+export const getWatchlistState = (mediaId: number | undefined): Promise<number | null> => findUserMediaEntryId('/watchlist', mediaId);
+export const getFavoriteState = (mediaId: number | undefined): Promise<number | null> => findUserMediaEntryId('/favorites', mediaId);

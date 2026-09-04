@@ -1,10 +1,7 @@
 'use client';
 
 import { useResourceToggle } from '@/hooks/useResourceToggle';
-import {
-  StatefulToggleButton,
-  resolveToggleAppearance,
-} from '@/components/media/StatefulToggleButton';
+import { StatefulToggleButton, SpinnerIcon, CheckIcon } from '@/components/media/StatefulToggleButton';
 
 interface WatchlistButtonProps {
   watchableId: number;
@@ -25,30 +22,15 @@ export function WatchlistButton({
     initialEntryId: watchable,
   });
 
-  const { className, icon, label } = resolveToggleAppearance(
-    isAdded, isLoading, isSuccess,
-    'text-yellow-500',
-    'Watchlisted',
-    'Watchlist',
-    (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-      </svg>
-    ),
-    (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-      </svg>
-    ),
-  );
+  const appearance = isLoading
+    ? { className: 'liquid-glass hover:bg-white/20 text-white', icon: <SpinnerIcon />, label: 'Loading' }
+    : isSuccess
+      ? isAdded
+        ? { className: 'bg-green-600 hover:bg-green-700 text-white', icon: <CheckIcon />, label: 'Added' }
+        : { className: 'bg-red-600 hover:bg-red-700 text-white', icon: <CheckIcon />, label: 'Removed' }
+      : isAdded
+        ? { className: 'liquid-glass hover:bg-white/20 text-yellow-500', icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>, label: 'Watchlisted' }
+        : { className: 'liquid-glass hover:bg-white/20 text-white', icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>, label: 'Watchlist' };
 
-  return (
-    <StatefulToggleButton
-      onClick={() => void toggle()}
-      disabled={isLoading || isSuccess}
-      className={className}
-      icon={icon}
-      label={label}
-    />
-  );
+  return <StatefulToggleButton onClick={() => void toggle()} disabled={isLoading || isSuccess} className={appearance.className} icon={appearance.icon} label={appearance.label} />;
 }

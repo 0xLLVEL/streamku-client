@@ -61,30 +61,4 @@ export function CheckIcon() {
   );
 }
 
-type ToggleAppearance = { className: string; icon: ReactNode; label: string };
-
-/** Shared favorite/watchlist state-to-appearance mapping. */
-export function resolveToggleAppearance(
-  isAdded: boolean,
-  isLoading: boolean,
-  isSuccess: boolean,
-  accent: string,
-  activeLabel: string,
-  addLabel: string,
-  filledIcon: ReactNode,
-  outlineIcon: ReactNode,
-): ToggleAppearance {
-  if (isLoading) {
-    return { className: 'liquid-glass hover:bg-white/20 text-white', icon: <SpinnerIcon />, label: 'Loading' };
-  }
-
-  if (isSuccess) {
-    return isAdded
-      ? { className: 'bg-green-600 hover:bg-green-700 text-white', icon: <CheckIcon />, label: 'Added' }
-      : { className: 'bg-red-600 hover:bg-red-700 text-white', icon: <CheckIcon />, label: 'Removed' };
-  }
-
-  return isAdded
-    ? { className: `liquid-glass hover:bg-white/20 ${accent}`, icon: filledIcon, label: activeLabel }
-    : { className: 'liquid-glass hover:bg-white/20 text-white', icon: outlineIcon, label: addLabel };
-}
+// ponytail: resolveToggleAppearance removed — inlined in Favorite/Watchlist to avoid 7-arg abstraction

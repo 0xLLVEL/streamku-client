@@ -15,32 +15,17 @@ const EMPTY_COMMENTS: Omit<CommentThreads, 'media_id'> = {
   comments: [],
 };
 
-/** Fetch the review bucket (avg, count, my_review, approved list). User-specific, uncached. */
-export async function getReviewBucket(
-  mediaType: 'movie' | 'tv_show',
-  mediaId: number,
-): Promise<ReviewBucket> {
-  const res = await fetchApi(`/reviews/${mediaType}/${mediaId}`, { cache: 'no-store' });
-  if (!res.ok) {
-    return { ...EMPTY_REVIEWS, media_type: mediaType, media_id: mediaId };
-  }
+async function fetchBucket<T>(path: string, empty: Omit<T, 'media_id'>, mediaType: string, mediaId: number): Promise<T> {
+  const res = await fetchApi(path, { cache: 'no-store' });
+  if (!res.ok) return { ...empty, media_type: mediaType, media_id: mediaId } as T;
   const json = await res.json();
-  return json?.data
-    ? { ...json.data, media_type: mediaType, media_id: mediaId }
-    : { ...EMPTY_REVIEWS, media_type: mediaType, media_id: mediaId };
+  return json?.data ? { ...json.data, media_type: mediaType, media_id: mediaId } as T : { ...empty, media_type: mediaType, media_id: mediaId } as T;
 }
 
-/** Fetch approved comment threads for a title. User-specific (mine), uncached. */
-export async function getCommentThreads(
-  mediaType: 'movie' | 'tv_show',
-  mediaId: number,
-): Promise<CommentThreads> {
-  const res = await fetchApi(`/comments/${mediaType}/${mediaId}`, { cache: 'no-store' });
-  if (!res.ok) {
-    return { ...EMPTY_COMMENTS, media_type: mediaType, media_id: mediaId };
-  }
-  const json = await res.json();
-  return json?.data
-    ? { ...json.data, media_type: mediaType, media_id: mediaId }
-    : { ...EMPTY_COMMENTS, media_type: mediaType, media_id: mediaId };
+export function getReviewBucket(mediaType: 'movie' | 'tv_show', mediaId: number): Promise<ReviewBucket> {
+  return fetchBucket<ReviewBucket>(`/reviews/${mediaType}/${mediaId}`, EMPTY_REVIEWS, mediaType, mediaId);
+}
+
+export function getCommentThreads(mediaType: 'movie' | 'tv_show', mediaId: number): Promise<CommentThreads> {
+  return fetchBucket<CommentThreads>(`/comments/${mediaType}/${mediaId}`, EMPTY_COMMENTS, mediaType, mediaId);
 }

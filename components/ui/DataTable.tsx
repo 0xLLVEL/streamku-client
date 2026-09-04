@@ -6,13 +6,10 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getFilteredRowModel,
-  getSortedRowModel,
   SortingState,
   PaginationState,
   RowSelectionState,
   RowData,
-  getPaginationRowModel,
 } from "@tanstack/react-table"
 
 import {
@@ -89,9 +86,6 @@ export function DataTable<TData, TValue>({
     manualSorting: true,
     manualFiltering: true,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange,
     onGlobalFilterChange,
     onPaginationChange,
