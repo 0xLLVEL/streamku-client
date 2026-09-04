@@ -230,33 +230,52 @@ export default function SettingsPage() {
             {/* Account */}
             <section id="section-account" aria-labelledby="account-heading" className="rounded-2xl border border-border bg-card overflow-hidden">
               <div className="px-6 md:px-8 py-6 border-b border-border">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 id="account-heading" className="text-base font-semibold text-foreground tracking-tight">Account</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Change your password. Leave blank to keep the current one.</p>
-                  </div>
-                  <label className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground cursor-pointer select-none">
-                    <input type="checkbox" checked={showPasswords} onChange={(e) => setShowPasswords(e.target.checked)} className="w-4 h-4 rounded border-input bg-background text-foreground focus:ring-ring" />
-                    Show
-                  </label>
-                </div>
+                <h2 id="account-heading" className="text-base font-semibold text-foreground tracking-tight">Account</h2>
+                <p className="text-sm text-muted-foreground mt-1">Change your password. Leave blank to keep the current one.</p>
               </div>
               <div className="p-6 md:p-8 space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="settings-current-password">Current password</Label>
-                  <Input id="settings-current-password" name="current_password" type={showPasswords ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Required to set a new password" autoComplete="current-password" />
+                  <div className="relative">
+                    <Input id="settings-current-password" name="current_password" type={showPasswords ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Required to set a new password" autoComplete="current-password" className="pr-10" />
+                    <button type="button" onClick={() => setShowPasswords((v) => !v)} aria-label={showPasswords ? 'Hide password' : 'Show password'} aria-pressed={showPasswords} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus-ring">
+                      {showPasswords ? (
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L5.636 5.636m4.242 4.242L14.12 14.12m-4.242-4.242L19.5 5.25M14.12 14.12L19.5 19.5M5.636 5.636a9.97 9.97 0 0113.828 0" /></svg>
+                      ) : (
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /></svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="settings-password">New password</Label>
-                    <Input id="settings-password" name="password" type={showPasswords ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" aria-describedby="password-help" />
+                    <div className="relative">
+                      <Input id="settings-password" name="password" type={showPasswords ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" aria-describedby="password-help" className="pr-10" />
+                      <button type="button" onClick={() => setShowPasswords((v) => !v)} aria-label={showPasswords ? 'Hide password' : 'Show password'} aria-pressed={showPasswords} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus-ring">
+                        {showPasswords ? (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L5.636 5.636m4.242 4.242L14.12 14.12m-4.242-4.242L19.5 5.25M14.12 14.12L19.5 19.5M5.636 5.636a9.97 9.97 0 0113.828 0" /></svg>
+                        ) : (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /></svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="settings-password-confirm">Confirm new password</Label>
-                    <Input id="settings-password-confirm" name="password_confirmation" type={showPasswords ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat new password" autoComplete="new-password" />
+                    <div className="relative">
+                      <Input id="settings-password-confirm" name="password_confirmation" type={showPasswords ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat new password" autoComplete="new-password" className="pr-10" />
+                      <button type="button" onClick={() => setShowPasswords((v) => !v)} aria-label={showPasswords ? 'Hide password' : 'Show password'} aria-pressed={showPasswords} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus-ring">
+                        {showPasswords ? (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L5.636 5.636m4.242 4.242L14.12 14.12m-4.242-4.242L19.5 5.25M14.12 14.12L19.5 19.5M5.636 5.636a9.97 9.97 0 0113.828 0" /></svg>
+                        ) : (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /></svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <p id="password-help" className="text-xs text-muted-foreground">We never store your password. Use a unique, strong password.</p>
+                <p id="password-help" className="text-xs text-muted-foreground">We never store your password. Use a unique, strong password. Click the eye to show.</p>
               </div>
             </section>
 
