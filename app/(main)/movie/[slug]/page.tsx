@@ -16,14 +16,14 @@ import { artworkUrl, tmdbImageUrl } from '@/lib/config';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
-  const res = await fetchApi(`/movies/${slug}`, { next: { revalidate: 60 } });
+  const res = await fetchApi(`/movies/${slug}`, { cache: 'no-store' });
   if (!res.ok) return null;
   const json = await res.json();
   return json.data;
 }
 
 async function getRecommendations(slug: string): Promise<MediaItem[]> {
-  const res = await fetchApi(`/movies/${slug}/recommendations`, { next: { revalidate: 60 } });
+  const res = await fetchApi(`/movies/${slug}/recommendations`, { cache: 'no-store' });
   if (!res.ok) return [];
   const json = await res.json();
   return json.data || [];
@@ -131,25 +131,32 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
         </div>
       </div>
 
-      {/* Images — backdrops only, a few (ponytail: keep minimal, poster already in hero) */}
+      {/* Images — backdrops (match admin, ponytail: show all from admin) */}
       {((movie.backdrop_path || (movie as any).images?.backdrops?.length > 0)) && (
         <div className="w-full px-4 md:px-12 lg:px-24 py-8">
-          <h2 className="text-lg font-semibold text-white mb-4">Backdrops</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(() => {
-              const allBackdrops: string[] = [
-                ...(movie.backdrop_path ? [movie.backdrop_path] : []),
-                ...(((movie as any).images?.backdrops ?? []).map((b: any) => b.file_path) as string[]),
-              ];
-              const uniq = Array.from(new Set(allBackdrops)).slice(0, 3);
-              return uniq.map((path, idx) => (
-                <div key={`${path}-${idx}`} className="aspect-video rounded-xl overflow-hidden bg-muted border border-white/10">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={artworkUrl(path, 'w780') ?? tmdbImageUrl(path, 'w780') ?? ''} alt={`Backdrop ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
+          {(() => {
+            const allBackdrops: string[] = [
+              ...(movie.backdrop_path ? [movie.backdrop_path] : []),
+              ...(((movie as any).images?.backdrops ?? []).map((b: any) => b.file_path) as string[]),
+            ];
+            const uniq = Array.from(new Set(allBackdrops));
+            return (
+              <>
+                <div className="flex items-baseline gap-3 mb-4">
+                  <h2 className="text-lg font-semibold text-white">Backdrops</h2>
+                  <span className="text-sm text-white/50">({uniq.length})</span>
                 </div>
-              ));
-            })()}
-          </div>
+                <DraggableList className="pb-2" innerClassName="space-x-4">
+                  {uniq.map((path, idx) => (
+                    <div key={`${path}-${idx}`} className="snap-start shrink-0 w-[280px] md:w-[360px] aspect-video rounded-xl overflow-hidden bg-muted border border-white/10 shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={artworkUrl(path, 'w780') ?? tmdbImageUrl(path, 'w780') ?? ''} alt={`Backdrop ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  ))}
+                </DraggableList>
+              </>
+            );
+          })()}
         </div>
       )}
 
