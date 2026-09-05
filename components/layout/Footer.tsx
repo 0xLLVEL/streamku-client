@@ -1,12 +1,5 @@
 import Link from 'next/link';
 
-const LINKS = [
-  { name: 'Movies', path: '/movies' },
-  { name: 'TV Series', path: '/tv' },
-  { name: 'Genres', path: '/genres' },
-  { name: 'Library', path: '/profile/me' },
-];
-
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
@@ -14,13 +7,6 @@ export function Footer() {
         <Link href="/" className="text-xl font-black tracking-tighter text-red-600" aria-label="Streamku home">
           STREAMKU
         </Link>
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm" aria-label="Footer">
-          {LINKS.map((link) => (
-            <Link key={link.path} href={link.path} className="text-muted-foreground transition-colors hover:text-foreground">
-              {link.name}
-            </Link>
-          ))}
-        </nav>
         <p className="text-center text-xs text-muted-foreground md:text-right">
           © {new Date().getFullYear()} Streamku. This product uses the TMDB API but is not endorsed by TMDB.
         </p>
