@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
-import { fetchApi } from '@/lib/api';
-import { buildStreamUrl, tmdbImageUrl } from '@/lib/config';
-import { resolveStreamableVideo, type StreamableVideo } from '@/lib/media';
+import { fetchApi } from '@/lib/api.utils';
+import { buildStreamUrl, tmdbImageUrl } from '@/lib/config.utils';
+import { resolveStreamableVideo, type StreamableVideo } from '@/lib/media.utils';
 
 interface MovieSummary {
   title?: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTmdbSearch, type TmdbSearchResult } from './useTmdbSearch';
+import { useTmdbSearch, type TmdbSearchResult } from './use-tmdb-search';
 
 interface TmdbImportPanelProps {
   placeholder: string;

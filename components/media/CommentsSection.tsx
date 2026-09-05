@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { submitCommentAction, deleteCommentAction } from '@/app/actions/comments';
-import { apiFetch } from '@/lib/apiClient';
+import { apiFetch } from '@/lib/api-client.utils';
 import { Comment, CommentThreads } from '@/types';
 import { UserAvatar } from '@/components/media/UserAvatar';
 

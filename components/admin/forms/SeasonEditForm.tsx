@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { SectionCard } from '@/components/admin/ui';
-import { STREAM_PROVIDERS, type StreamProvider, tmdbImageUrl } from '@/lib/config';
+import { STREAM_PROVIDERS, type StreamProvider, tmdbImageUrl } from '@/lib/config.utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 
 export interface SeasonEditEpisode {

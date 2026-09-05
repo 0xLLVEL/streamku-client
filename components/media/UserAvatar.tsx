@@ -1,4 +1,5 @@
-import { avatarUrl } from '@/lib/config';
+import { avatarUrl } from '@/lib/config.utils';
+import { avatarGradient, initialForUser } from '@/lib/avatar.utils';
 
 export function UserAvatar({
   name,
@@ -13,9 +14,7 @@ export function UserAvatar({
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
-  // Deterministic hue from the user id so each user keeps a stable color.
-  const hue = (userId * 47) % 360;
-  const bg = `linear-gradient(135deg, hsl(${hue} 70% 42%), hsl(${(hue + 40) % 360} 70% 30%))`;
+  const bg = avatarGradient(userId);
 
   const dims =
     size === 'sm'
@@ -24,7 +23,7 @@ export function UserAvatar({
         ? 'w-11 h-11 text-base'
         : 'w-16 h-16 text-2xl';
 
-  const label = (name?.trim() || `User ${userId}`).charAt(0).toUpperCase();
+  const label = initialForUser(name, userId);
   const src = avatarUrl(avatar);
 
   if (src) {

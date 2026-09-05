@@ -1,16 +1,8 @@
 'use server';
 
-import { fetchApi } from '@/lib/api';
-import { revalidatePath } from 'next/cache';
+import { mutateSocialEntry, deleteSocialEntry } from './social';
 
-async function readError(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = await res.json();
-    return data?.message || fallback;
-  } catch {
-    return fallback;
-  }
-}
+// ponytail: thin wrappers over social.ts — same exports, no dup logic.
 
 export async function submitCommentAction(input: {
   mediaId: number;
@@ -20,47 +12,12 @@ export async function submitCommentAction(input: {
   parentId?: number;
   existingId?: number;
 }) {
-  try {
-    const res = await fetchApi(
-      input.existingId ? `/comments/${input.existingId}` : '/comments',
-      {
-        method: input.existingId ? 'PUT' : 'POST',
-        body: JSON.stringify({
-          media_id: input.mediaId,
-          media_type: input.mediaType,
-          body: input.body,
-          parent_id: input.parentId ?? null,
-        }),
-      },
-    );
-
-    if (res.ok) {
-      revalidatePath(`/movie/${input.slug}`);
-      revalidatePath(`/tv/${input.slug}`);
-      return { success: true };
-    }
-
-    return { success: false, error: await readError(res, 'Failed to save comment') };
-  } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
-  }
+  return mutateSocialEntry('comments', input);
 }
 
 export async function deleteCommentAction(input: {
   id: number;
   slug: string;
 }) {
-  try {
-    const res = await fetchApi(`/comments/${input.id}`, { method: 'DELETE' });
-
-    if (res.ok) {
-      revalidatePath(`/movie/${input.slug}`);
-      revalidatePath(`/tv/${input.slug}`);
-      return { success: true };
-    }
-
-    return { success: false, error: await readError(res, 'Failed to delete comment') };
-  } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
-  }
+  return deleteSocialEntry('comments', input);
 }

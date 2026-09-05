@@ -1,4 +1,4 @@
-import { fetchAdminPage } from '@/lib/api';
+import { fetchAdminPage } from '@/lib/api.utils';
 import { StatCard } from '@/components/admin/ui';
 import { CastClient, type CastType } from './CastClient';
 

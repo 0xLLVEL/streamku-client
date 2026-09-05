@@ -1,4 +1,4 @@
-import { fetchAdminPage } from '@/lib/api';
+import { fetchAdminPage } from '@/lib/api.utils';
 import { GenresClient, type GenreType } from './GenresClient';
 
 export default async function AdminGenresPage() {

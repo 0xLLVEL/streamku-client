@@ -1,17 +1,8 @@
 'use server';
 
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { revalidatePath } from 'next/cache';
-
-/** Pull the API's error message, falling back to a contextual default. */
-async function readError(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = await res.json();
-    return data?.message || fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { readError, UNEXPECTED_ERROR } from './_shared';
 
 // -- EMBED VIDEOS --
 
@@ -55,7 +46,7 @@ export async function createEmbedVideoAction(params: {
 
     return { success: false, error: await readError(res, 'Failed to save embed video') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -90,7 +81,7 @@ export async function deleteEmbedVideoAction(params: {
 
     return { success: false, error: await readError(res, 'Failed to delete stream') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -109,7 +100,7 @@ export async function deleteSeasonAction(tvShowId: number | string, seasonNumber
 
     return { success: false, error: await readError(res, 'Failed to delete season') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -131,7 +122,7 @@ export async function bulkGenerateVidkingEpisodesAction(tvShowId: number | strin
 
     return { success: false, error: await readError(res, 'Failed to bulk generate episodes') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -156,7 +147,7 @@ export async function updateSeasonAction(tvShowId: number | string, seasonNumber
 
     return { success: false, error: await readError(res, 'Failed to update season') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -182,7 +173,7 @@ export async function updateEpisodeAction(tvShowId: number | string, seasonNumbe
 
     return { success: false, error: await readError(res, 'Failed to update episode') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -200,6 +191,6 @@ export async function deleteMediaAction(mediaId: number | string) {
 
     return { success: false, error: await readError(res, 'Failed to delete media') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }

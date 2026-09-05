@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/lib/apiClient';
+import { apiFetch } from '@/lib/api-client.utils';
 import { AdminCard, AdminPageHeader } from '@/components/admin/ui';
 import { setEntryApprovedAction, deleteModerationEntryAction } from '@/app/actions/admin-moderation';
 

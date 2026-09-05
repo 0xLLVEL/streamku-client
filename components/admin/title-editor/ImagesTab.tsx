@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { artworkUrl, tmdbImageUrl } from '@/lib/config';
+import { artworkUrl, tmdbImageUrl } from '@/lib/config.utils';
 import { ImagePickerDialog } from './ImagePickerDialog';
 import type { TitleImageSet } from './types';
 

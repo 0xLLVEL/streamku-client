@@ -1,17 +1,8 @@
 'use server';
 
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { revalidatePath } from 'next/cache';
-
-/** Pull the API's error message, falling back to a contextual default. */
-async function readError(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = await res.json();
-    return data?.message || fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { readError, UNEXPECTED_ERROR } from './_shared';
 
 // -- MOVIES & TV SHOWS --
 
@@ -42,7 +33,7 @@ export async function createMovieAction(formData: FormData) {
 
     return { success: false, error: await readError(res, 'Failed to create movie') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -73,7 +64,7 @@ export async function createTvShowAction(formData: FormData) {
 
     return { success: false, error: await readError(res, 'Failed to create TV show') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -104,7 +95,7 @@ export async function updateMovieAction(id: number | string, formData: FormData)
 
     return { success: false, error: await readError(res, 'Failed to update movie') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -135,7 +126,7 @@ export async function updateTvShowAction(id: number | string, formData: FormData
 
     return { success: false, error: await readError(res, 'Failed to update TV show') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -156,7 +147,7 @@ export async function importMovieFromTmdbAction(tmdbId: string | number) {
 
     return { success: false, error: await readError(res, 'Failed to import movie from TMDB') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -175,7 +166,7 @@ export async function importTvShowFromTmdbAction(tmdbId: string | number) {
 
     return { success: false, error: await readError(res, 'Failed to import TV show from TMDB') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -201,7 +192,7 @@ export async function previewTmdbMovieAction(tmdbId: string | number) {
     }
     return { success: false, error: 'Failed to fetch movie preview from TMDB' };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -214,7 +205,7 @@ export async function previewTmdbTvAction(tmdbId: string | number) {
     }
     return { success: false, error: 'Failed to fetch TV show preview from TMDB' };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -230,6 +221,6 @@ export async function uploadImageAction(formData: FormData) {
     }
     return { success: false, error: data.message || 'Failed to upload image' };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }

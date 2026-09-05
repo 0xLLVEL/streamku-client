@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { GenreEditForm } from '@/components/admin/forms/GenreEditForm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';

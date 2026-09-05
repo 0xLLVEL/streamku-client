@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { SeasonEditForm, type SeasonEditData } from '@/components/admin/forms/SeasonEditForm';
 import { notFound } from 'next/navigation';
 

@@ -1,17 +1,8 @@
 'use server';
 
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { revalidatePath } from 'next/cache';
-
-/** Pull the API's error message, falling back to a contextual default. */
-async function readError(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = await res.json();
-    return data?.message || fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { readError, UNEXPECTED_ERROR } from './_shared';
 
 // -- DELETIONS --
 
@@ -28,7 +19,7 @@ export async function deleteContentAction(id: number | string, type: 'movies' | 
 
     return { success: false, error: await readError(res, `Failed to delete ${type}`) };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -48,7 +39,7 @@ export async function bulkDeleteContentAction(ids: (number | string)[], type: 'm
 
     return { success: false, error: `Failed to delete some ${type}` };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -73,7 +64,7 @@ export async function createGenreAction(formData: FormData) {
 
     return { success: false as const, error: await readError(res, 'Failed to create genre') };
   } catch {
-    return { success: false as const, error: 'An unexpected error occurred.' };
+    return { success: false as const, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -96,6 +87,6 @@ export async function updateGenreAction(id: number | string, formData: FormData)
 
     return { success: false, error: await readError(res, 'Failed to update genre') };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }

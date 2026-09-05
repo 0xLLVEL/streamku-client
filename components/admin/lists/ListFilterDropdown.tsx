@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/lib/apiClient';
+import { apiFetch } from '@/lib/api-client.utils';
 
 export interface ListFilterSelectOption {
   value: string;

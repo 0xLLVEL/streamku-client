@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { TvShowEditForm } from '@/components/admin/title-editor/TvShowEditForm';
 import { notFound } from 'next/navigation';
 
