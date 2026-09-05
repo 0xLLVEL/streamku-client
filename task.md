@@ -1,9 +1,0 @@
-- `[x]` Create `/admin/titles/page.tsx` (Movies & TV Data Table)
-- `[x]` Create `/admin/genres/page.tsx` (Genres Data Table)
-- `[x]` Create `/admin/people/page.tsx` (Placeholder)
-- `[x]` Create `/admin/videos/page.tsx` (Placeholder)
-- `[x]` Create `/admin/reviews/page.tsx` (Placeholder)
-- `[x]` Create `/admin/comments/page.tsx` (Placeholder)
-- `[x]` Create `/admin/roles/page.tsx` (Placeholder)
-- `[x]` Create `/admin/settings/page.tsx` (Placeholder)
-- `[ ]` Write walkthrough
