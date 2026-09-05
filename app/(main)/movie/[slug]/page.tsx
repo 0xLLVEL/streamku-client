@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { HeroTrailer } from '@/components/media/HeroTrailer';
@@ -7,12 +7,11 @@ import { PlayAction } from '@/components/media/PlayAction';
 import Link from 'next/link';
 
 import { PosterCard } from '@/components/media/PosterCard';
-import { WatchlistButton } from '@/components/media/WatchlistButton';
-import { FavoriteButton } from '@/components/media/FavoriteButton';
+import { WatchlistButton, FavoriteButton } from '@/components/media/ResourceToggleButton';
 import { ReviewsSection } from '@/components/media/ReviewsSection';
 import { CommentsSection } from '@/components/media/CommentsSection';
-import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
-import { artworkUrl, tmdbImageUrl } from '@/lib/config';
+import { getFavoriteState, getWatchlistState } from '@/lib/user-state.utils';
+import { artworkUrl, tmdbImageUrl } from '@/lib/config.utils';
 import { Movie, MediaItem } from '@/types';
 
 async function getMovie(slug: string): Promise<Movie | null> {
@@ -132,12 +131,12 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ sl
       </div>
 
       {/* Images — backdrops (match admin, ponytail: show all from admin) */}
-      {((movie.backdrop_path || (movie as any).images?.backdrops?.length > 0)) && (
+      {((movie.backdrop_path || (movie.images?.backdrops?.length ?? 0) > 0)) && (
         <div className="w-full px-4 md:px-12 lg:px-24 py-8">
           {(() => {
             const allBackdrops: string[] = [
               ...(movie.backdrop_path ? [movie.backdrop_path] : []),
-              ...(((movie as any).images?.backdrops ?? []).map((b: any) => b.file_path) as string[]),
+              ...((movie.images?.backdrops ?? []).map((b) => b.file_path) as string[]),
             ];
             const uniq = Array.from(new Set(allBackdrops));
             return (

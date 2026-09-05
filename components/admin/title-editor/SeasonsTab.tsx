@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { tmdbImageUrl } from '@/lib/config';
+import { tmdbImageUrl } from '@/lib/config.utils';
 import type { SeasonEntry } from './types';
 
 interface SeasonsTabProps {

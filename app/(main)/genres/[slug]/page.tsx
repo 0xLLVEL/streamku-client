@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { PosterCard } from '@/components/media/PosterCard';
 import { notFound } from 'next/navigation';
 import type { MediaItem } from '@/types';

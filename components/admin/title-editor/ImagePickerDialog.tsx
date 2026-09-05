@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { artworkUrl, tmdbImageUrl } from '@/lib/config';
+import { artworkUrl, tmdbImageUrl } from '@/lib/config.utils';
 import { uploadImageAction } from '@/app/actions/admin-content-media';
 import { Button } from '@/components/ui/Button';
 import type { TitleImageSet } from './types';

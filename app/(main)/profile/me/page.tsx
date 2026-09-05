@@ -1,9 +1,9 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import type { MediaListItem, ProfileUser } from '../profile-types';
 import { LibraryTabs } from '@/components/library/LibraryTabs';
-import { avatarUrl } from '@/lib/config';
+import { avatarUrl } from '@/lib/config.utils';
 
 async function getUser(): Promise<ProfileUser | null> {
   try {

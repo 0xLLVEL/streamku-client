@@ -1,16 +1,8 @@
 'use server';
 
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { revalidatePath } from 'next/cache';
-
-async function readError(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = await res.json();
-    return data?.message || fallback;
-  } catch {
-    return fallback;
-  }
-}
+import { readError, UNEXPECTED_ERROR } from './_shared';
 
 type ModerationTarget = 'reviews' | 'comments';
 
@@ -31,7 +23,7 @@ export async function setEntryApprovedAction(
 
     return { success: false, error: await readError(res, `Failed to update ${target.slice(0, -1)}`) };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }
 
@@ -46,6 +38,6 @@ export async function deleteModerationEntryAction(target: ModerationTarget, id: 
 
     return { success: false, error: await readError(res, `Failed to delete ${target.slice(0, -1)}`) };
   } catch {
-    return { success: false, error: 'An unexpected error occurred.' };
+    return { success: false, error: UNEXPECTED_ERROR };
   }
 }

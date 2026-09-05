@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { HeroTrailer } from '@/components/media/HeroTrailer';
@@ -8,12 +8,11 @@ import { PlayAction } from '@/components/media/PlayAction';
 import Link from 'next/link';
 
 import { PosterCard } from '@/components/media/PosterCard';
-import { WatchlistButton } from '@/components/media/WatchlistButton';
-import { FavoriteButton } from '@/components/media/FavoriteButton';
+import { WatchlistButton, FavoriteButton } from '@/components/media/ResourceToggleButton';
 import { ReviewsSection } from '@/components/media/ReviewsSection';
 import { CommentsSection } from '@/components/media/CommentsSection';
-import { getFavoriteState, getWatchlistState } from '@/lib/user-state';
-import { tmdbImageUrl } from '@/lib/config';
+import { getFavoriteState, getWatchlistState } from '@/lib/user-state.utils';
+import { tmdbImageUrl } from '@/lib/config.utils';
 import { TvShow, MediaItem } from '@/types';
 
 async function getTvShow(slug: string): Promise<TvShow | null> {

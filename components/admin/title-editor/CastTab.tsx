@@ -1,6 +1,6 @@
 'use client';
 
-import { tmdbImageUrl } from '@/lib/config';
+import { tmdbImageUrl } from '@/lib/config.utils';
 import type { TmdbCastMember } from './types';
 
 interface CastTabProps {

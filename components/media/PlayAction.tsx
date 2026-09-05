@@ -1,18 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
-import { API_BASE_URL, buildEmbedUrl, buildStreamUrl } from '@/lib/config';
-import { resolveStreamableVideo } from '@/lib/media';
-import { syncWatchProgress } from '@/lib/watchHistory';
-import { useIsClient } from '@/hooks/useIsClient';
-
-interface ExternalEmbedVideo {
-  site: string;
-  key: string;
-}
+import { API_BASE_URL, buildEmbedUrl } from '@/lib/config.utils';
+import { usePlayableMedia, type ExternalEmbedVideo } from '@/lib/playback/use-playable-media';
+import { useEmbedProgress } from '@/lib/playback/use-embed-progress';
+import { useIsClient } from '@/hooks/use-is-client';
 
 interface PlayActionProps {
   mediaEndpoint: string;
@@ -46,74 +40,16 @@ export function PlayAction({
   initialTime = 0,
 }: PlayActionProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [streamUrl, setStreamUrl] = useState<string | null>(null);
-  const [embedUrl, setEmbedUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [subtitleTracks, setSubtitleTracks] = useState<{ url: string; lang: string; label: string }[]>([]);
+  const playable = usePlayableMedia({ type, seasonNumber, episodeNumber });
+  const { streamUrl, embedUrl, subtitleTracks, loading } = playable;
   const isClient = useIsClient();
 
-  useEffect(() => {
-    if (!isOpen || !embedUrl || !watchableId) return;
-
-    let hasRealProgress = false;
-    const findTime = (obj: unknown): number | null => {
-      if (!obj || typeof obj !== 'object') return null;
-      const o = obj as Record<string, unknown>;
-      for (const k of ['currentTime', 'current_time', 'time', 'progress', 'position', 'seconds', 'elapsed']) {
-        if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
-      }
-      for (const v of Object.values(o)) {
-        if (v && typeof v === 'object') {
-          const r = findTime(v);
-          if (r !== null) return r;
-        }
-      }
-      return null;
-    };
-    const findDuration = (obj: unknown): number | undefined => {
-      if (!obj || typeof obj !== 'object') return undefined;
-      const o = obj as Record<string, unknown>;
-      for (const k of ['duration', 'durationSeconds', 'duration_seconds', 'totalTime', 'total_time']) {
-        if (typeof o[k] === 'number' && (o[k] as number) > 0) return o[k] as number;
-      }
-      for (const v of Object.values(o)) {
-        if (v && typeof v === 'object') {
-          const r = findDuration(v);
-          if (r !== undefined) return r;
-        }
-      }
-      return undefined;
-    };
-
-    const handleMessage = async (event: MessageEvent) => {
-      try {
-        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        const time = findTime(data);
-        const dur = findDuration(data);
-        if (time !== null) {
-          hasRealProgress = true;
-          await syncWatchProgress({
-            mediaType: type === 'movie' ? 'movie' : 'episode',
-            mediaId: watchableId,
-            progressSeconds: time,
-            durationSeconds: dur,
-          });
-        }
-      } catch { }
-    };
-    window.addEventListener('message', handleMessage);
-
-    // Fallback only if VidKing never sends real time — keeps Continue Watching but won't override real progress
-    const estimatedDuration = type === 'movie' ? 7200 : 1440;
-    const start = Date.now();
-    const interval = setInterval(() => {
-      if (hasRealProgress) return;
-      const elapsed = Math.floor((Date.now() - start) / 1000);
-      if (elapsed >= 30) syncWatchProgress({ mediaType: type === 'movie' ? 'movie' : 'episode', mediaId: watchableId, progressSeconds: elapsed, durationSeconds: estimatedDuration });
-    }, 5000);
-
-    return () => { window.removeEventListener('message', handleMessage); clearInterval(interval); };
-  }, [isOpen, embedUrl, watchableId, type]);
+  useEmbedProgress({
+    active: isOpen,
+    embedUrl,
+    mediaType: type === 'movie' ? 'movie' : 'episode',
+    mediaId: watchableId,
+  });
 
   const handlePlayClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -124,49 +60,40 @@ export function PlayAction({
 
     // Check external videos first
     if (videos && videos.length > 0) {
-      const extVideo = videos[0]; // pick first external stream
-      const url = buildEmbedUrl(extVideo.site, extVideo.key, type, seasonNumber, episodeNumber) ?? extVideo.key;
-      setEmbedUrl(url);
+      playable.openExternal(videos);
       setIsOpen(true);
       return;
     }
 
-    setLoading(true);
+    const outcome = await playable.loadFromEndpoint(mediaEndpoint, type === 'movie' ? 'Movie' : 'Episode');
+    if (outcome === 'stream') {
+      setIsOpen(true);
+      return;
+    }
+    if (outcome === 'error') {
+      alert('Failed to load video.');
+      return;
+    }
+
+    // No uploaded file — try embed from title/episode endpoint
     try {
-      const res = await fetch(`${API_BASE_URL}${mediaEndpoint}`);
-      if (!res.ok) throw new Error('Failed to load media');
-      const json = await res.json();
-      const videoData = resolveStreamableVideo(json.data, type === 'movie' ? 'Movie' : 'Episode');
-      // ponytail: collect subtitles from grouped media (subtitles/subtitle collection)
-      const rawSubs: any[] = json.data?.subtitles ?? json.data?.subtitle ?? json.data?.captions ?? [];
-      const tracks = Array.isArray(rawSubs) ? rawSubs.map((m: any) => ({ url: m.url ?? m.path, lang: m.metadata?.language ?? m.language ?? 'en', label: (m.metadata?.language ?? m.language ?? 'en').toUpperCase() })).filter((t: any) => t.url) : [];
-      if (tracks.length) setSubtitleTracks(tracks);
-      if (videoData) {
-        setStreamUrl(buildStreamUrl(videoData.id));
-        setIsOpen(true);
-      } else {
-        // No uploaded file — try embed from title/episode endpoint
-        const titleEndpoint = mediaEndpoint.replace(/\/media$/, '');
-        const titleRes = await fetch(`${API_BASE_URL}${titleEndpoint}`);
-        if (titleRes.ok) {
-          const titleJson = await titleRes.json();
-          const vids: ExternalEmbedVideo[] = titleJson.data?.videos ?? titleJson.videos ?? [];
-          const embed = vids[0];
-          if (embed) {
-            const url = buildEmbedUrl(embed.site, embed.key, type, seasonNumber, episodeNumber) ?? embed.key;
-            setEmbedUrl(url);
-            setIsOpen(true);
-          } else {
-            alert('Video not available yet. Please upload it first.');
-          }
+      const titleEndpoint = mediaEndpoint.replace(/\/media$/, '');
+      const titleRes = await fetch(`${API_BASE_URL}${titleEndpoint}`);
+      if (titleRes.ok) {
+        const titleJson = await titleRes.json();
+        const vids: ExternalEmbedVideo[] = titleJson.data?.videos ?? titleJson.videos ?? [];
+        const embed = vids[0];
+        if (embed) {
+          playable.setEmbedUrl(buildEmbedUrl(embed.site, embed.key, type, seasonNumber, episodeNumber) ?? embed.key);
+          setIsOpen(true);
         } else {
           alert('Video not available yet. Please upload it first.');
         }
+      } else {
+        alert('Video not available yet. Please upload it first.');
       }
     } catch {
       alert('Failed to load video.');
-    } finally {
-      setLoading(false);
     }
   };
 

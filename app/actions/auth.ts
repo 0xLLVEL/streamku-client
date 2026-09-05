@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 
 export interface AuthFormState {
   success?: boolean;

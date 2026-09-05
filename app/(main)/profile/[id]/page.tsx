@@ -1,8 +1,8 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { avatarUrl, tmdbImageUrl } from '@/lib/config';
+import { avatarUrl, tmdbImageUrl } from '@/lib/config.utils';
 import type { MediaListItem, ProfileUser } from '../profile-types';
 
 interface ProfileData {

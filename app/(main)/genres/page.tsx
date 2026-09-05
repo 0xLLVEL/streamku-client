@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import Link from 'next/link';
 import type { Genre } from '@/types';
 

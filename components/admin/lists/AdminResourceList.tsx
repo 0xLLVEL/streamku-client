@@ -9,7 +9,7 @@ import type {
   RowSelectionState,
   SortingState,
 } from '@tanstack/react-table';
-import { apiFetch } from '@/lib/apiClient';
+import { apiFetch } from '@/lib/api-client.utils';
 import { DataTable } from '@/components/ui/DataTable';
 import { AdminPageHeader } from '@/components/admin/ui';
 import { buttonVariants } from '@/components/ui/Button';

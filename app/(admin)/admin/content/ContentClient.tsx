@@ -1,70 +1,26 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import type { ColumnDef } from '@tanstack/react-table';
-import { apiFetch } from '@/lib/apiClient';
 import {
   AdminResourceList,
   type AdminResourcePage,
 } from '@/components/admin/lists/AdminResourceList';
 import { BulkDeleteButton } from '@/components/admin/lists/BulkDeleteButton';
-import { DeleteButton } from '@/components/admin/lists/DeleteButton';
-import type { ListFilterField } from '@/components/admin/lists/ListFilterDropdown';
-import {
-  dateColumn,
-  genresColumn,
-  posterTitleColumn,
-  selectColumn,
-  viewsColumn,
-} from '@/components/admin/lists/table-columns';
 import { cn } from '@/lib/utils';
+import {
+  FILTER_FIELDS,
+  PAGE_SIZE_MERGED,
+  PAGE_SIZE_SINGLE,
+  RESERVED_PARAMS,
+  TYPE_FILTERS,
+  type ContentRow,
+  type TypeFilter,
+} from './content/constants';
+import { useContentColumns } from './content/columns';
+import { fetchKind } from './content/api';
 
-export type ContentKind = 'movie' | 'tv';
-
-export interface ContentRow {
-  kind: ContentKind;
-  id: number;
-  tmdb_id: number | null;
-  title: string;
-  poster_path: string | null;
-  release_date: string | null;
-  views: number;
-  genres: { name: string }[] | null;
-  created_at: string;
-}
-
-type TypeFilter = 'all' | 'movie' | 'tv';
-
-const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'movie', label: 'Movies' },
-  { value: 'tv', label: 'TV Shows' },
-];
-
-const PAGE_SIZE_SINGLE = 20;
-// Merged view pulls this many per endpoint so the combined page stays at 20 rows.
-const PAGE_SIZE_MERGED = 10;
-
-const FILTER_FIELDS: ListFilterField[] = [
-  { kind: 'genres', key: 'genre', label: 'Genre' },
-  { kind: 'number', key: 'year', label: 'Year', placeholder: 'e.g. 2024' },
-  {
-    kind: 'select',
-    key: 'language',
-    label: 'Language',
-    options: [
-      { value: 'en', label: 'English' },
-      { value: 'id', label: 'Indonesian' },
-      { value: 'ko', label: 'Korean' },
-      { value: 'ja', label: 'Japanese' },
-      { value: 'es', label: 'Spanish' },
-      { value: 'fr', label: 'French' },
-    ],
-  },
-];
-
-const RESERVED_PARAMS = new Set(['page', 'per_page', 'search', 'sort', 'direction']);
+export type { ContentKind, ContentRow } from './content/constants';
+export { TypeBadge } from './content/TypeBadge';
 
 interface ContentClientProps {
   /** Server-rendered first page of the merged "All" view. */
@@ -82,44 +38,7 @@ interface ContentClientProps {
  */
 export function ContentClient({ initialRows, initialPageCount, initialSearch = '' }: ContentClientProps) {
   const [typeFilter, setTypeFilter] = React.useState<TypeFilter>('all');
-
-  const columns = React.useMemo<ColumnDef<ContentRow, unknown>[]>(
-    () => [
-      selectColumn<ContentRow>(),
-      posterTitleColumn<ContentRow>({
-        header: 'Title',
-        imagePath: (row) => row.poster_path,
-        title: (row) => row.title,
-        subtitleId: (row) => ({ tmdbId: row.tmdb_id, id: row.id }),
-      }),
-      {
-        id: 'kind',
-        header: 'Type',
-        enableSorting: false,
-        cell: ({ row }) => <TypeBadge kind={row.original.kind} />,
-      },
-      genresColumn<ContentRow>(),
-      dateColumn<ContentRow>('release_date', 'Release / Air Date', 'strong'),
-      viewsColumn<ContentRow>(),
-      dateColumn<ContentRow>('created_at', 'Added At'),
-      {
-        id: 'actions',
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200">
-            <Link
-              href={row.original.kind === 'movie' ? `/admin/movies/${row.original.id}` : `/admin/tv-shows/${row.original.id}`}
-              className="text-white/60 hover:text-white px-2.5 py-1 rounded-md border border-white/10 hover:bg-white/10 transition-colors duration-200 text-[11px] font-medium cursor-pointer focus-ring"
-            >
-              Edit
-            </Link>
-            <DeleteButton id={row.original.id} type={row.original.kind === 'movie' ? 'movies' : 'tv-shows'} />
-          </div>
-        ),
-      },
-    ],
-    [],
-  );
+  const columns = useContentColumns();
 
   const fetchPage = React.useCallback(
     (params: URLSearchParams): Promise<AdminResourcePage<ContentRow>> => {
@@ -206,76 +125,5 @@ export function ContentClient({ initialRows, initialPageCount, initialSearch = '
         );
       }}
     />
-  );
-}
-
-async function fetchKind(
-  endpoint: 'movies' | 'tv-shows',
-  page: number,
-  perPage: number,
-  search: string,
-  filters: Record<string, string>,
-  sort: string,
-  direction: 'asc' | 'desc',
-): Promise<AdminResourcePage<ContentRow>> {
-  const params = new URLSearchParams({
-    page: String(page),
-    per_page: String(perPage),
-    sort,
-    direction,
-  });
-  if (search) params.append('search', search);
-  for (const [key, value] of Object.entries(filters)) {
-    if (value) params.append(key, value);
-  }
-
-  const res = await apiFetch(`/admin/${endpoint}?${params.toString()}`);
-  if (!res.ok) return { data: [], last_page: 1 };
-
-  const payload = await res.json();
-  const apiRows: unknown[] = Array.isArray(payload?.data) ? payload.data : [];
-
-  const data = apiRows
-    .map((raw) => normalizeRow(endpoint, raw))
-    .filter((row): row is ContentRow => row !== null);
-
-  return { data, last_page: Number(payload?.last_page) || 1 };
-}
-
-function normalizeRow(endpoint: 'movies' | 'tv-shows', raw: unknown): ContentRow | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const record = raw as Record<string, unknown>;
-  const id = Number(record.id);
-  if (!Number.isFinite(id)) return null;
-
-  return {
-    kind: endpoint === 'movies' ? 'movie' : 'tv',
-    id,
-    tmdb_id: record.tmdb_id != null ? Number(record.tmdb_id) : null,
-    title: String(record.title ?? record.name ?? 'Untitled'),
-    poster_path: typeof record.poster_path === 'string' ? record.poster_path : null,
-    release_date: typeof (record.release_date ?? record.first_air_date) === 'string'
-      ? (record.release_date ?? record.first_air_date) as string
-      : null,
-    views: Number(record.views ?? 0),
-    genres: Array.isArray(record.genres)
-      ? (record.genres as { name: string }[])
-      : null,
-    created_at: typeof record.created_at === 'string' ? record.created_at : '',
-  };
-}
-
-export function TypeBadge({ kind }: { kind: ContentKind }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded-md border text-[11px] font-semibold',
-        kind === 'movie'
-          ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
-          : 'bg-red-600/10 border-red-500/20 text-red-400',
-      )}
-    >
-      {kind === 'movie' ? 'Movie' : 'TV Show'}
-    </span>
   );
 }

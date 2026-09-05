@@ -20,7 +20,7 @@ import { ImagesTab } from './ImagesTab';
 import { StreamsTab } from './StreamsTab';
 import { CastTab, UnderConstructionPanel } from './CastTab';
 import { ImagePreviewModal } from './ImagePreviewModal';
-import { useTitleSave } from './useTitleSave';
+import { useTitleSave } from './use-title-save';
 import type { FormMessage, TitleDisplayData } from './types';
 
 const MOVIE_FIELDS: TitleFieldConfig = {

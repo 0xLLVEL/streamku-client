@@ -1,4 +1,4 @@
-import { fetchApi } from '@/lib/api';
+import { fetchApi } from '@/lib/api.utils';
 import { MovieEditForm } from '@/components/admin/title-editor/MovieEditForm';
 import { notFound } from 'next/navigation';
 

@@ -4,7 +4,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { DeleteButton } from './DeleteButton';
 import { Checkbox } from '@/components/ui/Checkbox';
-import { tmdbImageUrl } from '@/lib/config';
+import { tmdbImageUrl } from '@/lib/config.utils';
 import type { AdminResourceType } from './AdminResourceList';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {

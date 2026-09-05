@@ -4,8 +4,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { tmdbImageUrl } from '@/lib/config';
-import { apiFetch } from '@/lib/apiClient';
+import { tmdbImageUrl } from '@/lib/config.utils';
+import { apiFetch } from '@/lib/api-client.utils';
 import type { MediaListItem } from '@/app/(main)/profile/profile-types';
 
 type Tab = 'watchlist' | 'favorites' | 'history' | 'reviews' | 'comments';

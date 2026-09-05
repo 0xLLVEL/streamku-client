@@ -4,8 +4,9 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { PlayAction } from '@/components/media/PlayAction';
 import { DraggableList } from '@/components/media/DraggableList';
-import { tmdbImageUrl } from '@/lib/config';
-import { apiFetch } from '@/lib/apiClient';
+import { tmdbImageUrl } from '@/lib/config.utils';
+import { apiFetch } from '@/lib/api-client.utils';
+import { calcProgressPercent, formatRemaining, ESTIMATED_DURATIONS } from '@/lib/watch-progress.utils';
 
 interface HistoryItem {
   id: number;
@@ -33,14 +34,6 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
   const [items, setItems] = useState(initialItems);
   if (!items || items.length === 0) return null;
 
-  const formatLeft = (progress: number, duration: number) => {
-    const left = Math.max(0, duration - progress);
-    if (left <= 0) return 'Finished';
-    const h = Math.floor(left / 3600);
-    const m = Math.floor((left % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m left` : `${m}m left`;
-  };
-
   const handleRemove = async (historyId: number, mediaType: string, mediaId: number) => {
     setItems(prev => prev.filter(h => h.id !== historyId));
     try {
@@ -58,12 +51,9 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
         {items.map((history) => {
           if (!history.item) return null;
 
-          const estimated = history.media_type === 'movie' ? 7200 : 1440;
+          const estimated = history.media_type === 'movie' ? ESTIMATED_DURATIONS.movie : ESTIMATED_DURATIONS.episode;
           const dur = history.duration_seconds > 0 ? history.duration_seconds : estimated;
-          const raw = history.duration_seconds > 0
-            ? (history.progress_seconds / history.duration_seconds) * 100
-            : history.progress_seconds > 0 ? (history.progress_seconds / estimated) * 100 : 0;
-          const progressPercent = history.progress_seconds > 0 ? Math.max(8, raw) : 0;
+          const progressPercent = calcProgressPercent(history.progress_seconds, dur);
 
           const isMovie = history.media_type === 'movie';
           const endpoint = isMovie
@@ -120,7 +110,7 @@ export function ContinueWatchingRow({ items: initialItems }: ContinueWatchingRow
                 </div>
 
                 <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-bold text-white tracking-wide">
-                  {isMovie ? formatLeft(history.progress_seconds, dur) : `S${history.item.season_number} E${history.item.episode_number} • ${formatLeft(history.progress_seconds, dur)}`}
+                  {isMovie ? formatRemaining(history.progress_seconds, dur) : `S${history.item.season_number} E${history.item.episode_number} • ${formatRemaining(history.progress_seconds, dur)}`}
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20">

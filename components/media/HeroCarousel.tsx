@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MediaItem } from '@/types';
-import { tmdbImageUrl } from '@/lib/config';
+import { tmdbImageUrl } from '@/lib/config.utils';
 
 export function HeroCarousel({ items }: { items: MediaItem[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);

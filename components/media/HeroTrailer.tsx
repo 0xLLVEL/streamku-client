@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { tmdbImageUrl } from '@/lib/config';
+import { tmdbImageUrl } from '@/lib/config.utils';
 
 interface HeroTrailerProps {
   backdropPath: string | null;
