@@ -3,31 +3,11 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client.utils';
+import { useClickOutside } from '@/hooks/use-click-outside';
+import { FilterField } from './FilterField';
+import type { ListFilterField } from './FilterField';
 
-export interface ListFilterSelectOption {
-  value: string;
-  label: string;
-}
-
-export type ListFilterField =
-  | {
-      kind: 'select';
-      key: string;
-      label: string;
-      options: ListFilterSelectOption[];
-    }
-  | {
-      /** Options are loaded from `/genres`; values are genre ids. */
-      kind: 'genres';
-      key: string;
-      label: string;
-    }
-  | {
-      kind: 'number';
-      key: string;
-      label: string;
-      placeholder?: string;
-    };
+export type { ListFilterField, ListFilterSelectOption } from './FilterField';
 
 interface ListFilterDropdownProps {
   fields: ListFilterField[];
@@ -49,13 +29,10 @@ function setFieldIn(
   return next;
 }
 
-const SELECT_CLASS =
-  'bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/60 focus:border-red-500/50 cursor-pointer';
-
 /** Popover that lets users narrow an admin table by structured filters. */
 export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdownProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const menuRef = React.useRef<HTMLDivElement>(null);
+  const menuRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false));
 
   const needsGenres = fields.some((field) => field.kind === 'genres');
   const { data: genres = [] } = useQuery({
@@ -68,16 +45,7 @@ export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdo
     },
     enabled: needsGenres,
   });
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const genreOptions = genres.map((g) => ({ value: String(g.id), label: g.name }));
 
   const activeCount = Object.values(value).filter(Boolean).length;
 
@@ -124,36 +92,13 @@ export function ListFilterDropdown({ fields, value, onChange }: ListFilterDropdo
           </div>
 
           {fields.map((field) => (
-            <div key={field.key} className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-white/50 uppercase tracking-wider">
-                {field.label}
-              </label>
-
-              {field.kind === 'number' ? (
-                <input
-                  type="number"
-                  placeholder={field.placeholder}
-                  value={value[field.key] ?? ''}
-                  onChange={(event) => setField(field.key, event.target.value)}
-                  className={SELECT_CLASS}
-                />
-              ) : (
-                <select
-                  value={value[field.key] ?? ''}
-                  onChange={(event) => setField(field.key, event.target.value)}
-                  className={SELECT_CLASS}
-                >
-                  <option value="">All {field.label}s</option>
-                  {(field.kind === 'genres' ? genres.map((g) => ({ value: String(g.id), label: g.name })) : field.options).map(
-                    (option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ),
-                  )}
-                </select>
-              )}
-            </div>
+            <FilterField
+              key={field.key}
+              field={field}
+              value={value[field.key] ?? ''}
+              onChange={(nextValue) => setField(field.key, nextValue)}
+              genreOptions={genreOptions}
+            />
           ))}
         </div>
       )}

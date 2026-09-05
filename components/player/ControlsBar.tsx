@@ -27,7 +27,7 @@ interface ControlsBarProps {
   onToggleFullscreen: () => void;
 }
 
-export function ControlsBar({ prog, isPlaying, onTogglePlay, onSeek, volume, isMuted, onToggleMute, onVolumeInput, subsOn, onToggleSubs, playbackRate, settingsOpen, onToggleSettings, settingsMenu, pip, theater, isFullscreen, onTogglePip, onToggleTheater, onToggleFullscreen }: ControlsBarProps) {
+export function ControlsBar({ prog, isPlaying, onTogglePlay, onSeek, volume, isMuted, onToggleMute, onVolumeInput, subsOn, onToggleSubs, playbackRate, onToggleSettings, settingsMenu, pip, theater, isFullscreen, onTogglePip, onToggleTheater, onToggleFullscreen }: ControlsBarProps) {
   const { progress, buffered, currentTime, duration, tooltipX, tooltipTime, showTooltip, setShowTooltip, progressRef, handleProgressMouseDown, handleProgressHover } = prog;
   const volTrackRef = useRef<HTMLDivElement>(null);
   const [volDragging, setVolDragging] = useState(false);
