@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { artworkUrl, tmdbImageUrl } from '@/lib/config.utils';
 import { ImagePickerDialog } from './ImagePickerDialog';
+import { ImageSection } from './ImageSection';
 import type { TitleImageSet } from './types';
 
 interface ImagesTabProps {
@@ -13,9 +13,6 @@ interface ImagesTabProps {
   onPreview: (url: string) => void;
   onDeleteImage: (imageId?: number) => void;
 }
-
-const DELETE_ICON_PATH =
-  'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16';
 
 /** Backdrops and posters management grid. */
 export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDeleteImage, onPosterSelect, onBackdropSelect }: ImagesTabProps & { onPosterSelect?: (path: string) => void; onBackdropSelect?: (path: string) => void }) {
@@ -77,103 +74,5 @@ export function ImagesTab({ images, posterPath, backdropPath, onPreview, onDelet
         }}
       />
     </div>
-  );
-}
-
-interface ImageSectionProps {
-  title: string;
-  count: number;
-  addLabel: string;
-  aspectClass: string;
-  thumbSize: 'w500' | 'w780';
-  gridClass: string;
-  emptyMessage: string;
-  items: { id?: number; filePath: string }[];
-  onPreview: (url: string) => void;
-  onDeleteImage: (imageId?: number) => void;
-  onAdd?: () => void;
-}
-
-function ImageSection({
-  title,
-  count,
-  addLabel,
-  aspectClass,
-  thumbSize,
-  gridClass,
-  emptyMessage,
-  items,
-  onPreview,
-  onDeleteImage,
-  onAdd,
-}: ImageSectionProps) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">
-          {title} ({count})
-        </h2>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors duration-200 flex items-center gap-1.5 border border-white/10 cursor-pointer focus-ring"
-        >
-          <AddIcon />
-          {addLabel}
-        </button>
-      </div>
-
-      {items.length === 0 ? (
-        <p className="text-white/50">{emptyMessage}</p>
-      ) : (
-        <div className={gridClass}>
-          {items.map((item, index) => (
-            <div
-              key={`${item.filePath}-${index}`}
-              role="button"
-              tabIndex={0}
-              aria-label={`Preview ${title.toLowerCase()}`}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onPreview(artworkUrl(item.filePath, 'original') ?? tmdbImageUrl(item.filePath, 'original') ?? '');
-                }
-              }}
-              className={`${aspectClass} bg-black/30 rounded-xl border border-white/10 overflow-hidden relative group/preview cursor-pointer focus-ring`}
-              onClick={() => onPreview(artworkUrl(item.filePath, 'original') ?? tmdbImageUrl(item.filePath, 'original') ?? '')}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={artworkUrl(item.filePath, thumbSize) ?? tmdbImageUrl(item.filePath, thumbSize) ?? undefined}
-                className="w-full h-full object-cover group-hover/preview:scale-[1.03] transition-transform duration-300"
-                alt={title}
-              />
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDeleteImage(item.id);
-                }}
-                className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover/preview:opacity-100 focus-visible:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm z-10 cursor-pointer"
-                title="Delete image"
-                aria-label={`Delete ${title.toLowerCase()} image`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={DELETE_ICON_PATH} />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function AddIcon() {
-  return (
-    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-    </svg>
   );
 }

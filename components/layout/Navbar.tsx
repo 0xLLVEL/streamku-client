@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { logoutAction } from '@/app/actions/auth';
@@ -94,8 +95,8 @@ export function Navbar() {
                 aria-haspopup="menu"
                 aria-label="Account menu"
               >
-                <span aria-hidden className="flex w-full h-full items-center justify-center">
-                  {user.avatar ? <img src={avatarUrl(user.avatar) ?? ''} alt="" className="w-full h-full object-cover" /> : (user.nickname || (user as unknown as { username?: string }).username || user.name || 'U').charAt(0).toUpperCase()}
+                <span aria-hidden className="relative flex w-full h-full items-center justify-center">
+                  {user.avatar ? <Image src={avatarUrl(user.avatar) ?? ''} alt="" fill sizes="36px" unoptimized className="object-cover" /> : (user.nickname || (user as unknown as { username?: string }).username || user.name || 'U').charAt(0).toUpperCase()}
                 </span>
               </button>
               {isUserMenuOpen && (
