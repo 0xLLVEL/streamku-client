@@ -95,4 +95,3 @@ Admin list pages follow one pattern: async server page fetches page one with `fe
 
 - [`../server`](../server) — API setup, endpoints, testing
 - [`AGENTS.md`](AGENTS.md) — agent working rules for this repo
-- [`task.md`](task.md) — current task notes
