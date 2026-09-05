@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { avatarUrl } from '@/lib/config.utils';
 import { avatarGradient, initialForUser } from '@/lib/avatar.utils';
 
@@ -28,11 +29,16 @@ export function UserAvatar({
 
   if (src) {
     return (
-      <img
-        src={src}
-        alt={name || `User ${userId}`}
-        className={`${dims} ${className} shrink-0 rounded-full object-cover ring-2 ring-white/10 shadow-lg`}
-      />
+      <span className={`${dims} ${className} relative shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 shadow-lg`}>
+        <Image
+          src={src}
+          alt={name || `User ${userId}`}
+          fill
+          sizes="64px"
+          unoptimized
+          className="object-cover"
+        />
+      </span>
     );
   }
 

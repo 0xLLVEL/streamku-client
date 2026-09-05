@@ -28,15 +28,21 @@ export function useSettingsForm() {
     if (state?.success && state.user) setUser(state.user as User);
   }, [state, setUser]);
 
+  const storedUsername = (user as unknown as { username?: string })?.username;
+  const storedNickname = user?.nickname;
+  const storedEmail = user?.email;
+  const storedLanguage = user?.preferences?.language;
+  const storedIncludeAdult = user?.preferences?.include_adult;
+
   useEffect(() => {
     if (user) {
-      setUsername((user as unknown as { username?: string })?.username ?? user.name ?? '');
+      setUsername(storedUsername ?? user.name ?? '');
       setNickname(user.nickname ?? '');
       setEmail(user.email ?? '');
       setLanguage(user.preferences?.language ?? 'en');
       setIncludeAdult(!!user.preferences?.include_adult);
     }
-  }, [user, (user as unknown as { username?: string })?.username, user?.nickname, user?.email, user?.preferences?.language, user?.preferences?.include_adult]);
+  }, [user, storedUsername, storedNickname, storedEmail, storedLanguage, storedIncludeAdult]);
 
   useEffect(() => {
     if (state?.success) {

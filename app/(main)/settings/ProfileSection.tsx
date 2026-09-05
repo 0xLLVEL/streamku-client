@@ -1,6 +1,7 @@
 'use client';
 
 import type { RefObject } from 'react';
+import Image from 'next/image';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Button } from '@/components/ui/Button';
@@ -21,9 +22,8 @@ export function ProfileSection({ ref: fileRef, ...p }: Props) {
       <div className="p-6 md:p-8 space-y-8">
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="flex flex-row sm:flex-col items-center gap-4 sm:gap-3 sm:w-[160px] shrink-0">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-muted border border-border flex items-center justify-center text-foreground font-bold text-xl shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {p.avatarPreview ? <img src={p.avatarPreview} alt={`${p.nickname || p.username} avatar preview`} className="w-full h-full object-cover" /> : display.charAt(0).toUpperCase()}
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-muted border border-border flex items-center justify-center text-foreground font-bold text-xl shrink-0">
+              {p.avatarPreview ? <Image src={p.avatarPreview} alt={`${p.nickname || p.username} avatar preview`} fill sizes="96px" unoptimized className="object-cover" /> : display.charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col gap-2 items-start sm:items-center">
               <input ref={fileRef} type="file" name="avatar" accept="image/*" className="hidden" onChange={(e) => p.setAvatarFile(e.target.files?.[0] ?? null)} aria-label="Upload avatar image" />
@@ -34,8 +34,8 @@ export function ProfileSection({ ref: fileRef, ...p }: Props) {
           </div>
           <div className="flex-1 min-w-0 space-y-1">
             <div className="rounded-xl border border-border bg-muted/30 p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full overflow-hidden bg-muted border border-border flex items-center justify-center text-foreground font-semibold text-sm shrink-0">
-                {p.avatarPreview ? <img src={p.avatarPreview} alt="" className="w-full h-full object-cover" aria-hidden /> : display.charAt(0).toUpperCase()}
+              <div className="relative w-9 h-9 rounded-full overflow-hidden bg-muted border border-border flex items-center justify-center text-foreground font-semibold text-sm shrink-0">
+                {p.avatarPreview ? <Image src={p.avatarPreview} alt="" fill sizes="36px" unoptimized className="object-cover" aria-hidden /> : display.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">{p.nickname || p.username || 'Your display name'}</p>

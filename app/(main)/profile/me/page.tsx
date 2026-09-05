@@ -1,5 +1,6 @@
 import { fetchApi } from '@/lib/api.utils';
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import type { MediaListItem, ProfileUser } from '../profile-types';
 import { LibraryTabs } from '@/components/library/LibraryTabs';
@@ -63,8 +64,8 @@ export default async function MePage() {
       <div className="max-w-[1600px] mx-auto px-4 md:px-12 lg:px-24">
         {/* Profile header — overlaps banner */}
         <div className="-mt-16 md:-mt-20 flex flex-col md:flex-row md:items-end gap-6 mb-10">
-          <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-4xl md:text-5xl shadow-2xl shrink-0 border-4 border-[#0a0a0a] ring-1 ring-white/10">
-            {user.avatar ? <img src={avatarUrl(user.avatar) ?? ''} alt={`${user.name} avatar`} className="w-full h-full object-cover" /> : ((user.nickname || user.name) ?? 'U').charAt(0).toUpperCase()}
+          <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white font-bold text-4xl md:text-5xl shadow-2xl shrink-0 border-4 border-[#0a0a0a] ring-1 ring-white/10">
+            {user.avatar ? <Image src={avatarUrl(user.avatar) ?? ''} alt={`${user.name} avatar`} fill sizes="144px" unoptimized className="object-cover" /> : ((user.nickname || user.name) ?? 'U').charAt(0).toUpperCase()}
           </div>
 
           <div className="flex-1 min-w-0 pb-1">
